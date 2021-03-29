@@ -1,0 +1,7 @@
+#Ignore extensionless files
+*
+!/**/
+!*.*
+
+#Except Makefile
+!Makefile
