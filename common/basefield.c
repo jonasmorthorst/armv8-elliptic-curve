@@ -3,12 +3,22 @@
 #include "basefield.h"
 #include "utils.h"
 
-void bf_print_elem_expr(poly64x2_t p) {
+/** 
+ * basefield.c
+ * 
+ * Implementation of arithmetic for the basefield F_{2^127}.
+ * The field elements have a little endian representation, 
+ * meaning the least significant word has the lowest index.
+ */ 
+ 
+#define pow2to63 9223372036854775808U
+
+void bf_print_expr(poly64x2_t p) {
 	poly64_t c;
 	int wasFirst = 1;
 	for (int i=1; i>=0; i--) {
 		// 2^63 = the value of the leftmost bit in a word
-		c = 9223372036854775808U;
+		c = pow2to63;
 		for (int j = 63; j>=0; j--) {
 			poly64_t polybitcopy = c & p[i];
 			if (polybitcopy == c) {
@@ -33,14 +43,18 @@ void bf_print_elem_expr(poly64x2_t p) {
 	printf("\n");
 }
 
+void bf_print_hex(poly64x2_t p) {
+	printf("%016lx%016lx\n", p[1], p[0]);
+}
+
 poly64x2_t bf_rand_elem() { 
 	// 2^63-1 = 01111111...
-	long c = 9223372036854775807;
+	long c = pow2to63-1;
 	
-	poly64_t p1 = rand_uint64();
-	poly64_t p2 = rand_uint64() & c;
+	poly64_t p0 = rand_uint64();
+	poly64_t p1 = rand_uint64() & c;
 	
-	poly64x2_t p = {p1, p2};
+	poly64x2_t p = {p0, p1};
 	
 	return p;
 }
@@ -59,4 +73,95 @@ pmullres bf_pmull32(poly64x2_t a, poly64x2_t b) {
 	r.p1[0] = (poly64_t) veor_u64((uint64x1_t) r.p1[0], (uint64x1_t) t[1]);
 	
 	return r;
+}
+
+/* Alg 2.40 - Modular reduction (one bit at a time) */
+
+int has_reduction_precomputed = 0;
+
+poly64x2_t reduction_polynomials[64];
+
+void bf_red_generic_precomp() {
+	if(has_reduction_precomputed) {
+		return;
+	}
+	has_reduction_precomputed = 1;
+	reduction_polynomials[0][0] = pow2to63+1;
+	reduction_polynomials[0][1] = 0;
+	for(int i = 1; i < 64; i++) {
+		reduction_polynomials[i][0] = reduction_polynomials[i-1][0] << 1;
+		reduction_polynomials[i][1] = reduction_polynomials[i-1][1] << 1;
+		if(i==1) {
+			reduction_polynomials[i][1]++;
+		}
+	}
+}
+
+poly64x2_t bf_red_generic(pmullres c) {
+	/* Step 1 */
+	bf_red_generic_precomp();
+	
+	/* Step 2 */
+	uint64_t digit_val = pow2to63 / 8;
+	int index = 1;
+	for(int digit = 252; digit >= 128; digit--) {
+		/* Step 2.1 */
+		if((c.p1[index] & digit_val) == digit_val) {
+			int j = (digit - 127)/64; //Can be 0 or 1
+			int k = (digit - 127) - 64*j;
+			if(j == 1) {
+				c.p0[1] = (poly64_t) veor_u64((uint64x1_t) reduction_polynomials[k][0], (uint64x1_t) c.p0[1]);
+				c.p1[0] = (poly64_t) veor_u64((uint64x1_t) reduction_polynomials[k][1], (uint64x1_t) c.p1[0]);
+			} else {
+				c.p0 = bf_add(reduction_polynomials[k], c.p0);
+			}
+		}
+		
+		if(digit % 64 == 0) {
+			digit_val = pow2to63;
+			index--;
+		} else {
+			digit_val /= 2;
+		}
+	}
+	if((c.p0[1] & pow2to63) == pow2to63) {
+		c.p0[0] = reduction_polynomials[0][0] ^ c.p0[0];
+		c.p0[1] &= pow2to63 - 1;
+	}
+	
+	return c.p0;
+}
+
+poly64x2_t bf_add(poly64x2_t a, poly64x2_t b) {
+	return (poly64x2_t) veorq_u64((uint64x2_t) a, (uint64x2_t) b);
+}
+
+pmullres bf_pmull(poly64x2_t a, poly64x2_t b) {
+	return bf_pmull32(a,b);
+}
+
+pmullres bf_psquare(poly64x2_t a) {
+	return bf_pmull(a, a);
+}
+
+poly64x2_t bf_red(pmullres c) {
+	return bf_red_generic(c);
+}
+
+//Simple and slow, compute a^(-1) as a^((2^127)-1).
+//Exploits the fact that 2^127 - 1 = 2^126 + 2^125 + ... + 2^1 + 1
+poly64x2_t fermat_inv(poly64x2_t a) {
+	poly64x2_t inv = {a[0], a[1]};
+	poly64x2_t power = {a[0], a[1]};
+	for(int i = 1; i < 127; i++) {
+		pmullres intermed = bf_psquare(power);
+		power = bf_red(intermed);
+		intermed = bf_pmull(inv, power);
+		inv = bf_red(intermed);
+	}
+	return inv;
+}
+
+poly64x2_t bf_inv(poly64x2_t a) {
+	return fermat_inv(a);
 }

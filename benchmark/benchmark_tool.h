@@ -5,8 +5,6 @@
 
 uint64_t read_pmccntr();
 
-void benchmark();
-
-void insert_sorted(uint64_t time, uint64_t sorted_times[], uint64_t curr_len);
+void insert_sorted(uint64_t time, uint64_t *sorted_times, uint64_t curr_len);
 
 #endif
