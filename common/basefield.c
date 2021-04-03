@@ -44,7 +44,7 @@ void bf_print_expr(poly64x2_t p) {
 }
 
 void bf_print_hex(poly64x2_t p) {
-	printf("%016lx%016lx\n", p[1], p[0]);
+	printf("%016lx||%016lx\n", p[1], p[0]);
 }
 
 poly64x2_t bf_rand_elem() { 
@@ -59,9 +59,9 @@ poly64x2_t bf_rand_elem() {
 	return p;
 }
 
-pmullres bf_pmull32(poly64x2_t a, poly64x2_t b) {
+bf_polyx2 bf_pmull32(poly64x2_t a, poly64x2_t b) {
 	poly64x2_t t = {0,0};
-	pmullres r;
+	bf_polyx2 r;
 	r.p0 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], b[0]));
 	r.p1 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[1], b[1]));
 	t[1] = (poly64_t) veor_u64((uint64x1_t) b[0], (uint64x1_t) b[1]);
@@ -97,7 +97,7 @@ void bf_red_generic_precomp() {
 	}
 }
 
-poly64x2_t bf_red_generic(pmullres c) {
+poly64x2_t bf_red_generic(bf_polyx2 c) {
 	/* Step 1 */
 	bf_red_generic_precomp();
 	
@@ -136,28 +136,27 @@ poly64x2_t bf_add(poly64x2_t a, poly64x2_t b) {
 	return (poly64x2_t) veorq_u64((uint64x2_t) a, (uint64x2_t) b);
 }
 
-pmullres bf_pmull(poly64x2_t a, poly64x2_t b) {
+bf_polyx2 bf_pmull(poly64x2_t a, poly64x2_t b) {
 	return bf_pmull32(a,b);
 }
 
-pmullres bf_psquare(poly64x2_t a) {
+bf_polyx2 bf_psquare(poly64x2_t a) {
 	return bf_pmull(a, a);
 }
 
-poly64x2_t bf_red(pmullres c) {
+poly64x2_t bf_red(bf_polyx2 c) {
 	return bf_red_generic(c);
 }
 
-//Simple and slow, compute a^(-1) as a^((2^127)-1).
-//Exploits the fact that 2^127 - 1 = 2^126 + 2^125 + ... + 2^1 + 1
+//Simple and slow, compute a^(-1) as a^((2^127)-2).
+//Exploits the fact that 2^127 - 1 = 2^126 + 2^125 + ... + 2^1 + 1,
+//hence a^-1 = a^(2^126)*...*a^(2^3)*a^(2^2)*a^2:
 poly64x2_t fermat_inv(poly64x2_t a) {
-	poly64x2_t inv = {a[0], a[1]};
+	poly64x2_t inv = {1, 0};
 	poly64x2_t power = {a[0], a[1]};
-	for(int i = 1; i < 127; i++) {
-		pmullres intermed = bf_psquare(power);
-		power = bf_red(intermed);
-		intermed = bf_pmull(inv, power);
-		inv = bf_red(intermed);
+	for(int i = 0; i < 126; i++) {
+		power = bf_red(bf_psquare(power));
+		inv = bf_red(bf_pmull(inv, power));
 	}
 	return inv;
 }

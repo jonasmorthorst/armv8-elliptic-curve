@@ -7,9 +7,11 @@ void compare_doubles_test_equal(test_ctr *ctr) {
 	double b = 9.3;
 	double errmargin = 0.0000001;
 	
-	//Act & Assert
+	//Act
 	uint64_t are_equal = compare_doubles(a, b, errmargin) == 0;
-	assert_true(are_equal, ctr, "util: compare_doubles_test_equal FAILED");
+	
+	//Assert
+	assert_true(are_equal, ctr, "utils: compare_doubles_test_equal FAILED");
 }
 
 void compare_doubles_test_approxequal(test_ctr *ctr) {
@@ -18,9 +20,11 @@ void compare_doubles_test_approxequal(test_ctr *ctr) {
 	double b = -9.30000001;
 	double errmargin = 0.0000001;
 	
-	//Act & Assert
+	//Act
 	uint64_t are_equal = compare_doubles(a, b, errmargin) == 0;
-	assert_true(are_equal, ctr, "util: compare_doubles_test_approxequal FAILED");
+	
+	//Assert
+	assert_true(are_equal, ctr, "utils: compare_doubles_test_approxequal FAILED");
 }
 
 void compare_doubles_test_notequal(test_ctr *ctr) {
@@ -31,7 +35,7 @@ void compare_doubles_test_notequal(test_ctr *ctr) {
 	
 	//Act & Assert
 	uint64_t are_equal = compare_doubles(a, b, errmargin) == 0;
-	assert_false(are_equal, ctr, "util: compare_doubles_test_notequal FAILED");
+	assert_false(are_equal, ctr, "utils: compare_doubles_test_notequal FAILED");
 }
 
 void compare_doubles_test_lessthan(test_ctr *ctr) {
@@ -40,9 +44,11 @@ void compare_doubles_test_lessthan(test_ctr *ctr) {
 	double b = 9.3000002;
 	double errmargin = 0.0000001;
 	
-	//Act & Assert
+	//Act
 	uint64_t b_greater = compare_doubles(a, b, errmargin) == -1;
-	assert_true(b_greater, ctr, "util: compare_doubles_test_lessthan FAILED");
+	
+	//Assert
+	assert_true(b_greater, ctr, "utils: compare_doubles_test_lessthan FAILED");
 }
 
 void compare_doubles_test_greaterthan(test_ctr *ctr) {
@@ -51,9 +57,88 @@ void compare_doubles_test_greaterthan(test_ctr *ctr) {
 	double b = -13.111112;
 	double errmargin = 0.0000001;
 	
-	//Act & Assert
+	//Act
 	uint64_t a_greater = compare_doubles(a, b, errmargin) == 1;
-	assert_true(a_greater, ctr, "util: compare_doubles_test_greaterthan FAILED");
+	
+	//Assert
+	assert_true(a_greater, ctr, "utils: compare_doubles_test_greaterthan FAILED");
+}
+
+void equal_poly64x2_test_equal(test_ctr *ctr) {
+	//Arrange
+	poly64x2_t a = {123, 45678910};
+	poly64x2_t b = {123, 45678910};
+	
+	//Act
+	uint64_t equal = equal_poly64x2(a, b);
+	
+	//Assert
+	assert_true(equal, ctr, "utils: equal_poly64x2_test_equal FAILED");
+}
+
+void equal_poly64x2_test_notequal(test_ctr *ctr) {
+	//Arrange
+	poly64x2_t a = {123, 45678910};
+	poly64x2_t b = {123, 45688910};
+	
+	//Act
+	uint64_t equal = equal_poly64x2(a, b);
+	
+	//Assert
+	assert_false(equal, ctr, "utils: equal_poly64x2_test_notequal FAILED");
+}
+
+void equal_bf_polyx2_test_equal(test_ctr *ctr) {
+	//Arrange
+	bf_polyx2 a;
+	poly64x2_t a0 = {8594687, 97466431};
+	poly64x2_t a1 = {93651237, 10389541};
+	a.p0 = a0;
+	a.p1 = a1;
+	bf_polyx2 b;
+	poly64x2_t b0 = {8594687, 97466431};
+	poly64x2_t b1 = {93651237, 10389541};
+	b.p0 = b0;
+	b.p1 = b1;
+	
+	//Act
+	uint64_t equal = equal_bf_polyx2(a, b);
+	
+	//Assert
+	assert_true(equal, ctr, "utils: equal_bf_polyx2_test_equal FAILED");
+}
+
+void equal_bf_polyx2_test_notequal(test_ctr *ctr) {
+	//Arrange
+	bf_polyx2 a;
+	poly64x2_t a0 = {8594687, 97466431};
+	poly64x2_t a1 = {93651237, 10389541};
+	a.p0 = a0;
+	a.p1 = a1;
+	bf_polyx2 b;
+	poly64x2_t b0 = {8594686, 97466431};
+	poly64x2_t b1 = {93651237, 10389541};
+	b.p0 = b0;
+	b.p1 = b1;
+	
+	//Act
+	uint64_t equal = equal_bf_polyx2(a, b);
+	
+	//Assert
+	assert_false(equal, ctr, "utils: equal_bf_polyx2_test_notequal FAILED");
+}
+
+void concat_bf_poly_test(test_ctr *ctr) {
+	//Arrange
+	poly64x2_t a0 = {76194397641, 9487521};
+	poly64x2_t a1 = {333666999, 71421283542};
+	
+	//Act
+	bf_polyx2 a = concat_bf_poly(a0, a1);
+	
+	//Assert
+	uint64_t equal = equal_poly64x2(a.p0, a0) && equal_poly64x2(a.p1, a1);
+	assert_true(equal, ctr, "utils: concat_bf_poly_test FAILED");
 }
 
 void average_test(test_ctr *ctr) {
@@ -67,7 +152,7 @@ void average_test(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t in_err_interval = compare_doubles(expected, actual, errmargin) == 0;
-	assert_true(in_err_interval, ctr, "util: average_test FAILED");
+	assert_true(in_err_interval, ctr, "utils: average_test FAILED");
 }
 
 void median_test_even(test_ctr *ctr) {
@@ -81,7 +166,7 @@ void median_test_even(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t in_err_interval = compare_doubles(expected, actual, errmargin) == 0;
-	assert_true(in_err_interval, ctr, "util: median_test_even FAILED");
+	assert_true(in_err_interval, ctr, "utils: median_test_even FAILED");
 }
 
 void median_test_odd(test_ctr *ctr) {
@@ -95,7 +180,7 @@ void median_test_odd(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t in_err_interval = compare_doubles(expected, actual, errmargin) == 0;
-	assert_true(in_err_interval, ctr, "util: median_test_odd FAILED");
+	assert_true(in_err_interval, ctr, "utils: median_test_odd FAILED");
 }
 
 void util_tests(test_ctr *ctr) {
@@ -104,6 +189,11 @@ void util_tests(test_ctr *ctr) {
 	compare_doubles_test_notequal(ctr);
 	compare_doubles_test_lessthan(ctr);
 	compare_doubles_test_greaterthan(ctr);
+	equal_poly64x2_test_equal(ctr);
+	equal_poly64x2_test_notequal(ctr);
+	equal_bf_polyx2_test_equal(ctr);
+	equal_bf_polyx2_test_notequal(ctr);
+	concat_bf_poly_test(ctr);
 	average_test(ctr);
 	median_test_even(ctr);
 	median_test_odd(ctr);
