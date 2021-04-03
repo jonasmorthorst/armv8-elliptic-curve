@@ -144,8 +144,32 @@ bf_polyx2 bf_psquare(poly64x2_t a) {
 	return bf_pmull(a, a);
 }
 
+//For future ref: vshlq_n_u64 doesn't carry from uint64x2_t[0] to [1]
+poly64x2_t bf_red_formula(bf_polyx2 c) {
+	poly64x2_t result = {0, 0};
+	uint64_t bit127set = (c.p0[1] & pow2to63) == pow2to63;
+	uint64_t bit191set = (c.p1[0] & pow2to63) == pow2to63;
+	
+	poly64x2_t term0to126 = {c.p0[0], c.p0[1] & (pow2to63 - 1)};
+	result = bf_add(term0to126, result);
+	
+	poly64x2_t term252to127_rshift127 = {(c.p1[0] << 1) + bit127set, (c.p1[1] << 1) + bit191set};
+	result = bf_add(term252to127_rshift127, result);
+	
+	poly64x2_t term190to127_rshift64 = {pow2to63*bit127set, c.p1[0] & (pow2to63 - 1)};
+	result = bf_add(term190to127_rshift64, result);
+	
+	poly64x2_t term252to191_rshift128 = {pow2to63*bit191set, c.p1[1]};
+	result = bf_add(term252to191_rshift128, result);
+	
+	poly64x2_t term252to191_rshift191 = {(c.p1[1] << 1) + bit191set, 0};
+	result = bf_add(term252to191_rshift191, result);
+	
+	return result;
+}
+
 poly64x2_t bf_red(bf_polyx2 c) {
-	return bf_red_generic(c);
+	return bf_red_formula(c);
 }
 
 //Simple and slow, compute a^(-1) as a^((2^127)-2).

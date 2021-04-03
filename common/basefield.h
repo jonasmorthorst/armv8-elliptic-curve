@@ -31,6 +31,8 @@ bf_polyx2 bf_pmull32(poly64x2_t a, poly64x2_t b);
 
 poly64x2_t bf_red_generic(bf_polyx2 c);
 
+poly64x2_t bf_red_formula(bf_polyx2 c);
+
 poly64x2_t fermat_inv(poly64x2_t a);
 
 #endif
