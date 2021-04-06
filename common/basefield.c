@@ -172,6 +172,31 @@ poly64x2_t bf_red(bf_polyx2 c) {
 	return bf_red_formula(c);
 }
 
+//Carry shift is not needed here!! 191 bit is always 0.
+poly64x2_t bf_red_psquare_formula(bf_polyx2 c) {
+	poly64x2_t result = {0, 0};
+	
+	result = bf_add(c.p0, result);
+	
+	poly64x2_t term255to128_rshift127 = {c.p1[0] << 1, c.p1[1] << 1};
+	result = bf_add(term255to128_rshift127, result);
+	
+	poly64x2_t term191to128_rshift64 = {0, c.p1[0]};
+	result = bf_add(term191to128_rshift64, result);
+	
+	poly64x2_t term255to192_rshift128 = {0, c.p1[1]};
+	result = bf_add(term255to192_rshift128, result);
+	
+	poly64x2_t term255to192_rshift191 = {c.p1[1] << 1, 0};
+	result = bf_add(term255to192_rshift191, result);
+	
+	return result;
+}
+
+poly64x2_t bf_red_psquare(bf_polyx2 c) {
+	return bf_red_psquare_formula(c);
+}
+
 //Simple and slow, compute a^(-1) as a^((2^127)-2).
 //Exploits the fact that 2^127 - 1 = 2^126 + 2^125 + ... + 2^1 + 1,
 //hence a^-1 = a^(2^126)*...*a^(2^3)*a^(2^2)*a^2:

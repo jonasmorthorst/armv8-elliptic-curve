@@ -20,7 +20,7 @@ void bf_add_test_example(test_ctr *ctr) {
 	assert_true(equal, ctr, "basefield: bf_add_test_example FAILED");
 }
 
-void bf_add_doubling_is_zero(test_ctr *ctr) {
+void bf_add_test_doubling_is_zero(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {638540023, 896234759148761U};
 	poly64x2_t zero = {0,0};
@@ -33,7 +33,7 @@ void bf_add_doubling_is_zero(test_ctr *ctr) {
 	assert_true(is_zero, ctr, "basefield: bf_add_doubling_is_zero FAILED");
 }
 
-void bf_add_zero_is_identity(test_ctr *ctr) {
+void bf_add_test_zero_is_identity(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {129548752, 8236754276};
 	poly64x2_t zero = {0,0};
@@ -46,7 +46,7 @@ void bf_add_zero_is_identity(test_ctr *ctr) {
 	assert_true(is_identity, ctr, "basefield: bf_add_zero_is_identity FAILED");
 }
 
-void bf_add_associative(test_ctr *ctr) {
+void bf_add_test_associative(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {65192411524789, 444469420};
 	poly64x2_t b = {3217681, 39129758209432};
@@ -58,10 +58,10 @@ void bf_add_associative(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t is_associative = equal_poly64x2(abfirst, bcfirst);
-	assert_true(is_associative, ctr, "basefield: bf_add_associative FAILED");
+	assert_true(is_associative, ctr, "basefield: bf_add_test_associative FAILED");
 }
 
-void bf_add_commutative(test_ctr *ctr) {
+void bf_add_test_commutative(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {735761, 109136400836};
 	poly64x2_t b = {5520459140631, 456059133};
@@ -72,10 +72,10 @@ void bf_add_commutative(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t is_commutative = equal_poly64x2(a_plus_b, b_plus_a);
-	assert_true(is_commutative, ctr, "basefield: bf_add_commutative FAILED");
+	assert_true(is_commutative, ctr, "basefield: bf_add_test_commutative FAILED");
 }
 
-void bf_pmull_example(test_ctr *ctr) {
+void bf_pmull_test_example(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {1152921504606849024, 72057594037927936}; //z^120 + z^60 + z^11
 	poly64x2_t b = {281474976714755, 70368744177664}; //z^110 + z^48 + z^12 + z + 1
@@ -89,10 +89,10 @@ void bf_pmull_example(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_bf_polyx2(expected, actual);
-	assert_true(correct, ctr, "basefield: bf_pmull_example FAILED");
+	assert_true(correct, ctr, "basefield: bf_pmull_test_example FAILED");
 }
 
-void bf_pmull_associative(test_ctr *ctr) {
+void bf_pmull_test_associative(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {98314422310010283, 87159124330183471};
 	poly64x2_t b = {3310980040412344311, 1120087461344321001};
@@ -106,10 +106,10 @@ void bf_pmull_associative(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t equal = equal_poly64x2(ab_times_c, a_times_bc);
-	assert_true(equal, ctr, "basefield: bf_pmull_associative FAILED");
+	assert_true(equal, ctr, "basefield: bf_pmull_test_associative FAILED");
 }
 
-void bf_pmull_associative_rnd(test_ctr *ctr) {
+void bf_pmull_test_associative_rnd(test_ctr *ctr) {
 	uint64_t correct = 1;
 	
 	for(int i = 0; i < 10; i++) {
@@ -134,10 +134,10 @@ void bf_pmull_associative_rnd(test_ctr *ctr) {
 			break;
 		}
 	}
-	assert_true(correct, ctr, "basefield: bf_pmull_associative_rnd FAILED");
+	assert_true(correct, ctr, "basefield: bf_pmull_test_associative_rnd FAILED");
 }
 
-void bf_pmull_commutative(test_ctr *ctr) {
+void bf_pmull_test_commutative(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {8, 549755817984}; //z^103 + z^76 + z^3
 	poly64x2_t b = {2251799813685248, 16777216}; //z^89 + z^51 
@@ -149,10 +149,10 @@ void bf_pmull_commutative(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_bf_polyx2(ab, ba);
-	assert_true(correct, ctr, "basefield: bf_pmull_commutative FAILED");
+	assert_true(correct, ctr, "basefield: bf_pmull_test_commutative FAILED");
 }
 
-void bf_pmull_commutative_rnd(test_ctr *ctr) {
+void bf_pmull_test_commutative_rnd(test_ctr *ctr) {
 	uint64_t correct = 1;
 	
 	for(int i = 0; i < 10; i++) {
@@ -174,10 +174,10 @@ void bf_pmull_commutative_rnd(test_ctr *ctr) {
 			break;
 		}
 	}
-	assert_true(correct, ctr, "basefield: bf_pmull_commutative_rnd FAILED");
+	assert_true(correct, ctr, "basefield: bf_pmull_test_commutative_rnd FAILED");
 }
 
-void bf_pmull_one_is_identity(test_ctr *ctr) {
+void bf_pmull_test_one_is_identity(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {2251799813685248, 16777216}; //z^89 + z^51
 	poly64x2_t one = {1,0};
@@ -189,10 +189,10 @@ void bf_pmull_one_is_identity(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_bf_polyx2(res, a_extended);
-	assert_true(correct, ctr, "basefield: bf_pmull_one_is_identity FAILED");
+	assert_true(correct, ctr, "basefield: bf_pmull_test_one_is_identity FAILED");
 }
 
-void bf_pmull_zero_is_zero(test_ctr *ctr) {
+void bf_pmull_test_zero_is_zero(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {8, 549755817984}; //z^103 + z^76 + z^3
 	poly64x2_t zero = {0,0};
@@ -203,10 +203,10 @@ void bf_pmull_zero_is_zero(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_bf_polyx2(res, zero_extended);
-	assert_true(correct, ctr, "basefield: bf_pmull_zero_is_zero FAILED");
+	assert_true(correct, ctr, "basefield: bf_pmull_test_zero_is_zero FAILED");
 }
 
-void bf_psquare_example(test_ctr *ctr) {
+void bf_psquare_test_example(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {8, 4611686018460942336}; //z^126 + z^89 + z^3
 	
@@ -219,10 +219,10 @@ void bf_psquare_example(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_bf_polyx2(expected, actual);
-	assert_true(correct, ctr, "basefield: bf_psquare_example FAILED");
+	assert_true(correct, ctr, "basefield: bf_psquare_test_example FAILED");
 }
 
-void bf_psquare_one_is_one(test_ctr *ctr) {
+void bf_psquare_test_one_is_one(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t one = {1, 0};
 	poly64x2_t zero = {0, 0};
@@ -233,10 +233,10 @@ void bf_psquare_one_is_one(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_bf_polyx2(result, one_extended);
-	assert_true(correct, ctr, "basefield: bf_psquare_one_is_one FAILED");
+	assert_true(correct, ctr, "basefield: bf_psquare_test_one_is_one FAILED");
 }
 
-void bf_psquare_zero_is_zero(test_ctr *ctr) {
+void bf_psquare_test_zero_is_zero(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t zero = {0, 0};
 	bf_polyx2 zero_extended = concat_bf_poly(zero, zero);
@@ -246,10 +246,10 @@ void bf_psquare_zero_is_zero(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_bf_polyx2(result, zero_extended);
-	assert_true(correct, ctr, "basefield: bf_psquare_zero_is_zero FAILED");
+	assert_true(correct, ctr, "basefield: bf_psquare_test_zero_is_zero FAILED");
 }
 
-void bf_psquare_crosscheck_pmull(test_ctr *ctr) {
+void bf_psquare_test_crosscheck_pmull(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {8796093087744, 36028797018963968}; //z^119 + z^43 + z^16
 	
@@ -259,10 +259,10 @@ void bf_psquare_crosscheck_pmull(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t equal = equal_bf_polyx2(result_psquare, result_pmull);
-	assert_true(equal, ctr, "basefield: bf_psquare_crosscheck_pmull FAILED");
+	assert_true(equal, ctr, "basefield: bf_psquare_test_crosscheck_pmull FAILED");
 }
 
-void bf_psquare_freshmans_dream(test_ctr *ctr) {
+void bf_psquare_test_freshmans_dream(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {8796093087744, 36028797018963968}; //z^119 + z^43 + z^16
 	poly64x2_t b = {4194308, 128}; //z^71 + z^22 + z^2
@@ -275,10 +275,10 @@ void bf_psquare_freshmans_dream(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t equal = equal_bf_polyx2(apow2_plus_bpow2, aplusb_pow2);
-	assert_true(equal, ctr, "basefield: bf_psquare_freshmans_dream FAILED"); 
+	assert_true(equal, ctr, "basefield: bf_psquare_test_freshmans_dream FAILED"); 
 }
 
-void bf_psquare_freshmans_dream_rnd(test_ctr *ctr) {
+void bf_psquare_test_freshmans_dream_rnd(test_ctr *ctr) {
 	uint64_t correct = 1;
 	
 	for(int i = 0; i < 10; i++) {
@@ -302,10 +302,10 @@ void bf_psquare_freshmans_dream_rnd(test_ctr *ctr) {
 			break;
 		}
 	}
-	assert_true(correct, ctr, "basefield: bf_psquare_freshmans_dream_rnd FAILED");
+	assert_true(correct, ctr, "basefield: bf_psquare_test_freshmans_dream_rnd FAILED");
 }
 
-void bf_red_example_twowords(test_ctr *ctr) {
+void bf_red_test_example_twowords(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a0 = {36028797018963969, 13835058055282163712U};
 	poly64x2_t zero = {0,0};
@@ -317,10 +317,10 @@ void bf_red_example_twowords(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_poly64x2(expected, actual);
-	assert_true(correct, ctr, "basefield: bf_red_example_twowords FAILED");
+	assert_true(correct, ctr, "basefield: bf_red_test_example_twowords FAILED");
 }
 
-void bf_red_example_threewords(test_ctr *ctr) {
+void bf_red_test_example_threewords(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a0 = {36028797018963969, 4611686018427387904U};
 	poly64x2_t a1 = {2199023255554,0};
@@ -333,10 +333,10 @@ void bf_red_example_threewords(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_poly64x2(expected, actual);
-	assert_true(correct, ctr, "basefield: bf_red_example_threewords FAILED");
+	assert_true(correct, ctr, "basefield: bf_red_test_example_threewords FAILED");
 }
 
-void bf_red_example_fourwords(test_ctr *ctr) {
+void bf_red_test_example_fourwords(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a0 = {1, 0};
 	poly64x2_t a1 = {0, 1152921504606847040U};
@@ -349,10 +349,10 @@ void bf_red_example_fourwords(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_poly64x2(expected, actual);
-	assert_true(correct, ctr, "basefield: bf_red_example_fourwords FAILED");
+	assert_true(correct, ctr, "basefield: bf_red_test_example_fourwords FAILED");
 }
 
-void bf_red_not_modifying_when_already_reduced(test_ctr *ctr) {
+void bf_red_test_not_modifying_when_already_reduced(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {9223372036854775810U, 4611686018427387904U}; //z^126 + z^63 + z
 	poly64x2_t zero = {0,0};
@@ -363,10 +363,10 @@ void bf_red_not_modifying_when_already_reduced(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t unchanged = equal_poly64x2(result, a);
-	assert_true(unchanged, ctr, "basefield: bf_red_not_modifying_when_already_reduced FAILED");
+	assert_true(unchanged, ctr, "basefield: bf_red_test_not_modifying_when_already_reduced FAILED");
 }
 
-void bf_red_reduction_polynomial_reduces_to_zero(test_ctr *ctr) {
+void bf_red_test_reduction_polynomial_reduces_to_zero(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t f = {9223372036854775809U, 9223372036854775808U}; //z^127 + z^63 + 1
 	poly64x2_t zero = {0,0};
@@ -377,10 +377,91 @@ void bf_red_reduction_polynomial_reduces_to_zero(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t iszero = equal_poly64x2(result, zero);
-	assert_true(iszero, ctr, "basefield: bf_red_reduction_polynomial_reduces_to_zero FAILED");
+	assert_true(iszero, ctr, "basefield: bf_red_test_reduction_polynomial_reduces_to_zero FAILED");
 }
 
-void bf_inv_example(test_ctr *ctr) {
+void bf_red_psquare_test_example_threewords(test_ctr *ctr) {
+	//Arrange
+	poly64x2_t a0 = {4, 4611686018427387904};
+	poly64x2_t a1 = {4611686018427387905, 0};
+	bf_polyx2 a = concat_bf_poly(a0, a1); // z^190 + z^128 + z^126 + z^2
+	poly64x2_t expected = {9223372036854775814U, 1}; // z^64 + z^63 + z^2 + z
+	
+	//Act
+	poly64x2_t actual = bf_red_psquare(a);
+	
+	//Assert
+	uint64_t correct = equal_poly64x2(expected, actual);
+	assert_true(correct, ctr, "basefield: bf_red_psquare_test_example_threewords FAILED");
+}
+
+void bf_red_psquare_test_example_fourwords(test_ctr *ctr) {
+	//Arrange
+	poly64x2_t a0 = {16, 0};
+	poly64x2_t a1 = {0, 1152921504606846976};
+	bf_polyx2 a = concat_bf_poly(a0, a1); //z^252 + z^4
+	poly64x2_t expected = {2305843009213693968, 3458764513820540928}; //z^125 + z^124 + z^61 + z^4
+	
+	//Act
+	poly64x2_t actual = bf_red_psquare(a);
+	
+	//Assert
+	uint64_t correct = equal_poly64x2(expected, actual);
+	assert_true(correct, ctr, "basefield: bf_red_psquare_test_example_fourwords FAILED");
+}
+
+void bf_red_psquare_test_not_modifying_when_already_reduced(test_ctr *ctr) {
+	//Arrange
+	poly64x2_t a = {9223372036854775810U, 4611686018427387904U}; //z^126 + z^63 + z
+	poly64x2_t zero = {0,0};
+	bf_polyx2 a_extended = concat_bf_poly(a, zero); 
+	
+	//Act
+	poly64x2_t result = bf_red_psquare(a_extended);
+	
+	//Assert
+	uint64_t unchanged = equal_poly64x2(result, a);
+	assert_true(unchanged, ctr, "basefield: bf_red_psquare_test_not_modifying_when_already_reduced FAILED");
+}
+
+void bf_red_psquare_test_crosscheck_red(test_ctr *ctr) {
+	//Arrange
+	poly64x2_t a0 = {1, 1};
+	poly64x2_t a1 = {4611686018427387905, 288230376151711745};
+	bf_polyx2 a = concat_bf_poly(a0, a1); // z^250 + z^192 + z^190 + z^128 + z^64 + 1
+	
+	//Act
+	poly64x2_t a_red = bf_red(a);
+	poly64x2_t a_red_psquare = bf_red_psquare(a);
+	
+	//Assert
+	uint64_t equal = equal_poly64x2(a_red, a_red_psquare);
+	assert_true(equal, ctr, "basefield: bf_red_psquare_test_crosscheck_red FAILED");
+}
+
+void bf_red_psquare_test_crosscheck_red_rnd(test_ctr *ctr) {
+	uint64_t correct = 1;
+	for(int i = 0; i < 10; i++) {
+		//Arrange
+		poly64x2_t a = bf_rand_elem();
+		bf_polyx2 a_squared = bf_psquare(a);
+		
+		//Act
+		poly64x2_t a_squared_red = bf_red(a_squared);
+		poly64x2_t a_squared_red_psquare = bf_red_psquare(a_squared);
+		
+		//Assert
+		correct &= equal_poly64x2(a_squared_red, a_squared_red_psquare);
+		if(!correct) {
+			printf("a: ");
+			bf_print_hex(a);
+			break;
+		}
+	}
+	assert_true(correct, ctr, "basefield: bf_red_psquare_test_crosscheck_red_rnd FAILED");
+}
+
+void bf_inv_test_example(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {0, 4611686018427387904U}; //z^126
 	poly64x2_t expected = {3, 1}; //z^64 + z + 1
@@ -390,10 +471,10 @@ void bf_inv_example(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_poly64x2(expected, actual);
-	assert_true(correct, ctr, "basefield: bf_inv_example FAILED");
+	assert_true(correct, ctr, "basefield: bf_inv_test_example FAILED");
 }
 
-void bf_inv_inverse_of_one_is_one(test_ctr *ctr) {
+void bf_inv_test_inverse_of_one_is_one(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t one = {1, 0};
 	
@@ -402,7 +483,7 @@ void bf_inv_inverse_of_one_is_one(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t equal = equal_poly64x2(one, oneinv);
-	assert_true(equal, ctr, "basefield: bf_inv_inverse_of_one_is_one FAILED");
+	assert_true(equal, ctr, "basefield: bf_inv_test_inverse_of_one_is_one FAILED");
 }
 
 void bf_inv_zero_outputs_zero(test_ctr *ctr) {
@@ -417,7 +498,7 @@ void bf_inv_zero_outputs_zero(test_ctr *ctr) {
 	assert_true(equal, ctr, "basefield: bf_inv_zero_outputs_zero FAILED");
 }
 
-void bf_inv_inverse_of_inverse_is_original(test_ctr *ctr) {
+void bf_inv_test_inverse_of_inverse_is_original(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {2233382993920, 68719477760}; //z^100 + z^74 + z^41 + z^35
 	
@@ -427,10 +508,10 @@ void bf_inv_inverse_of_inverse_is_original(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_poly64x2(a, ainvinv);
-	assert_true(correct, ctr, "basefield: bf_inv_inverse_of_inverse_is_original FAILED");
+	assert_true(correct, ctr, "basefield: bf_inv_test_inverse_of_inverse_is_original FAILED");
 }
 
-void bf_inv_inverse_of_inverse_is_original_rnd(test_ctr *ctr) {
+void bf_inv_test_inverse_of_inverse_is_original_rnd(test_ctr *ctr) {
 	uint64_t correct = 1;
 	for(int i = 0; i < 10; i++) {
 		//Arrange
@@ -448,10 +529,10 @@ void bf_inv_inverse_of_inverse_is_original_rnd(test_ctr *ctr) {
 			break;
 		}
 	}
-	assert_true(correct, ctr, "basefield: bf_inv_inverse_of_inverse_is_original_rnd FAILED");
+	assert_true(correct, ctr, "basefield: bf_inv_test_inverse_of_inverse_is_original_rnd FAILED");
 }
 
-void bf_inv_prod_of_inverses_is_inverse_of_prod(test_ctr *ctr) {
+void bf_inv_test_prod_of_inverses_is_inverse_of_prod(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {8, 549755817984}; //z^103 + z^76 + z^3
 	poly64x2_t b = {2251799813685248, 16777216}; //z^89 + z^51 
@@ -462,10 +543,10 @@ void bf_inv_prod_of_inverses_is_inverse_of_prod(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t correct = equal_poly64x2(inv_of_prod, prod_of_inverses);
-	assert_true(correct, ctr, "basefield: bf_inv_prod_of_inverses_is_inverse_of_prod FAILED");
+	assert_true(correct, ctr, "basefield: bf_inv_test_prod_of_inverses_is_inverse_of_prod FAILED");
 }
 
-void bf_inv_prod_of_inverses_is_inverse_of_prod_rnd(test_ctr *ctr) {
+void bf_inv_test_prod_of_inverses_is_inverse_of_prod_rnd(test_ctr *ctr) {
 	uint64_t correct = 1;
 	for(int i = 0; i < 10; i++) {
 		//Arrange
@@ -490,10 +571,10 @@ void bf_inv_prod_of_inverses_is_inverse_of_prod_rnd(test_ctr *ctr) {
 			bf_print_hex(b);
 		}
 	}
-	assert_true(correct, ctr, "basefield: bf_inv_prod_of_inverses_is_inverse_of_prod_rnd FAILED");
+	assert_true(correct, ctr, "basefield: bf_inv_test_prod_of_inverses_is_inverse_of_prod_rnd FAILED");
 }
 
-void bf_inv_prod_with_inv_is_one(test_ctr *ctr) {
+void bf_inv_test_prod_with_inv_is_one(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {1125899940397057, 2305843077933172736U}; //z^125 + z^100 + z^75 + z^50 + z^25 + 1
 	poly64x2_t one = {1, 0};
@@ -504,10 +585,10 @@ void bf_inv_prod_with_inv_is_one(test_ctr *ctr) {
 	
 	//Assert
 	uint64_t is_one = equal_poly64x2(prod, one);
-	assert_true(is_one, ctr, "basefield: bf_inv_prod_with_inv_is_one FAILED");
+	assert_true(is_one, ctr, "basefield: bf_inv_test_prod_with_inv_is_one FAILED");
 }
 
-void bf_inv_prod_with_inv_is_one_rnd(test_ctr *ctr) {
+void bf_inv_test_prod_with_inv_is_one_rnd(test_ctr *ctr) {
 	uint64_t correct = 1;
 	for(int i = 0; i < 10; i++) {
 		//Arrange
@@ -531,44 +612,50 @@ void bf_inv_prod_with_inv_is_one_rnd(test_ctr *ctr) {
 			break;
 		}
 	}
-	assert_true(correct, ctr, "basefield: bf_inv_prod_with_inv_is_one_rnd FAILED");
+	assert_true(correct, ctr, "basefield: bf_inv_test_prod_with_inv_is_one_rnd FAILED");
 }
 
 void basefield_tests(test_ctr *ctr) {
 	bf_add_test_example(ctr);
-	bf_add_doubling_is_zero(ctr);
-	bf_add_zero_is_identity(ctr);
-	bf_add_associative(ctr);
-	bf_add_commutative(ctr);
+	bf_add_test_doubling_is_zero(ctr);
+	bf_add_test_zero_is_identity(ctr);
+	bf_add_test_associative(ctr);
+	bf_add_test_commutative(ctr);
 	
-	bf_pmull_example(ctr);
-	bf_pmull_associative(ctr);
-	bf_pmull_associative_rnd(ctr);
-	bf_pmull_commutative(ctr);
-	bf_pmull_commutative_rnd(ctr);
-	bf_pmull_one_is_identity(ctr);
-	bf_pmull_zero_is_zero(ctr);
+	bf_pmull_test_example(ctr);
+	bf_pmull_test_associative(ctr);
+	bf_pmull_test_associative_rnd(ctr);
+	bf_pmull_test_commutative(ctr);
+	bf_pmull_test_commutative_rnd(ctr);
+	bf_pmull_test_one_is_identity(ctr);
+	bf_pmull_test_zero_is_zero(ctr);
 	
-	bf_psquare_example(ctr);
-	bf_psquare_one_is_one(ctr);
-	bf_psquare_zero_is_zero(ctr);
-	bf_psquare_crosscheck_pmull(ctr);
-	bf_psquare_freshmans_dream(ctr);
-	bf_psquare_freshmans_dream_rnd(ctr);
+	bf_psquare_test_example(ctr);
+	bf_psquare_test_one_is_one(ctr);
+	bf_psquare_test_zero_is_zero(ctr);
+	bf_psquare_test_crosscheck_pmull(ctr);
+	bf_psquare_test_freshmans_dream(ctr);
+	bf_psquare_test_freshmans_dream_rnd(ctr);
 	
-	bf_red_example_twowords(ctr);
-	bf_red_example_threewords(ctr);
-	bf_red_example_fourwords(ctr);
-	bf_red_not_modifying_when_already_reduced(ctr);
-	bf_red_reduction_polynomial_reduces_to_zero(ctr);
+	bf_red_test_example_twowords(ctr);
+	bf_red_test_example_threewords(ctr);
+	bf_red_test_example_fourwords(ctr);
+	bf_red_test_not_modifying_when_already_reduced(ctr);
+	bf_red_test_reduction_polynomial_reduces_to_zero(ctr);
 	
-	bf_inv_example(ctr);
-	bf_inv_inverse_of_one_is_one(ctr);
+	bf_red_psquare_test_example_threewords(ctr);
+	bf_red_psquare_test_example_fourwords(ctr);
+	bf_red_psquare_test_not_modifying_when_already_reduced(ctr);
+	bf_red_psquare_test_crosscheck_red(ctr);
+	bf_red_psquare_test_crosscheck_red_rnd(ctr);
+	
+	bf_inv_test_example(ctr);
+	bf_inv_test_inverse_of_one_is_one(ctr);
 	bf_inv_zero_outputs_zero(ctr);
-	bf_inv_inverse_of_inverse_is_original(ctr);
-	bf_inv_inverse_of_inverse_is_original_rnd(ctr);
-	bf_inv_prod_of_inverses_is_inverse_of_prod(ctr);
-	bf_inv_prod_of_inverses_is_inverse_of_prod_rnd(ctr);
-	bf_inv_prod_with_inv_is_one(ctr);
-	bf_inv_prod_with_inv_is_one_rnd(ctr);
+	bf_inv_test_inverse_of_inverse_is_original(ctr);
+	bf_inv_test_inverse_of_inverse_is_original_rnd(ctr);
+	bf_inv_test_prod_of_inverses_is_inverse_of_prod(ctr);
+	bf_inv_test_prod_of_inverses_is_inverse_of_prod_rnd(ctr);
+	bf_inv_test_prod_with_inv_is_one(ctr);
+	bf_inv_test_prod_with_inv_is_one_rnd(ctr);
 }

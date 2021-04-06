@@ -18,7 +18,8 @@ else
 	./run_tests_clang
 endif
 runbench:
-ifdef gcc
+ifdef gccdroidodroid
+
 	gcc -o run_bench_gcc $(GCCFLAGS) benchmain.c common/*.c benchmark/*.c
 	./run_bench_gcc
 else
