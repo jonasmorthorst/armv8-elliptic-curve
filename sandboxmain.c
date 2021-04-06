@@ -54,7 +54,6 @@ int main() {
 	/*poly64x2_t bc = bf_red(bf_pmull(b,c));
 	poly64x2_t ab_times_c = bf_red(bf_pmull(ab, c));
 	poly64x2_t a_times_bc = bf_red(bf_pmull(a, bc));*/
-
 	
 	return 0;
 }
