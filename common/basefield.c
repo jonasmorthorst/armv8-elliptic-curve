@@ -193,8 +193,16 @@ poly64x2_t bf_red_psquare_formula(bf_polyx2 c) {
 	return result;
 }
 
+//veor3q not defined?
+poly64x2_t bf_red_psquare_neon(bf_polyx2 c) {
+	c.p1[0] = (poly64_t) veor_u64((uint64x1_t) c.p1[0], (uint64x1_t) c.p1[1]);
+	c.p0[1] = (poly64_t) veor_u64((uint64x1_t) c.p0[1], (uint64x1_t) c.p1[0]);
+	c.p1 = (poly64x2_t) vshlq_n_u64((uint64x2_t) c.p1, 1);
+	return (poly64x2_t) veorq_u64((uint64x2_t) c.p0, (uint64x2_t) c.p1);
+}
+
 poly64x2_t bf_red_psquare(bf_polyx2 c) {
-	return bf_red_psquare_formula(c);
+	return bf_red_psquare_neon(c);
 }
 
 //Simple and slow, compute a^(-1) as a^((2^127)-2).
