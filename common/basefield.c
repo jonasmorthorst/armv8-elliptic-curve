@@ -183,6 +183,27 @@ poly64x2_t bf_red_formula(bf_polyx2 c) {
 	
 	return result;
 }
+poly64x2_t bf_red_neon(bf_polyx2 c) {
+	poly64x2_t t0, t1; 
+	//t0={bit126to0, bit190to128}
+	//t1={(bit127 XOR bit191)*2^63, bit191*2^63)}
+	t0[0] = (poly64_t) veor_u64((uint64x1_t) c.p0[1], (uint64x1_t) c.p1[0]);
+	t1[0] = (poly64_t) vand_u64((uint64x1_t) t0[0], (uint64x1_t) pow2to63);
+	t1[1] = (poly64_t) vand_u64((uint64x1_t) c.p1[0], (uint64x1_t) pow2to63);
+	t0[0] = (poly64_t) vand_u64((uint64x1_t) t0[0], (uint64x1_t) pow2to63-1);
+	t0[1] = (poly64_t) vand_u64((uint64x1_t) c.p1[0], (uint64x1_t) pow2to63-1);
+	
+	//Recognize almost bf_red_psquare
+	c.p1[0] = (poly64_t) veor_u64((uint64x1_t) t0[1], (uint64x1_t) c.p1[1]);
+	c.p0[1] = (poly64_t) veor_u64((uint64x1_t) t0[0], (uint64x1_t) c.p1[1]);
+	c.p1 = (poly64x2_t) vshlq_n_u64((uint64x2_t) c.p1, 1);
+	
+	c.p0[0] = (poly64_t) veor_u64((uint64x1_t) c.p0[0], (uint64x1_t) t1[0]);
+	t1 = (poly64x2_t) vshrq_n_u64((uint64x2_t) t1, 63);
+	c.p0 = (poly64x2_t) veorq_u64((uint64x2_t) c.p0, (uint64x2_t) t1);
+	
+	return (poly64x2_t) veorq_u64((uint64x2_t) c.p1, (uint64x2_t) c.p0);
+}
 
 //Carry shift is not needed here!! 191 bit is always 0.
 poly64x2_t bf_red_psquare_formula(bf_polyx2 c) {
@@ -239,7 +260,7 @@ bf_polyx2 bf_psquare(poly64x2_t a) {
 }
 
 poly64x2_t bf_red(bf_polyx2 c) {
-	return bf_red_formula(c);
+	return bf_red_neon(c);
 }
 
 poly64x2_t bf_red_psquare(bf_polyx2 c) {

@@ -37,6 +37,8 @@ poly64x2_t bf_red_generic(bf_polyx2 c);
 
 poly64x2_t bf_red_formula(bf_polyx2 c);
 
+poly64x2_t bf_red_neon(bf_polyx2 c);
+
 poly64x2_t bf_red_psquare_formula(bf_polyx2 c);
 
 poly64x2_t bf_red_psquare_neon(bf_polyx2 c);
