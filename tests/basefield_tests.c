@@ -584,6 +584,7 @@ void bf_inv_test_prod_of_inverses_is_inverse_of_prod_rnd(test_ctr *ctr) {
 			bf_print_hex(a);
 			printf("b: ");
 			bf_print_hex(b);
+			break;
 		}
 	}
 	assert_true(correct, ctr, "basefield: bf_inv_test_prod_of_inverses_is_inverse_of_prod_rnd FAILED");
