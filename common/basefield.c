@@ -60,7 +60,7 @@ poly64x2_t bf_rand_elem() {
 }
 
 bf_polyx2 bf_pmull32(poly64x2_t a, poly64x2_t b) {
-	poly64x2_t t = {0,0};
+	poly64x2_t t;
 	bf_polyx2 r;
 	r.p0 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], b[0]));
 	r.p1 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[1], b[1]));
@@ -73,6 +73,26 @@ bf_polyx2 bf_pmull32(poly64x2_t a, poly64x2_t b) {
 	r.p1[0] = (poly64_t) veor_u64((uint64x1_t) r.p1[0], (uint64x1_t) t[1]);
 	
 	return r;
+}
+
+bf_polyx2 bf_pmull64(poly64x2_t a, poly64x2_t b) {
+	poly64x2_t t0, t1;
+	poly64x2_t z = {0,0};
+	bf_polyx2 r;
+	
+	r.p0 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], b[0]));
+	r.p1 = (poly64x2_t) vreinterpretq_u64_p128(vmull_high_p64(a, b));
+	t0 = vextq_p64(b, b, 1);
+	t1 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], t0[0]));
+	t0 = (poly64x2_t) vreinterpretq_u64_p128(vmull_high_p64(a, t0));
+	t0 = (poly64x2_t) veorq_u64((uint64x2_t) t0, (uint64x2_t) t1);
+	t1 = vextq_p64(z, t0, 1);
+	r.p0 = (poly64x2_t) veorq_u64((uint64x2_t) r.p0, (uint64x2_t) t1);
+	t1 = vextq_p64(t0, z, 1);
+	r.p1 = (poly64x2_t) veorq_u64((uint64x2_t) r.p1, (uint64x2_t) t1);
+	
+	return r;
+	
 }
 
 //First tried to find an arm bit-interleaving instruction, but later realised this works:
@@ -211,7 +231,7 @@ poly64x2_t bf_add(poly64x2_t a, poly64x2_t b) {
 }
 
 bf_polyx2 bf_pmull(poly64x2_t a, poly64x2_t b) {
-	return bf_pmull32(a,b);
+	return bf_pmull64(a,b);
 }
 
 bf_polyx2 bf_psquare(poly64x2_t a) {
