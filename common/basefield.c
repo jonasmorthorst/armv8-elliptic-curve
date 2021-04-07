@@ -75,6 +75,14 @@ bf_polyx2 bf_pmull32(poly64x2_t a, poly64x2_t b) {
 	return r;
 }
 
+//First tried to find an arm bit-interleaving instruction, but later realised this works:
+bf_polyx2 bf_psquare_neon(poly64x2_t a) {
+	bf_polyx2 r;
+	r.p0 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], a[0]));
+	r.p1 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[1], a[1]));
+	return r;
+}
+
 /* Alg 2.40 - Modular reduction (one bit at a time) */
 
 int has_reduction_precomputed = 0;
@@ -132,18 +140,6 @@ poly64x2_t bf_red_generic(bf_polyx2 c) {
 	return c.p0;
 }
 
-poly64x2_t bf_add(poly64x2_t a, poly64x2_t b) {
-	return (poly64x2_t) veorq_u64((uint64x2_t) a, (uint64x2_t) b);
-}
-
-bf_polyx2 bf_pmull(poly64x2_t a, poly64x2_t b) {
-	return bf_pmull32(a,b);
-}
-
-bf_polyx2 bf_psquare(poly64x2_t a) {
-	return bf_pmull(a, a);
-}
-
 //For future ref: vshlq_n_u64 doesn't carry from uint64x2_t[0] to [1]
 poly64x2_t bf_red_formula(bf_polyx2 c) {
 	poly64x2_t result = {0, 0};
@@ -166,10 +162,6 @@ poly64x2_t bf_red_formula(bf_polyx2 c) {
 	result = bf_add(term252to191_rshift191, result);
 	
 	return result;
-}
-
-poly64x2_t bf_red(bf_polyx2 c) {
-	return bf_red_formula(c);
 }
 
 //Carry shift is not needed here!! 191 bit is always 0.
@@ -201,10 +193,6 @@ poly64x2_t bf_red_psquare_neon(bf_polyx2 c) {
 	return (poly64x2_t) veorq_u64((uint64x2_t) c.p0, (uint64x2_t) c.p1);
 }
 
-poly64x2_t bf_red_psquare(bf_polyx2 c) {
-	return bf_red_psquare_neon(c);
-}
-
 //Simple and slow, compute a^(-1) as a^((2^127)-2).
 //Exploits the fact that 2^127 - 1 = 2^126 + 2^125 + ... + 2^1 + 1,
 //hence a^-1 = a^(2^126)*...*a^(2^3)*a^(2^2)*a^2:
@@ -216,6 +204,26 @@ poly64x2_t fermat_inv(poly64x2_t a) {
 		inv = bf_red(bf_pmull(inv, power));
 	}
 	return inv;
+}
+
+poly64x2_t bf_add(poly64x2_t a, poly64x2_t b) {
+	return (poly64x2_t) veorq_u64((uint64x2_t) a, (uint64x2_t) b);
+}
+
+bf_polyx2 bf_pmull(poly64x2_t a, poly64x2_t b) {
+	return bf_pmull32(a,b);
+}
+
+bf_polyx2 bf_psquare(poly64x2_t a) {
+	return bf_psquare_neon(a);
+}
+
+poly64x2_t bf_red(bf_polyx2 c) {
+	return bf_red_formula(c);
+}
+
+poly64x2_t bf_red_psquare(bf_polyx2 c) {
+	return bf_red_psquare_neon(c);
 }
 
 poly64x2_t bf_inv(poly64x2_t a) {

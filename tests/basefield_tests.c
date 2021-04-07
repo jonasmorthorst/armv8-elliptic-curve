@@ -222,6 +222,21 @@ void bf_psquare_test_example(test_ctr *ctr) {
 	assert_true(correct, ctr, "basefield: bf_psquare_test_example FAILED");
 }
 
+void bf_psquare_test_every_possible_term(test_ctr *ctr) {
+	//Arrange
+	poly64x2_t a = {18446744073709551615U, 9223372036854775807U}; //z^126 + z^125 + ... + z^2 + z + 1
+	poly64x2_t e0 = {6148914691236517205, 6148914691236517205}; //z^126 + z^124 + ... + z^4 + z^2 + 1
+	poly64x2_t e1 = {6148914691236517205, 1537228672809129301}; //z^252 + z^250 + ... + z^130 + z^128
+	bf_polyx2 expected = concat_bf_poly(e0, e1);
+	
+	//Act
+	bf_polyx2 actual = bf_psquare(a);
+	
+	//Assert
+	uint64_t correct = equal_bf_polyx2(expected, actual);
+	assert_true(correct, ctr, "basefield: bf_psquare_test_every_possible_term FAILED");
+}
+
 void bf_psquare_test_one_is_one(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t one = {1, 0};
@@ -631,6 +646,7 @@ void basefield_tests(test_ctr *ctr) {
 	bf_pmull_test_zero_is_zero(ctr);
 	
 	bf_psquare_test_example(ctr);
+	bf_psquare_test_every_possible_term(ctr);
 	bf_psquare_test_one_is_one(ctr);
 	bf_psquare_test_zero_is_zero(ctr);
 	bf_psquare_test_crosscheck_pmull(ctr);

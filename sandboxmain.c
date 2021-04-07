@@ -5,7 +5,7 @@
 #include "common/utils.h"
 
 int main() {
-	poly64x2_t a = {1, 4611686018427387904}; //z^126 + 1
+	poly64x2_t a = {7, 4611686018427387904}; //z^126 + z^2+z+1
 	bf_polyx2 a_squared = bf_psquare(a);
 	
 	poly64x2_t reduced_neon = bf_red_psquare_neon(a_squared);
