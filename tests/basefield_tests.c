@@ -632,6 +632,8 @@ void bf_inv_test_prod_with_inv_is_one_rnd(test_ctr *ctr) {
 }
 
 void basefield_tests(test_ctr *ctr) {
+	bf_init();
+	
 	bf_add_test_example(ctr);
 	bf_add_test_doubling_is_zero(ctr);
 	bf_add_test_zero_is_identity(ctr);
@@ -675,4 +677,6 @@ void basefield_tests(test_ctr *ctr) {
 	bf_inv_test_prod_of_inverses_is_inverse_of_prod_rnd(ctr);
 	bf_inv_test_prod_with_inv_is_one(ctr);
 	bf_inv_test_prod_with_inv_is_one_rnd(ctr);
+	
+	bf_post();
 }

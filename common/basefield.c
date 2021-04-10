@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "basefield.h"
 #include "utils.h"
@@ -101,13 +102,6 @@ bf_polyx2 bf_psquare_neon(poly64x2_t a) {
 	r.p0 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], a[0]));
 	r.p1 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[1], a[1]));
 	return r;
-}
-
-poly64x2_t bf_multisquare_loop(poly64x2_t a, uint64_t n) {
-	for(int i = 0; i < n; i++) {
-		a = bf_red_psquare(bf_psquare(a));
-	}
-	return a;
 }
 
 /* Alg 2.40 - Modular reduction (one bit at a time) */
@@ -254,12 +248,19 @@ poly64x2_t bf_fermat_inv(poly64x2_t a) {
 	return inv;
 }
 
+poly64x2_t bf_multisquare_loop(poly64x2_t a, uint64_t n) {
+	for(int i = 0; i < n; i++) {
+		a = bf_red_psquare(bf_psquare(a));
+	}
+	return a;
+}
+
 //Addition chain for 126
 //Addition chain means next term is sum of two previous terms.
 // 1 -> 2 -> 3 -> 6 -> 12 -> 24 -> 30 -> 48 -> 96 -> 126
 //Means need 9 multiplications & 126 squarings using Itoh & Tsujii alg
 //In the end return (a^(2^126 -1))^2 = a^(2^127 -2) = a^-1 per Fermat
-poly64x2_t bf_addition_chain_inv(poly64x2_t a) {
+poly64x2_t bf_addchain_inv(poly64x2_t a) {
 	poly64x2_t x_10 = bf_red_psquare(bf_psquare(a)); // 2
 	poly64x2_t x_11 = bf_red(bf_pmull(a, x_10)); //1 + 2 = 3
 	poly64x2_t x_110 = bf_red_psquare(bf_psquare(x_11)); //3*2 = 6
@@ -280,6 +281,154 @@ poly64x2_t bf_addition_chain_inv(poly64x2_t a) {
 	poly64x2_t x_end = bf_red(bf_pmull(bf_multisquare_loop(x_x96, 30), x_x30));
 	//(2^96-1)*2^30 + 2^30 - 1 = 2^126 - 1
 	return bf_red_psquare(bf_psquare(x_end));
+}
+
+//Need multisquaring by 6, 12, 18, 30, 48, will use precomp approach
+//from "2 is the fastest prime".
+//For fixed k, need table of dim 32x16
+poly64x2_t T_6[32][16];
+poly64x2_t T_12[32][16];
+poly64x2_t T_18[32][16];
+poly64x2_t T_30[32][16];
+poly64x2_t T_48[32][16];
+uint64_t has_precomputed_inv_tables = 0;
+
+void precomp_inv_table(uint64_t k) {
+	poly64x2_t zpow_4 = {16, 0};
+	poly64x2_t zpow_4j = {1, 0};
+	poly64x2_t zpow_4jplus1 = {2, 0};
+	poly64x2_t zpow_4jplus2 = {4, 0};
+	poly64x2_t zpow_4jplus3 = {8, 0};
+	for(int j = 0; j < 32; j++) {
+		for(int i = 0; i < 16; i++) {
+			poly64x2_t sum = {0, 0};
+			if(i % 2 == 1) { //bit i0 is set
+				sum = bf_add(sum, zpow_4j);
+			}
+			uint64_t l = i / 2;
+			if(l % 2 == 1) { //bit i1 is set
+				sum = bf_add(sum, zpow_4jplus1);
+			}
+			l /= 2;
+			if(l % 2 == 1) { //bit i2 is set
+				sum = bf_add(sum, zpow_4jplus2);
+			}
+			l /= 2;
+			if(l % 2 == 1) { //bit i3 is set
+				sum = bf_add(sum, zpow_4jplus3);
+			}
+			if(k == 6) {
+				T_6[j][i] = bf_multisquare_loop(sum, 6);
+			} else if(k == 12) {
+				T_12[j][i] = bf_multisquare_loop(sum, 12);
+			} else if(k == 18) {
+				T_18[j][i] = bf_multisquare_loop(sum, 18);
+			} else if(k == 30) {
+				T_30[j][i] = bf_multisquare_loop(sum, 30);
+			} else if(k == 48) {
+				T_48[j][i] = bf_multisquare_loop(sum, 48);
+			}
+		}
+		zpow_4j = bf_red(bf_pmull(zpow_4j, zpow_4));
+		zpow_4jplus1 = bf_red(bf_pmull(zpow_4jplus1, zpow_4));
+		zpow_4jplus2 = bf_red(bf_pmull(zpow_4jplus2, zpow_4));
+		zpow_4jplus3 = bf_red(bf_pmull(zpow_4jplus3, zpow_4));
+	}
+}
+
+void precomp_inv_tables() {
+	if(has_precomputed_inv_tables) {
+		return;
+	}
+	
+	precomp_inv_table(6);
+	precomp_inv_table(12);
+	precomp_inv_table(18);
+	precomp_inv_table(30);
+	precomp_inv_table(48);
+	
+	has_precomputed_inv_tables = 1;
+}
+
+void free_inv_tables() {
+	free(T_6);
+	free(T_12);
+	free(T_18);
+	free(T_30);
+	free(T_48);
+}
+
+poly64x2_t bf_multisquare_lookup_6(poly64x2_t a) {
+	poly64x2_t res = veorq_u64((uint64x2_t) T_6[0][a[0] & 15], (uint64x2_t) T_6[16][a[1] & 15]);
+	for(int j = 1; j < 16; j++) {
+		a = (poly64x2_t) vshrq_n_u64((uint64x2_t) a, 4);
+		res = (poly64x2_t) veorq_u64((uint64x2_t) res, (uint64x2_t) T_6[j][a[0] & 15]);
+		res = (poly64x2_t) veorq_u64((uint64x2_t) res, (uint64x2_t) T_6[j+16][a[1] & 15]);
+	}
+	return res;
+}
+
+poly64x2_t bf_multisquare_lookup_12(poly64x2_t a) {
+	poly64x2_t res = veorq_u64((uint64x2_t) T_12[0][a[0] & 15], (uint64x2_t) T_12[16][a[1] & 15]);
+	for(int j = 1; j < 16; j++) {
+		a = (poly64x2_t) vshrq_n_u64((uint64x2_t) a, 4);
+		res = (poly64x2_t) veorq_u64((uint64x2_t) res, (uint64x2_t) T_12[j][a[0] & 15]);
+		res = (poly64x2_t) veorq_u64((uint64x2_t) res, (uint64x2_t) T_12[j+16][a[1] & 15]);
+	}
+	return res;
+}
+
+poly64x2_t bf_multisquare_lookup_18(poly64x2_t a) {
+	poly64x2_t res = veorq_u64((uint64x2_t) T_18[0][a[0] & 15], (uint64x2_t) T_18[16][a[1] & 15]);
+	for(int j = 1; j < 16; j++) {
+		a = (poly64x2_t) vshrq_n_u64((uint64x2_t) a, 4);
+		res = (poly64x2_t) veorq_u64((uint64x2_t) res, (uint64x2_t) T_18[j][a[0] & 15]);
+		res = (poly64x2_t) veorq_u64((uint64x2_t) res, (uint64x2_t) T_18[j+16][a[1] & 15]);
+	}
+	return res;
+}
+
+poly64x2_t bf_multisquare_lookup_30(poly64x2_t a) {
+	poly64x2_t res = veorq_u64((uint64x2_t) T_30[0][a[0] & 15], (uint64x2_t) T_30[16][a[1] & 15]);
+	for(int j = 1; j < 16; j++) {
+		a = (poly64x2_t) vshrq_n_u64((uint64x2_t) a, 4);
+		res = (poly64x2_t) veorq_u64((uint64x2_t) res, (uint64x2_t) T_30[j][a[0] & 15]);
+		res = (poly64x2_t) veorq_u64((uint64x2_t) res, (uint64x2_t) T_30[j+16][a[1] & 15]);
+	}
+	return res;
+}
+
+poly64x2_t bf_multisquare_lookup_48(poly64x2_t a) {
+	poly64x2_t res = veorq_u64((uint64x2_t) T_48[0][a[0] & 15], (uint64x2_t) T_48[16][a[1] & 15]);
+	for(int j = 1; j < 16; j++) {
+		a = (poly64x2_t) vshrq_n_u64((uint64x2_t) a, 4);
+		res = (poly64x2_t) veorq_u64((uint64x2_t) res, (uint64x2_t) T_48[j][a[0] & 15]);
+		res = (poly64x2_t) veorq_u64((uint64x2_t) res, (uint64x2_t) T_48[j+16][a[1] & 15]);
+	}
+	return res;
+}
+
+poly64x2_t bf_addchain_lookup_inv(poly64x2_t a) {
+	poly64x2_t t1 = bf_red_psquare(bf_psquare(a)); // 2
+	t1 = bf_red(bf_pmull(a, t1)); //1 + 2 = 3
+	t1 = bf_red_psquare(bf_psquare(t1)); //3*2 = 6 
+	t1 = bf_red(bf_pmull(a, t1)); //1 + 6 = 7
+	a = bf_red_psquare(bf_psquare(bf_red_psquare(bf_psquare(bf_red_psquare(bf_psquare(t1))))));
+	//7*2^3 = 56
+	a = bf_red(bf_pmull(t1, a)); //56 + 7 = 2^6 - 1
+	t1 = bf_red(bf_pmull(bf_multisquare_lookup_6(a), a));
+	//(2^6 -1)*2^6 + 2^6 - 1 = 2^12 - 1
+	t1 = bf_red(bf_pmull(bf_multisquare_lookup_12(t1), t1));
+	//(2^12-1)*2^12 + 2^12 - 1 = 2^24 - 1
+	poly64x2_t t2 = bf_multisquare_lookup_6(t1); //(2^24-1)*2^6 = 2^30 -2^6
+	a = bf_red(bf_pmull(a, t2)); //(2^30-2^6) + 2^6 - 1 = 2^30 - 1
+	t1 = bf_red(bf_pmull(bf_multisquare_lookup_18(t2), t1));
+	//(2^30 - 2^6)*2^18 + 2^24 - 1 = 2^48 - 1
+	t1 = bf_red(bf_pmull(bf_multisquare_lookup_48(t1), t1));
+	//(2^48-1)*2^48 +2^48 - 1 = 2^96 -1
+	a = bf_red(bf_pmull(bf_multisquare_lookup_30(t1), a)); 
+	//(2^96-1)*2^30 + 2^30 - 1 = 2^126 - 1
+	return bf_red_psquare(bf_psquare(a));
 }
 
 poly64x2_t bf_add(poly64x2_t a, poly64x2_t b) {
@@ -303,5 +452,13 @@ poly64x2_t bf_red_psquare(bf_polyx2 c) {
 }
 
 poly64x2_t bf_inv(poly64x2_t a) {
-	return bf_addition_chain_inv(a);
+	return bf_addchain_lookup_inv(a);
+}
+
+void bf_init() {
+	precomp_inv_tables();
+}
+
+void bf_post() {
+	
 }
