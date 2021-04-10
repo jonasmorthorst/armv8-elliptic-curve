@@ -43,6 +43,8 @@ poly64x2_t bf_red_psquare_formula(bf_polyx2 c);
 
 poly64x2_t bf_red_psquare_neon(bf_polyx2 c);
 
-poly64x2_t fermat_inv(poly64x2_t a);
+poly64x2_t bf_fermat_inv(poly64x2_t a);
+
+poly64x2_t bf_addition_chain_inv(poly64x2_t a);
 
 #endif

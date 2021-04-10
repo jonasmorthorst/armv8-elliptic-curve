@@ -103,6 +103,13 @@ bf_polyx2 bf_psquare_neon(poly64x2_t a) {
 	return r;
 }
 
+poly64x2_t bf_multisquare_loop(poly64x2_t a, uint64_t n) {
+	for(int i = 0; i < n; i++) {
+		a = bf_red_psquare(bf_psquare(a));
+	}
+	return a;
+}
+
 /* Alg 2.40 - Modular reduction (one bit at a time) */
 
 int has_reduction_precomputed = 0;
@@ -237,14 +244,42 @@ poly64x2_t bf_red_psquare_neon(bf_polyx2 c) {
 //Simple and slow, compute a^(-1) as a^((2^127)-2).
 //Exploits the fact that 2^127 - 1 = 2^126 + 2^125 + ... + 2^1 + 1,
 //hence a^-1 = a^(2^126)*...*a^(2^3)*a^(2^2)*a^2:
-poly64x2_t fermat_inv(poly64x2_t a) {
+poly64x2_t bf_fermat_inv(poly64x2_t a) {
 	poly64x2_t inv = {1, 0};
 	poly64x2_t power = {a[0], a[1]};
 	for(int i = 0; i < 126; i++) {
-		power = bf_red(bf_psquare(power));
+		power = bf_red_psquare(bf_psquare(power));
 		inv = bf_red(bf_pmull(inv, power));
 	}
 	return inv;
+}
+
+//Addition chain for 126
+//Addition chain means next term is sum of two previous terms.
+// 1 -> 2 -> 3 -> 6 -> 12 -> 24 -> 30 -> 48 -> 96 -> 126
+//Means need 9 multiplications & 126 squarings using Itoh & Tsujii alg
+//In the end return (a^(2^126 -1))^2 = a^(2^127 -2) = a^-1 per Fermat
+poly64x2_t bf_addition_chain_inv(poly64x2_t a) {
+	poly64x2_t x_10 = bf_red_psquare(bf_psquare(a)); // 2
+	poly64x2_t x_11 = bf_red(bf_pmull(a, x_10)); //1 + 2 = 3
+	poly64x2_t x_110 = bf_red_psquare(bf_psquare(x_11)); //3*2 = 6
+	poly64x2_t x_111 = bf_red(bf_pmull(a, x_110)); //1 + 6 = 7
+	poly64x2_t x_111000 = bf_red_psquare(bf_psquare(bf_red_psquare(bf_psquare(bf_red_psquare(bf_psquare(x_111))))));
+	//7*2^3 = 56
+	poly64x2_t x_111111 = bf_red(bf_pmull(x_111, x_111000)); //56 + 7 = 2^6 - 1
+	poly64x2_t x_x12 = bf_red(bf_pmull(bf_multisquare_loop(x_111111, 6), x_111111)); 
+	//(2^6 -1)*2^6 + 2^6 - 1 = 2^12 - 1
+	poly64x2_t x_x24 = bf_red(bf_pmull(bf_multisquare_loop(x_x12, 12), x_x12));
+	//(2^12-1)*2^12 + 2^12 - 1 = 2^24 - 1
+	poly64x2_t x_i34 = bf_multisquare_loop(x_x24, 6); //(2^24-1)*2^6 = 2^30 -2^6
+	poly64x2_t x_x30 = bf_red(bf_pmull(x_111111, x_i34)); //(2^30-2^6) + 2^6 - 1 = 2^30 - 1
+	poly64x2_t x_x48 = bf_red(bf_pmull(bf_multisquare_loop(x_i34, 18), x_x24));
+	//(2^30 - 2^6)*2^18 + 2^24 - 1 = 2^48 - 1
+	poly64x2_t x_x96 = bf_red(bf_pmull(bf_multisquare_loop(x_x48, 48), x_x48));
+	//(2^48-1)*2^48 +2^48 - 1 = 2^96 -1
+	poly64x2_t x_end = bf_red(bf_pmull(bf_multisquare_loop(x_x96, 30), x_x30));
+	//(2^96-1)*2^30 + 2^30 - 1 = 2^126 - 1
+	return bf_red_psquare(bf_psquare(x_end));
 }
 
 poly64x2_t bf_add(poly64x2_t a, poly64x2_t b) {
@@ -268,5 +303,5 @@ poly64x2_t bf_red_psquare(bf_polyx2 c) {
 }
 
 poly64x2_t bf_inv(poly64x2_t a) {
-	return fermat_inv(a);
+	return bf_addition_chain_inv(a);
 }

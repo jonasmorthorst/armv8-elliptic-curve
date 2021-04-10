@@ -94,18 +94,35 @@ void benchmark_bf_red() {
 	printf("Median: %lf\n\n", median(times, num_runs));
 }
 
-void benchmark_bf_inv() {
+void benchmark_bf_fermat_inv() {
 	uint64_t num_runs = 1000;
 	uint64_t times[num_runs]; 
 	
 	for(int i = 0; i < num_runs; i++) {
 		poly64x2_t a = bf_rand_elem();
 		uint64_t start = read_pmccntr();
-		bf_inv(a);
+		bf_fermat_inv(a);
 		uint64_t end = read_pmccntr();
 		insert_sorted(end-start, times, i);
 	}
-	printf("BENCHMARK bf_inv\n");
+	printf("BENCHMARK bf_fermat_inv\n");
+	printf("Number of iterations: %lu\n", num_runs);
+	printf("Average: %lf\n", average(times, num_runs));
+	printf("Median: %lf\n\n", median(times, num_runs));
+}
+
+void benchmark_bf_addition_chain_inv() {
+	uint64_t num_runs = 1000;
+	uint64_t times[num_runs]; 
+	
+	for(int i = 0; i < num_runs; i++) {
+		poly64x2_t a = bf_rand_elem();
+		uint64_t start = read_pmccntr();
+		bf_addition_chain_inv(a);
+		uint64_t end = read_pmccntr();
+		insert_sorted(end-start, times, i);
+	}
+	printf("BENCHMARK bf_addition_chain_inv\n");
 	printf("Number of iterations: %lu\n", num_runs);
 	printf("Average: %lf\n", average(times, num_runs));
 	printf("Median: %lf\n\n", median(times, num_runs));
@@ -117,6 +134,7 @@ void benchmark_bf_all() {
 	benchmark_bf_pmull64();
 	benchmark_bf_psquare();
 	benchmark_bf_red();
-	benchmark_bf_inv();
+	benchmark_bf_fermat_inv();
+	benchmark_bf_addition_chain_inv();
 }
 
