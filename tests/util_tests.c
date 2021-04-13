@@ -128,6 +128,46 @@ void equal_bf_polyx2_test_notequal(test_ctr *ctr) {
 	assert_false(equal, ctr, "utils: equal_bf_polyx2_test_notequal FAILED");
 }
 
+void equal_ef_elem_test_equal(test_ctr *ctr) {
+	//Arrange
+	ef_elem a;
+	poly64x2_t a0 = {6749534, 697497494916};
+	poly64x2_t a1 = {7681514, 14870085};
+	a.p0 = a0;
+	a.p1 = a1;
+	ef_elem b;
+	poly64x2_t b0 = {6749534, 697497494916};
+	poly64x2_t b1 = {7681514, 14870085};
+	b.p0 = b0;
+	b.p1 = b1;
+	
+	//Act
+	uint64_t equal = equal_ef_elem(a, b);
+	
+	//Assert
+	assert_true(equal, ctr, "utils: equal_ef_elem_test_equal FAILED");
+}
+
+void equal_ef_elem_test_notequal(test_ctr *ctr) {
+	//Arrange
+	ef_elem a;
+	poly64x2_t a0 = {6749534, 697497494916};
+	poly64x2_t a1 = {7681514, 14870085};
+	a.p0 = a0;
+	a.p1 = a1;
+	ef_elem b;
+	poly64x2_t b0 = {6749534, 697497394916};
+	poly64x2_t b1 = {7681514, 14870085};
+	b.p0 = b0;
+	b.p1 = b1;
+	
+	//Act
+	uint64_t equal = equal_ef_elem(a, b);
+	
+	//Assert
+	assert_false(equal, ctr, "utils: equal_ef_elem_test_notequal FAILED");
+}
+
 void concat_bf_poly_test(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a0 = {76194397641, 9487521};
@@ -193,6 +233,8 @@ void util_tests(test_ctr *ctr) {
 	equal_poly64x2_test_notequal(ctr);
 	equal_bf_polyx2_test_equal(ctr);
 	equal_bf_polyx2_test_notequal(ctr);
+	equal_ef_elem_test_equal(ctr);
+	equal_ef_elem_test_notequal(ctr);
 	concat_bf_poly_test(ctr);
 	average_test(ctr);
 	median_test_even(ctr);

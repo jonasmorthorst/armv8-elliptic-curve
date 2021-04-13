@@ -17,18 +17,18 @@
 void bf_print_expr(poly64x2_t p) {
 	poly64_t c;
 	int wasFirst = 1;
-	for (int i=1; i>=0; i--) {
+	for(int i=1; i>=0; i--) {
 		// 2^63 = the value of the leftmost bit in a word
 		c = pow2to63;
-		for (int j = 63; j>=0; j--) {
+		for(int j = 63; j>=0; j--) {
 			poly64_t polybitcopy = c & p[i];
-			if (polybitcopy == c) {
+			if(polybitcopy == c) {
 				if(!wasFirst) {
 					printf("+");
 				}
 				wasFirst = 0;
 				
-				if (i == 0 && j == 0) {
+				if(i == 0 && j == 0) {
 					printf("1");
 				} else {
 					printf("z^%d", (i)*64 +j);
@@ -38,14 +38,23 @@ void bf_print_expr(poly64x2_t p) {
 		}
 	}
 	
-	if (wasFirst) {
+	if(wasFirst) {
 		printf("0");
 	}
+}
+
+void bf_print_expr_nl(poly64x2_t p) {
+	bf_print_expr(p);
 	printf("\n");
 }
 
 void bf_print_hex(poly64x2_t p) {
-	printf("%016lx||%016lx\n", p[1], p[0]);
+	printf("%016lx||%016lx", p[1], p[0]);
+}
+
+void bf_print_hex_nl(poly64x2_t p) {
+	bf_print_hex(p);
+	printf("\n");
 }
 
 poly64x2_t bf_rand_elem() { 

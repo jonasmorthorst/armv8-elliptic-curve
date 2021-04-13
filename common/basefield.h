@@ -11,7 +11,11 @@ typedef struct {
 
 void bf_print_expr(poly64x2_t p);
 
+void bf_print_expr_nl(poly64x2_t p);
+
 void bf_print_hex(poly64x2_t p);
+
+void bf_print_hex_nl(poly64x2_t p);
 
 poly64x2_t bf_rand_elem();
 

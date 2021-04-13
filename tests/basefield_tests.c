@@ -128,9 +128,9 @@ void bf_pmull_test_associative_rnd(test_ctr *ctr) {
 		correct &= equal_poly64x2(ab_times_c, a_times_bc);
 		if(!correct) {
 			printf("a: ");
-			bf_print_hex(a);
+			bf_print_hex_nl(a);
 			printf("b: ");
-			bf_print_hex(b);
+			bf_print_hex_nl(b);
 			break;
 		}
 	}
@@ -168,9 +168,9 @@ void bf_pmull_test_commutative_rnd(test_ctr *ctr) {
 		correct &= equal_bf_polyx2(ab, ba);
 		if(!correct) {
 			printf("a: ");
-			bf_print_hex(a);
+			bf_print_hex_nl(a);
 			printf("b: ");
-			bf_print_hex(b);
+			bf_print_hex_nl(b);
 			break;
 		}
 	}
@@ -311,9 +311,9 @@ void bf_psquare_test_freshmans_dream_rnd(test_ctr *ctr) {
 		correct &= equal_bf_polyx2(apow2_plus_bpow2, aplusb_pow2);
 		if(!correct) {
 			printf("a: ");
-			bf_print_hex(a);
+			bf_print_hex_nl(a);
 			printf("b: ");
-			bf_print_hex(b);
+			bf_print_hex_nl(b);
 			break;
 		}
 	}
@@ -469,7 +469,7 @@ void bf_red_psquare_test_crosscheck_red_rnd(test_ctr *ctr) {
 		correct &= equal_poly64x2(a_squared_red, a_squared_red_psquare);
 		if(!correct) {
 			printf("a: ");
-			bf_print_hex(a);
+			bf_print_hex_nl(a);
 			break;
 		}
 	}
@@ -540,7 +540,7 @@ void bf_inv_test_inverse_of_inverse_is_original_rnd(test_ctr *ctr) {
 		correct &= equal_poly64x2(a, ainvinv);
 		if(!correct) {
 			printf("a: ");
-			bf_print_hex(a);
+			bf_print_hex_nl(a);
 			break;
 		}
 	}
@@ -581,9 +581,9 @@ void bf_inv_test_prod_of_inverses_is_inverse_of_prod_rnd(test_ctr *ctr) {
 		correct &= equal_poly64x2(inv_of_prod, prod_of_inverses);
 		if(!correct) {
 			printf("a: ");
-			bf_print_hex(a);
+			bf_print_hex_nl(a);
 			printf("b: ");
-			bf_print_hex(b);
+			bf_print_hex_nl(b);
 			break;
 		}
 	}
@@ -624,7 +624,7 @@ void bf_inv_test_prod_with_inv_is_one_rnd(test_ctr *ctr) {
 		correct &= equal_poly64x2(prod, one);
 		if(!correct) {
 			printf("a: ");
-			bf_print_hex(a);
+			bf_print_hex_nl(a);
 			break;
 		}
 	}
