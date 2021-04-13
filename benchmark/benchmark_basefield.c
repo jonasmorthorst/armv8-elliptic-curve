@@ -2,6 +2,7 @@
 
 #include "../common/basefield.h"
 #include "../common/utils.h"
+#include "benchmark_basefield.h"
 #include "benchmark_tool.h"
 
 void benchmark_bf_add() {
