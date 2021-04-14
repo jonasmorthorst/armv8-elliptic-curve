@@ -15,9 +15,9 @@ void ec_print_point_lproj_hex(ec_point_lproj p);
 
 ec_point_lproj ec_rand_point_lproj();
 
-ec_point_lproj ec_point_lproj_scalar_mull(int k, ec_point_lproj p);
+ec_point_lproj ec_point_lproj_scalar_mull(uint64_t k, ec_point_lproj p);
 
-ec_point_lproj ec_point_lproj_double_scalar_mull(int k, ec_point_lproj p1, int l, ec_point_lproj p2);
+ec_point_lproj ec_point_lproj_double_scalar_mull(uint64_t k, ec_point_lproj p1, uint64_t l, ec_point_lproj p2);
 
 ec_point_lproj ec_point_lproj_neg(ec_point_lproj p);
 
