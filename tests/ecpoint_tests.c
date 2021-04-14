@@ -93,8 +93,43 @@ void ec_add_infinity_test(test_ctr *ctr) {
 	ec_print_point_lproj_expr(res);
 }
 
+void test_generator_on_curve(test_ctr *ctr) {
+	//Arrange
+	ec_point_lproj gen_elem = (ec_point_lproj) GEN;
+	
+	//Act
+	ef_elem lhs = ef_mull(ef_add(ef_square(gen_elem.l), ef_add(ef_mull(gen_elem.l, gen_elem.z), ef_mull((ef_elem) A, ef_square(gen_elem.z)))), ef_square(gen_elem.x)); //(L^2 + LZ + AZ^2)X^2
+	ef_elem rhs = ef_add(ef_square(ef_square(gen_elem.x)), ef_mull((ef_elem) B, ef_square(ef_square(gen_elem.z)))); //X^4 + BZ^4
+	
+	//Assert
+	uint64_t correct = equal_ef_elem(lhs, rhs);
+	assert_true(correct, ctr, "ecpoint: test_generator_on_curve FAILED");
+}
+
+void ec_rand_point_lproj_test_on_curve(test_ctr *ctr) {
+	uint64_t correct = 1;
+	for(int i = 0; i < 10; i++) {
+		//Arrange & Act
+		ec_point_lproj p = ec_rand_point_lproj();
+		
+		ef_elem lhs = ef_mull(ef_add(ef_square(p.l), ef_add(ef_mull(p.l, p.z), ef_mull((ef_elem) A, ef_square(p.z)))), ef_square(p.x)); //(L^2 + LZ + AZ^2)X^2
+		ef_elem rhs = ef_add(ef_square(ef_square(p.x)), ef_mull((ef_elem) B, ef_square(ef_square(p.z)))); //X^4 + BZ^4
+		
+		//Assert
+		correct = equal_ef_elem(lhs, rhs);
+		if(!correct) {
+			printf("p: ");
+			ec_print_point_lproj_hex(p);
+			break;
+		}
+	}
+	assert_true(correct, ctr, "ecpoint: ec_rand_point_lproj_test_on_curve FAILED");
+}
+
 void ecpoint_tests(test_ctr *ctr) {
 	ec_create_point_lproj_test_example(ctr);
 	ec_add_infinity_test(ctr);
 	ec_scalar_mull_test_example(ctr);
+	test_generator_on_curve(ctr);
+	ec_rand_point_lproj_test_on_curve(ctr);
 }

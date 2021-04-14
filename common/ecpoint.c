@@ -3,20 +3,10 @@
 #include "ecpoint.h"
 #include "utils.h"
 
-
-const poly64x2_t A0 = {EC_A00, EC_A01};
-const poly64x2_t A1 = {EC_A10, EC_A11};
-const ef_elem A = {A0, A1};
-
-const poly64x2_t B0 = {EC_B00, EC_B01};
-const poly64x2_t B1 = {EC_B10, EC_B11};
-const ef_elem B = {B0, B1};
-//ef_elem A = ef_create_elem(bf_create_elem(EC_A00, EC_A01), bf_create_elem(EC_A10, EC_A11));
-
 ec_point_lproj ec_create_point_lproj(ef_elem x, ef_elem y, ef_elem z) {
   ec_point_lproj p;
 	p.x = x;
-  p.y = y;
+  p.l = y;
 	p.z = z;
 	return p;
 }
@@ -25,7 +15,7 @@ void ec_print_point_lproj_expr(ec_point_lproj p) {
   printf("x: ");
 	ef_print_expr(p.x);
 	printf(" y: ");
-	ef_print_expr(p.y);
+	ef_print_expr(p.l);
   printf(" z: ");
 	ef_print_expr(p.z);
   printf("\n");
@@ -35,7 +25,7 @@ void ec_print_point_lproj_hex(ec_point_lproj p) {
   printf("x: ");
 	ef_print_hex(p.x);
 	printf(" y: ");
-	ef_print_hex(p.y);
+	ef_print_hex(p.l);
   printf(" z: ");
 	ef_print_hex(p.z);
   printf("\n");
@@ -85,7 +75,7 @@ ec_point_lproj ec_point_lproj_scalar_mull(uint64_t k, ec_point_lproj p) {
 // }
 
 ec_point_lproj ec_point_lproj_neg(ec_point_lproj p) {
-  p.y = ef_add(p.y, p.z);
+  p.l = ef_add(p.l, p.z);
 
   return p;
 }
@@ -98,7 +88,7 @@ ec_point_lproj ec_point_lproj_add(ec_point_lproj p, ec_point_lproj q) {
   printf("\nq: \n");
   ec_print_point_lproj_expr(q);
 
-  ef_elem u = ef_add(ef_mull(p.y, q.z), ef_mull(q.y, p.z));
+  ef_elem u = ef_add(ef_mull(p.l, q.z), ef_mull(q.l, p.z));
   ef_elem v = ef_square(ef_add(ef_mull(p.x, q.z), ef_mull(q.x, p.z)));
 
   printf("\nU: \n");
@@ -109,7 +99,7 @@ ec_point_lproj ec_point_lproj_add(ec_point_lproj p, ec_point_lproj q) {
 
   ec_point_lproj r;
   r.x = ef_mull(ef_mull(ef_mull(u, ef_mull(p.x, q.z)), ef_mull(q.x, p.z)), u);
-  r.y = ef_add(ef_square(ef_add(ef_mull(u, ef_mull(q.x, p.z)), v)), ef_mull(ef_mull(ef_mull(u, v), q.z), ef_add(p.y, p.z)));
+  r.l = ef_add(ef_square(ef_add(ef_mull(u, ef_mull(q.x, p.z)), v)), ef_mull(ef_mull(ef_mull(u, v), q.z), ef_add(p.l, p.z)));
   r.z = ef_mull(ef_mull(ef_mull(u, v), p.z), p.z);
 
   printf("\nR: \n");
@@ -121,16 +111,16 @@ ec_point_lproj ec_point_lproj_add(ec_point_lproj p, ec_point_lproj q) {
 // Assumption: p != -p
 ec_point_lproj ec_point_lproj_double(ec_point_lproj p) {
   // TODO: Make constant
-  poly64x2_t _a = {4611686018427387904, 4611686018427387904};
-  poly64x2_t _b = {4611686018427387904, 4611686018427387904};
-  ef_elem A = ef_create_elem(_a, _b);
+  //poly64x2_t _a = {4611686018427387904, 4611686018427387904};
+  //poly64x2_t _b = {4611686018427387904, 4611686018427387904};
+  //ef_elem A = ef_create_elem(_a, _b);
 
-  ef_elem w = ef_add(ef_add(ef_square(p.y), ef_mull(p.y, p.z)), ef_mull(A, ef_square(p.z)));
+  ef_elem w = ef_add(ef_add(ef_square(p.l), ef_mull(p.l, p.z)), ef_mull((ef_elem) A, ef_square(p.z)));
 
   ec_point_lproj r;
   r.x = ef_square(w);
   r.z = ef_mull(w, ef_square(r.z));
-  r.y = ef_add(ef_add(ef_square(ef_mull(p.x, p.z)), r.x), ef_add(ef_mull(w, ef_mull(p.y, p.z)), r.z));
+  r.l = ef_add(ef_add(ef_square(ef_mull(p.x, p.z)), r.x), ef_add(ef_mull(w, ef_mull(p.l, p.z)), r.z));
 
   return r;
 }
