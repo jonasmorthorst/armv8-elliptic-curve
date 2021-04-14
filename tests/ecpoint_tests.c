@@ -67,10 +67,10 @@ void ec_scalar_mull_test_example(test_ctr *ctr) {
 	ec_point_lproj p2 = ec_create_point_lproj(x2, y2, z2);
 
 	//Act
-	ec_point_lproj added = ec_point_lproj_add(p, p);
-	//ec_point_lproj q = ec_point_lproj_scalar_mull(135235681, p);
+	//ec_point_lproj added = ec_point_lproj_add(p, p);
+	ec_point_lproj q = ec_point_lproj_scalar_mull(135235681, p);
 
-  ec_print_point_lproj_expr(added);
+  ec_print_point_lproj_expr(q);
 
 	//Assert
 	// uint64_t correct = equal_poly64x2(a.p0, a0) & equal_poly64x2(a.p1, a1);
