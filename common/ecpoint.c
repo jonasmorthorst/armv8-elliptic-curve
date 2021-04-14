@@ -35,24 +35,78 @@ ec_point_lproj ec_rand_point_lproj() {
 	return ec_create_point_lproj(ef_rand_elem(), ef_rand_elem(), ef_rand_elem());
 }
 
+// Algorithm 3.27
+ec_point_lproj ec_point_lproj_scalar_mull(uint64_t k, ec_point_lproj p) {
+  // Init q to infinity
+  // TODO: Make helper methods
+  poly64x2_t p_one = {1, 0};
+  poly64x2_t p_zero = {0, 0};
+
+  ef_elem ef_one = ef_create_elem(p_one, p_zero);
+  ef_elem ef_zero = ef_create_elem(p_zero, p_zero);
+
+  ec_point_lproj q = ec_create_point_lproj(ef_one, ef_one, ef_zero);
+
+  ec_print_point_lproj_expr(q);
+
+  while (k) {
+    printf("%lu\n", k);
+
+    p = ec_point_lproj_double(p);
+
+
+
+    if (k & 1) {
+      printf("k is 1\n");
+
+      q = ec_point_lproj_add(q, p);
+    }
+
+    k = k/2;
+  }
+
+  ec_print_point_lproj_expr(q);
+
+  return q;
+}
+
+// ec_point_lproj ec_point_lproj_double_scalar_mull(uint64_t k, ec_point_lproj p1, uint64_t l, ec_point_lproj p2) {
+//
+// }
+
 ec_point_lproj ec_point_lproj_neg(ec_point_lproj p) {
   p.y = ef_add(p.y, p.z);
 
   return p;
 }
 
+// Assumption: q != +-p
 ec_point_lproj ec_point_lproj_add(ec_point_lproj p, ec_point_lproj q) {
+  printf("p and q: \n");
+  ec_print_point_lproj_expr(p);
+  ec_print_point_lproj_expr(q);
   ef_elem u = ef_add(ef_mull(p.y, q.z), ef_mull(q.y, p.z));
   ef_elem v = ef_square(ef_add(ef_mull(p.x, q.z), ef_mull(q.x, p.z)));
+  printf("%s\n", "U");
+  ef_print_expr(u);
+
+  printf("%s\n", "V");
+  ef_print_expr(v);
 
   ec_point_lproj r;
   r.x = ef_mull(ef_mull(ef_mull(u, ef_mull(p.x, q.z)), ef_mull(q.x, p.z)), u);
   r.y = ef_add(ef_square(ef_add(ef_mull(u, ef_mull(q.x, p.z)), v)), ef_mull(ef_mull(ef_mull(u, v), q.z), ef_add(p.y, p.z)));
   r.z = ef_mull(ef_mull(ef_mull(u, v), p.z), p.z);
 
+  printf("%s\n", "R");
+
+  ec_print_point_lproj_expr(r);
+
+
   return r;
 }
 
+// Assumption: p != -p
 ec_point_lproj ec_point_lproj_double(ec_point_lproj p) {
   // TODO: Make constant
   poly64x2_t _a = {4611686018427387904, 4611686018427387904};
