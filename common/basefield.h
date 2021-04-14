@@ -17,6 +17,8 @@ void bf_print_hex(poly64x2_t p);
 
 void bf_print_hex_nl(poly64x2_t p);
 
+poly64x2_t bf_create_elem(uint64_t l, uint64_t h);
+
 poly64x2_t bf_rand_elem();
 
 poly64x2_t bf_add(poly64x2_t a, poly64x2_t b);

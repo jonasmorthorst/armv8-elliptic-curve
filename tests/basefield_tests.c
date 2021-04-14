@@ -6,6 +6,18 @@
 
 //========== Tests ===========================
 
+void bf_create_elem_test_example(test_ctr *ctr) {
+	//Arrange
+	poly64x2_t expected = { 86332548, 19205436754};
+	
+	//Act
+	poly64x2_t actual = bf_create_elem(expected[0], expected[1]);
+	
+	//Assert
+	uint64_t correct = equal_poly64x2(expected, actual);
+	assert_true(correct, ctr, "basefield: bf_create_elem_test_example FAILED");
+}
+
 void bf_add_test_example(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a = {4, 756};
@@ -633,6 +645,8 @@ void bf_inv_test_prod_with_inv_is_one_rnd(test_ctr *ctr) {
 
 void basefield_tests(test_ctr *ctr) {
 	bf_init();
+	
+	bf_create_elem_test_example(ctr);
 	
 	bf_add_test_example(ctr);
 	bf_add_test_doubling_is_zero(ctr);

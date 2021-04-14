@@ -3,6 +3,15 @@
 #ifndef ECPOINT_H
 #define ECPOINT_H
 
+#define EC_A00 0
+#define EC_A01 0
+#define EC_A10 1
+#define EC_A11 0
+#define EC_B00 0x2E6D944FA54DE7E5
+#define EC_B01 0x59C8202CB9E6E0AE
+#define EC_B10 0
+#define EC_B11 0
+
 typedef struct {
 	ef_elem x, y, z;
 } ec_point_lproj;

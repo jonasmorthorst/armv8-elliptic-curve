@@ -3,6 +3,16 @@
 #include "ecpoint.h"
 #include "utils.h"
 
+
+const poly64x2_t A0 = {EC_A00, EC_A01};
+const poly64x2_t A1 = {EC_A10, EC_A11};
+const ef_elem A = {A0, A1};
+
+const poly64x2_t B0 = {EC_B00, EC_B01};
+const poly64x2_t B1 = {EC_B10, EC_B11};
+const ef_elem B = {B0, B1};
+//ef_elem A = ef_create_elem(bf_create_elem(EC_A00, EC_A01), bf_create_elem(EC_A10, EC_A11));
+
 ec_point_lproj ec_create_point_lproj(ef_elem x, ef_elem y, ef_elem z) {
   ec_point_lproj p;
 	p.x = x;

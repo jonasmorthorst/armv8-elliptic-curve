@@ -57,6 +57,11 @@ void bf_print_hex_nl(poly64x2_t p) {
 	printf("\n");
 }
 
+poly64x2_t bf_create_elem(uint64_t l, uint64_t h) {
+	poly64x2_t a = {l, h};
+	return a;
+}
+
 poly64x2_t bf_rand_elem() { 
 	// 2^63-1 = 01111111...
 	long c = pow2to63-1;
