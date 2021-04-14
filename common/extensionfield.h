@@ -26,5 +26,6 @@ ef_elem ef_mull(ef_elem a, ef_elem b);
 ef_elem ef_square(ef_elem a);
 
 ef_elem ef_inv(ef_elem a);
+ef_elem ef_inv2(ef_elem a);
 
 #endif
