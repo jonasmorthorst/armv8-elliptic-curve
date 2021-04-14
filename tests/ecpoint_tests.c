@@ -68,16 +68,33 @@ void ec_scalar_mull_test_example(test_ctr *ctr) {
 
 	//Act
 	//ec_point_lproj added = ec_point_lproj_add(p, p);
-	ec_point_lproj q = ec_point_lproj_scalar_mull(135235681, p);
+	//ec_point_lproj q = ec_point_lproj_scalar_mull(135235681, p);
 
-  ec_print_point_lproj_expr(q);
+  //ec_print_point_lproj_expr(q);
 
 	//Assert
 	// uint64_t correct = equal_poly64x2(a.p0, a0) & equal_poly64x2(a.p1, a1);
 	// assert_true(correct, ctr, "extensionfield: ef_create_elem_test_example FAILED");
 }
 
+void ec_add_infinity_test(test_ctr *ctr) {
+	poly64x2_t p_one = {1, 0};
+  poly64x2_t p_zero = {0, 0};
+
+  ef_elem ef_one = ef_create_elem(p_one, p_zero);
+  ef_elem ef_zero = ef_create_elem(p_zero, p_zero);
+
+  ec_point_lproj infinity = ec_create_point_lproj(ef_one, ef_one, ef_zero);
+
+	ec_point_lproj rand_point = ec_rand_point_lproj();
+
+	ec_point_lproj res = ec_point_lproj_add(infinity, rand_point);
+
+	ec_print_point_lproj_expr(res);
+}
+
 void ecpoint_tests(test_ctr *ctr) {
 	ec_create_point_lproj_test_example(ctr);
+	ec_add_infinity_test(ctr);
 	ec_scalar_mull_test_example(ctr);
 }

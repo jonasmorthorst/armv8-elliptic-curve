@@ -82,15 +82,19 @@ ec_point_lproj ec_point_lproj_neg(ec_point_lproj p) {
 
 // Assumption: q != +-p
 ec_point_lproj ec_point_lproj_add(ec_point_lproj p, ec_point_lproj q) {
-  printf("p and q: \n");
+  printf("p: \n");
   ec_print_point_lproj_expr(p);
+
+  printf("\nq: \n");
   ec_print_point_lproj_expr(q);
+
   ef_elem u = ef_add(ef_mull(p.y, q.z), ef_mull(q.y, p.z));
   ef_elem v = ef_square(ef_add(ef_mull(p.x, q.z), ef_mull(q.x, p.z)));
-  printf("%s\n", "U");
+
+  printf("\nU: \n");
   ef_print_expr(u);
 
-  printf("%s\n", "V");
+  printf("\nV: \n");
   ef_print_expr(v);
 
   ec_point_lproj r;
@@ -98,10 +102,8 @@ ec_point_lproj ec_point_lproj_add(ec_point_lproj p, ec_point_lproj q) {
   r.y = ef_add(ef_square(ef_add(ef_mull(u, ef_mull(q.x, p.z)), v)), ef_mull(ef_mull(ef_mull(u, v), q.z), ef_add(p.y, p.z)));
   r.z = ef_mull(ef_mull(ef_mull(u, v), p.z), p.z);
 
-  printf("%s\n", "R");
-
+  printf("\nR: \n");
   ec_print_point_lproj_expr(r);
-
 
   return r;
 }
