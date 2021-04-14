@@ -68,9 +68,9 @@ void ec_scalar_mull_test_example(test_ctr *ctr) {
 
 	//Act
 	//ec_point_lproj added = ec_point_lproj_add(p, p);
-	//ec_point_lproj q = ec_point_lproj_scalar_mull(135235681, p);
+	ec_point_lproj q = ec_point_lproj_scalar_mull(135235681, p);
 
-  //ec_print_point_lproj_expr(q);
+  ec_print_point_lproj_expr(q);
 
 	//Assert
 	// uint64_t correct = equal_poly64x2(a.p0, a0) & equal_poly64x2(a.p1, a1);
@@ -128,7 +128,7 @@ void ec_rand_point_lproj_test_on_curve(test_ctr *ctr) {
 
 void ecpoint_tests(test_ctr *ctr) {
 	ec_create_point_lproj_test_example(ctr);
-	ec_add_infinity_test(ctr);
+	//ec_add_infinity_test(ctr);
 	ec_scalar_mull_test_example(ctr);
 	test_generator_on_curve(ctr);
 	ec_rand_point_lproj_test_on_curve(ctr);

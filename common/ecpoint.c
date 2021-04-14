@@ -47,25 +47,25 @@ ec_point_lproj ec_point_lproj_scalar_mull(uint64_t k, ec_point_lproj p) {
 
   ec_point_lproj q = ec_create_point_lproj(ef_one, ef_one, ef_zero);
 
-  ec_print_point_lproj_expr(q);
+  // To avoid adding and doubling with infinity
+  int is_infty = 1;
 
   while (k) {
-    printf("%lu\n", k);
-
-    p = ec_point_lproj_double(p);
-
-
+    if (!is_infty) {
+      p = ec_point_lproj_double(p);
+    }
 
     if (k & 1) {
-      printf("k is 1\n");
-
-      q = ec_point_lproj_add(q, p);
+      if (is_infty) {
+        q = p;
+        is_infty = 0;
+      } else {
+        q = ec_point_lproj_add(q, p);
+      }
     }
 
     k = k/2;
   }
-
-  ec_print_point_lproj_expr(q);
 
   return q;
 }
@@ -88,22 +88,14 @@ ec_point_lproj ec_point_lproj_add(ec_point_lproj p, ec_point_lproj q) {
   printf("\nq: \n");
   ec_print_point_lproj_expr(q);
 
-  ef_elem u = ef_add(ef_mull(p.l, q.z), ef_mull(q.l, p.z));
+  ef_elem u = ef_add(ef_mull(p.y, q.z), ef_mull(q.y, p.z));
+
   ef_elem v = ef_square(ef_add(ef_mull(p.x, q.z), ef_mull(q.x, p.z)));
-
-  printf("\nU: \n");
-  ef_print_expr(u);
-
-  printf("\nV: \n");
-  ef_print_expr(v);
 
   ec_point_lproj r;
   r.x = ef_mull(ef_mull(ef_mull(u, ef_mull(p.x, q.z)), ef_mull(q.x, p.z)), u);
   r.l = ef_add(ef_square(ef_add(ef_mull(u, ef_mull(q.x, p.z)), v)), ef_mull(ef_mull(ef_mull(u, v), q.z), ef_add(p.l, p.z)));
   r.z = ef_mull(ef_mull(ef_mull(u, v), p.z), p.z);
-
-  printf("\nR: \n");
-  ec_print_point_lproj_expr(r);
 
   return r;
 }
