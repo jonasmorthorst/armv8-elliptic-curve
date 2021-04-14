@@ -32,6 +32,7 @@ void ec_print_point_lproj_hex(ec_point_lproj p) {
 }
 
 ec_point_lproj ec_rand_point_lproj() {
+	
 	return ec_create_point_lproj(ef_rand_elem(), ef_rand_elem(), ef_rand_elem());
 }
 
@@ -88,7 +89,7 @@ ec_point_lproj ec_point_lproj_add(ec_point_lproj p, ec_point_lproj q) {
   printf("\nq: \n");
   ec_print_point_lproj_expr(q);
 
-  ef_elem u = ef_add(ef_mull(p.y, q.z), ef_mull(q.y, p.z));
+  ef_elem u = ef_add(ef_mull(p.l, q.z), ef_mull(q.l, p.z));
 
   ef_elem v = ef_square(ef_add(ef_mull(p.x, q.z), ef_mull(q.x, p.z)));
 

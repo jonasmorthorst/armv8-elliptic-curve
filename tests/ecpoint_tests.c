@@ -95,11 +95,11 @@ void ec_add_infinity_test(test_ctr *ctr) {
 
 void test_generator_on_curve(test_ctr *ctr) {
 	//Arrange
-	ec_point_lproj gen_elem = (ec_point_lproj) GEN;
+	ec_point_lproj G = (ec_point_lproj) GEN;
 	
 	//Act
-	ef_elem lhs = ef_mull(ef_add(ef_square(gen_elem.l), ef_add(ef_mull(gen_elem.l, gen_elem.z), ef_mull((ef_elem) A, ef_square(gen_elem.z)))), ef_square(gen_elem.x)); //(L^2 + LZ + AZ^2)X^2
-	ef_elem rhs = ef_add(ef_square(ef_square(gen_elem.x)), ef_mull((ef_elem) B, ef_square(ef_square(gen_elem.z)))); //X^4 + BZ^4
+	ef_elem lhs = ef_mull(ef_add(ef_square(G.l), ef_add(ef_mull(G.l, G.z), ef_mull((ef_elem) A, ef_square(G.z)))), ef_square(G.x)); //(L^2 + LZ + AZ^2)X^2
+	ef_elem rhs = ef_add(ef_square(ef_square(G.x)), ef_mull((ef_elem) B, ef_square(ef_square(G.z)))); //X^4 + BZ^4
 	
 	//Assert
 	uint64_t correct = equal_ef_elem(lhs, rhs);
@@ -110,20 +110,41 @@ void ec_rand_point_lproj_test_on_curve(test_ctr *ctr) {
 	uint64_t correct = 1;
 	for(int i = 0; i < 10; i++) {
 		//Arrange & Act
-		ec_point_lproj p = ec_rand_point_lproj();
+		ec_point_lproj P = ec_rand_point_lproj();
 		
-		ef_elem lhs = ef_mull(ef_add(ef_square(p.l), ef_add(ef_mull(p.l, p.z), ef_mull((ef_elem) A, ef_square(p.z)))), ef_square(p.x)); //(L^2 + LZ + AZ^2)X^2
-		ef_elem rhs = ef_add(ef_square(ef_square(p.x)), ef_mull((ef_elem) B, ef_square(ef_square(p.z)))); //X^4 + BZ^4
+		ef_elem lhs = ef_mull(ef_add(ef_square(P.l), ef_add(ef_mull(P.l, P.z), ef_mull((ef_elem) A, ef_square(P.z)))), ef_square(P.x)); //(L^2 + LZ + AZ^2)X^2
+		ef_elem rhs = ef_add(ef_square(ef_square(P.x)), ef_mull((ef_elem) B, ef_square(ef_square(P.z)))); //X^4 + BZ^4
 		
 		//Assert
 		correct = equal_ef_elem(lhs, rhs);
 		if(!correct) {
 			printf("p: ");
-			ec_print_point_lproj_hex(p);
+			ec_print_point_lproj_hex(P);
 			break;
 		}
 	}
 	assert_true(correct, ctr, "ecpoint: ec_rand_point_lproj_test_on_curve FAILED");
+}
+
+void ec_point_lproj_add_test_associative_rnd(test_ctr *ctr) {
+	uint64_t correct = 1;
+	for(int i = 0; i < 10; i++) {
+		//Arrange
+		ec_point_lproj P = ec_rand_point_lproj();
+		ec_point_lproj Q = ec_rand_point_lproj();
+		ec_point_lproj R = ec_rand_point_lproj();
+		
+		//MUST HAVE A WAY TO CHECK THAT THEYRE NOT INVERSES OF EACHOTHER
+		
+		//Act
+		ec_point_lproj P_plus_Q = ec_point_lproj_add(P,Q);
+		ec_point_lproj P_plus_Q_first = ec_point_lproj_add(P_plus_Q, R);
+		ec_point_lproj Q_plus_R = ec_point_lproj_add(Q, R);
+		ec_point_lproj Q_plus_r_first = ec_point_lproj_add(P, Q_plus_R);
+		
+		//Assert
+		//correct = 
+	}
 }
 
 void ecpoint_tests(test_ctr *ctr) {
