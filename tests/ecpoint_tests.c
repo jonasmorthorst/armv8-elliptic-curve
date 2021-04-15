@@ -93,18 +93,59 @@ void ec_add_infinity_test(test_ctr *ctr) {
 	ec_print_point_lproj_expr(res);
 }
 
-void test_generator_on_curve(test_ctr *ctr) {
+void ec_point_lproj_equal_test_equivalent_example(test_ctr *ctr) {
 	//Arrange
-	ec_point_lproj G = (ec_point_lproj) GEN;
+	ef_elem PX = ef_create_elem(bf_create_elem(8580737671568810207U, 2871255672283442416U), bf_create_elem(14038621212797386049U, 7102795227656941388U));
+	ef_elem PL = ef_create_elem(bf_create_elem(8047436918354421319U, 1946646612861660792U), bf_create_elem(3809596628914525439U, 6366755232823307697U));
+	ef_elem PZ = ef_create_elem(bf_create_elem(1, 0), bf_create_elem(0,0));
+	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //P = 1984 * GEN
 	
-	//Act
-	ef_elem lhs = ef_mull(ef_add(ef_square(G.l), ef_add(ef_mull(G.l, G.z), ef_mull((ef_elem) A, ef_square(G.z)))), ef_square(G.x)); //(L^2 + LZ + AZ^2)X^2
-	ef_elem rhs = ef_add(ef_square(ef_square(G.x)), ef_mull((ef_elem) B, ef_square(ef_square(G.z)))); //X^4 + BZ^4
+	ef_elem QX = ef_create_elem(bf_create_elem(3241181585702845695U, 3252528035791615660U), bf_create_elem(12709637355653080861U, 31217557150801189U));
+	ef_elem QL = ef_create_elem(bf_create_elem(16970158823458969713U, 7952375805880217921U), bf_create_elem(12883836633214573383U, 8353656882183346347U));
+	ef_elem QZ = ef_create_elem(bf_create_elem(2, 0), bf_create_elem(1, 0));
+	ec_point_lproj Q = ec_create_point_lproj(QX, QL, QZ); // Q = 1984 * GEN , Q.z = u + z
 	
-	//Assert
-	uint64_t correct = equal_ef_elem(lhs, rhs);
-	assert_true(correct, ctr, "ecpoint: test_generator_on_curve FAILED");
+	//Act & Assert
+	uint64_t equal = ec_point_lproj_equal(P, Q);
+	uint64_t on_curve = ec_is_on_curve(P) && ec_is_on_curve(Q);
+	assert_true(equal && on_curve, ctr, "ecpoint: ec_point_lproj_equal_test_equivalent_example FAILED");
 }
+
+void ec_point_lproj_equal_test_notequivalent_example(test_ctr *ctr) {
+	//Arrange
+	ef_elem PX = ef_create_elem(bf_create_elem(6574758758697437213U, 9029938885770167062U), bf_create_elem(2238988517843169761U, 2100850367268144132U));
+	ef_elem PL = ef_create_elem(bf_create_elem(6503207926092968936U, 3219845272070329794U), bf_create_elem(10930336994397273494U, 8947327516344479714U));
+	ef_elem PZ = ef_create_elem(bf_create_elem(1, 0), bf_create_elem(0, 0));
+	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //P = 12345 * GEN
+	
+	ef_elem QX = ef_create_elem(bf_create_elem(3241181585702845695U, 3252528035791615660U), bf_create_elem(12709637355653080861U, 31217557150801189U));
+	ef_elem QL = ef_create_elem(bf_create_elem(16970158823458969713U, 7952375805880217921U), bf_create_elem(12883836633214573383U, 8353656882183346347U));
+	ef_elem QZ = ef_create_elem(bf_create_elem(2, 0), bf_create_elem(1, 0));
+	ec_point_lproj Q = ec_create_point_lproj(QX, QL, QZ); // Q = 1984 * GEN , Q.z = u + z
+	
+	//Act & Assert
+	uint64_t equal = ec_point_lproj_equal(P, Q);
+	assert_false(equal, ctr, "ecpoint: ec_point_lproj_equal_test_notequivalent_example FAILED");
+}
+
+void ec_is_on_curve_test_generator_on_curve(test_ctr *ctr) {
+	//Arrange, Act & Assert
+	uint64_t on_curve = ec_is_on_curve((ec_point_lproj) GEN);
+	assert_true(on_curve, ctr, "ecpoint: test_generator_on_curve FAILED");
+}
+
+void ec_is_on_curve_test_point_not_on_curve(test_ctr *ctr) {
+	//Arrange
+	ef_elem PX = ef_create_elem(bf_create_elem(6574758758697437212U, 9029938885770167062U), bf_create_elem(2238988517843169761U, 2100850367268144132U));
+	ef_elem PL = ef_create_elem(bf_create_elem(6503207926092968936U, 3219845272070329794U), bf_create_elem(10930336994397273494U, 8947327516344479714U));
+	ef_elem PZ = ef_create_elem(bf_create_elem(1, 0), bf_create_elem(0, 0));
+	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); 
+	
+	//Act & Assert
+	uint64_t on_curve = ec_is_on_curve((ec_point_lproj) P);
+	assert_false(on_curve, ctr, "ecpoint: test_generator_on_curve FAILED");
+}
+
 
 void ec_rand_point_lproj_test_on_curve(test_ctr *ctr) {
 	uint64_t correct = 1;
@@ -112,11 +153,8 @@ void ec_rand_point_lproj_test_on_curve(test_ctr *ctr) {
 		//Arrange & Act
 		ec_point_lproj P = ec_rand_point_lproj();
 		
-		ef_elem lhs = ef_mull(ef_add(ef_square(P.l), ef_add(ef_mull(P.l, P.z), ef_mull((ef_elem) A, ef_square(P.z)))), ef_square(P.x)); //(L^2 + LZ + AZ^2)X^2
-		ef_elem rhs = ef_add(ef_square(ef_square(P.x)), ef_mull((ef_elem) B, ef_square(ef_square(P.z)))); //X^4 + BZ^4
-		
 		//Assert
-		correct = equal_ef_elem(lhs, rhs);
+		correct = ec_is_on_curve(P);
 		if(!correct) {
 			printf("p: ");
 			ec_print_point_lproj_hex(P);
@@ -126,31 +164,94 @@ void ec_rand_point_lproj_test_on_curve(test_ctr *ctr) {
 	assert_true(correct, ctr, "ecpoint: ec_rand_point_lproj_test_on_curve FAILED");
 }
 
-void ec_point_lproj_add_test_associative_rnd(test_ctr *ctr) {
-	uint64_t correct = 1;
-	for(int i = 0; i < 10; i++) {
-		//Arrange
-		ec_point_lproj P = ec_rand_point_lproj();
-		ec_point_lproj Q = ec_rand_point_lproj();
-		ec_point_lproj R = ec_rand_point_lproj();
-		
-		//MUST HAVE A WAY TO CHECK THAT THEYRE NOT INVERSES OF EACHOTHER
-		
-		//Act
-		ec_point_lproj P_plus_Q = ec_point_lproj_add(P,Q);
-		ec_point_lproj P_plus_Q_first = ec_point_lproj_add(P_plus_Q, R);
-		ec_point_lproj Q_plus_R = ec_point_lproj_add(Q, R);
-		ec_point_lproj Q_plus_r_first = ec_point_lproj_add(P, Q_plus_R);
-		
-		//Assert
-		//correct = 
-	}
+void ec_point_lproj_add_test_example(test_ctr *ctr) {
+	//Arrange
+	ef_elem PX = ef_create_elem(bf_create_elem(6574758758697437213U, 9029938885770167062U), bf_create_elem(2238988517843169761U, 2100850367268144132U));
+	ef_elem PL = ef_create_elem(bf_create_elem(6503207926092968936U, 3219845272070329794U), bf_create_elem(10930336994397273494U, 8947327516344479714U));
+	ef_elem PZ = ef_create_elem(bf_create_elem(1, 0), bf_create_elem(0, 0));
+	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //P = 12345 * GEN
+	
+	ef_elem QX = ef_create_elem(bf_create_elem(3241181585702845695U, 3252528035791615660U), bf_create_elem(12709637355653080861U, 31217557150801189U));
+	ef_elem QL = ef_create_elem(bf_create_elem(16970158823458969713U, 7952375805880217921U), bf_create_elem(12883836633214573383U, 8353656882183346347U));
+	ef_elem QZ = ef_create_elem(bf_create_elem(2, 0), bf_create_elem(1, 0));
+	ec_point_lproj Q = ec_create_point_lproj(QX, QL, QZ); // Q = 1984 * GEN , z = u + z
+	
+	ef_elem eX = ef_create_elem(bf_create_elem(11714707759024576024U, 1425171228285341038U), bf_create_elem(8911788759205811087U, 1880974208631851155U));
+	ef_elem eL = ef_create_elem(bf_create_elem(11786282500562796401U, 494288005942721389U), bf_create_elem(13537247985355034756U, 7807710330745742853U));
+	ef_elem eZ = ef_create_elem(bf_create_elem(10401784470963653389U, 3885991217892589471U), bf_create_elem(7010465213269421323U, 7477155044425948780U));
+	ec_point_lproj expected = ec_create_point_lproj(eX, eL, eZ);
+	ec_print_point_lproj_expr(expected);
+	
+	//Act
+	ec_point_lproj actual = ec_point_lproj_add(P, Q);
+	
+	//Assert
+	uint64_t equal = ec_point_lproj_equal(expected, actual);
+	uint64_t on_curve = ec_is_on_curve(P) && ec_is_on_curve(Q) && ec_is_on_curve(actual);
+	assert_true(equal && on_curve, ctr, "ecpoint: ec_point_lproj_add_test_example FAILED");
+}
+
+void ec_point_lproj_add_test_associative(test_ctr *ctr) {
+	//Arrange
+	ef_elem PX = ef_create_elem(bf_create_elem(6574758758697437213U, 9029938885770167062U), bf_create_elem(2238988517843169761U, 2100850367268144132U));
+	ef_elem PL = ef_create_elem(bf_create_elem(6503207926092968936U, 3219845272070329794U), bf_create_elem(10930336994397273494U, 8947327516344479714U));
+	ef_elem PZ = ef_create_elem(bf_create_elem(1, 0), bf_create_elem(0, 0));
+	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //P = 12345 * GEN
+	
+	ef_elem QX = ef_create_elem(bf_create_elem(5130258657669722291U, 2683433950625433362U), bf_create_elem(15861652668403718055U, 2280238350963310U));
+	ef_elem QL = ef_create_elem(bf_create_elem(13076644468273807311U, 8504358646598259325U), bf_create_elem(16381575749271831681U, 1938714279827322046U));
+	ef_elem QZ = ef_create_elem(bf_create_elem(1, 0), bf_create_elem(0, 0)); 
+	ec_point_lproj Q = ec_create_point_lproj(QX, QL, QZ); //Q = 674559848943297 * GEN
+	
+	ef_elem RX = ef_create_elem(bf_create_elem(3241181585702845695U, 3252528035791615660U), bf_create_elem(12709637355653080861U, 31217557150801189U));
+	ef_elem RL = ef_create_elem(bf_create_elem(16970158823458969713U, 7952375805880217921U), bf_create_elem(12883836633214573383U, 8353656882183346347U));
+	ef_elem RZ = ef_create_elem(bf_create_elem(2, 0), bf_create_elem(1, 0));
+	ec_point_lproj R = ec_create_point_lproj(RX, RL, RZ); // R = 1984 * GEN , z = u + z
+	
+	//Act
+	ec_point_lproj P_plus_Q = ec_point_lproj_add(P, Q);
+	ec_point_lproj P_plus_Q_first = ec_point_lproj_add(P_plus_Q, R);
+	ec_point_lproj Q_plus_R = ec_point_lproj_add(Q, R);
+	ec_point_lproj Q_plus_R_first = ec_point_lproj_add(P, Q_plus_R);
+	
+	//Assert
+	uint64_t equal = ec_point_lproj_equal(P_plus_Q_first, Q_plus_R_first);
+	uint64_t on_curve = ec_is_on_curve(P) && ec_is_on_curve(Q) && ec_is_on_curve(R) && ec_is_on_curve(P_plus_Q) && ec_is_on_curve(P_plus_Q_first) && ec_is_on_curve(Q_plus_R);
+	assert_true(equal && on_curve, ctr, "ecpoint ec_point_lproj_add_test_associative FAILED");
+}
+
+void ec_point_lproj_add_test_commutative(test_ctr *ctr) {
+	//Arrange
+	ef_elem PX = ef_create_elem(bf_create_elem(6574758758697437213U, 9029938885770167062U), bf_create_elem(2238988517843169761U, 2100850367268144132U));
+	ef_elem PL = ef_create_elem(bf_create_elem(6503207926092968936U, 3219845272070329794U), bf_create_elem(10930336994397273494U, 8947327516344479714U));
+	ef_elem PZ = ef_create_elem(bf_create_elem(1, 0), bf_create_elem(0, 0));
+	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //P = 12345 * GEN
+	
+	ef_elem QX = ef_create_elem(bf_create_elem(3241181585702845695U, 3252528035791615660U), bf_create_elem(12709637355653080861U, 31217557150801189U));
+	ef_elem QL = ef_create_elem(bf_create_elem(16970158823458969713U, 7952375805880217921U), bf_create_elem(12883836633214573383U, 8353656882183346347U));
+	ef_elem QZ = ef_create_elem(bf_create_elem(2, 0), bf_create_elem(1, 0)); 
+	ec_point_lproj Q = ec_create_point_lproj(QX, QL, QZ); // Q = 1984 * GEN , z = u + z
+	
+	//Act
+	ec_point_lproj P_plus_Q = ec_point_lproj_add(P, Q);
+	ec_point_lproj Q_plus_P = ec_point_lproj_add(Q, P);
+	
+	//Assert
+	uint64_t equal = ec_point_lproj_equal(P_plus_Q, Q_plus_P);
+	uint64_t on_curve = ec_is_on_curve(P) && ec_is_on_curve(Q) && ec_is_on_curve(P_plus_Q);
+	assert_true(equal && on_curve, ctr, "ecpoint: ec_point_lproj_add_test_commutative FAILED");
 }
 
 void ecpoint_tests(test_ctr *ctr) {
-	ec_create_point_lproj_test_example(ctr);
+	//ec_create_point_lproj_test_example(ctr);
 	//ec_add_infinity_test(ctr);
-	ec_scalar_mull_test_example(ctr);
-	test_generator_on_curve(ctr);
+	//ec_scalar_mull_test_example(ctr);
+	ec_point_lproj_equal_test_equivalent_example(ctr);
+	ec_point_lproj_equal_test_notequivalent_example(ctr);
+	ec_is_on_curve_test_generator_on_curve(ctr);
+	ec_is_on_curve_test_point_not_on_curve(ctr);
 	ec_rand_point_lproj_test_on_curve(ctr);
+	ec_point_lproj_add_test_example(ctr);
+	ec_point_lproj_add_test_associative(ctr);
+	ec_point_lproj_add_test_commutative(ctr);
 }

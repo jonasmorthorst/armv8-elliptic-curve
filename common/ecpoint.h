@@ -20,6 +20,10 @@ void ec_print_point_lproj_expr(ec_point_lproj p);
 
 void ec_print_point_lproj_hex(ec_point_lproj p);
 
+uint64_t ec_is_on_curve(ec_point_lproj P);
+
+uint64_t ec_point_lproj_equal(ec_point_lproj P, ec_point_lproj Q);
+
 ec_point_lproj ec_rand_point_lproj();
 
 ec_point_lproj ec_point_lproj_scalar_mull(uint64_t k, ec_point_lproj p);

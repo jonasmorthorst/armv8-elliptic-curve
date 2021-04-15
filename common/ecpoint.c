@@ -3,32 +3,47 @@
 #include "ecpoint.h"
 #include "utils.h"
 
-ec_point_lproj ec_create_point_lproj(ef_elem x, ef_elem y, ef_elem z) {
+ec_point_lproj ec_create_point_lproj(ef_elem x, ef_elem l, ef_elem z) {
   ec_point_lproj p;
 	p.x = x;
-  p.l = y;
+  p.l = l;
 	p.z = z;
 	return p;
 }
 
 void ec_print_point_lproj_expr(ec_point_lproj p) {
   printf("x: ");
-	ef_print_expr(p.x);
-	printf(" y: ");
-	ef_print_expr(p.l);
+	ef_print_expr_nl(p.x);
+	printf(" l: ");
+	ef_print_expr_nl(p.l);
   printf(" z: ");
-	ef_print_expr(p.z);
-  printf("\n");
+	ef_print_expr_nl(p.z);
 }
 
 void ec_print_point_lproj_hex(ec_point_lproj p) {
   printf("x: ");
-	ef_print_hex(p.x);
-	printf(" y: ");
-	ef_print_hex(p.l);
+	ef_print_hex_nl(p.x);
+	printf(" l: ");
+	ef_print_hex_nl(p.l);
   printf(" z: ");
-	ef_print_hex(p.z);
-  printf("\n");
+	ef_print_hex_nl(p.z);
+}
+
+uint64_t ec_is_on_curve(ec_point_lproj P) {
+	ef_elem lhs = ef_mull(ef_add(ef_square(P.l), ef_add(ef_mull(P.l, P.z), ef_mull((ef_elem) A, ef_square(P.z)))), ef_square(P.x)); //(L^2 + LZ + AZ^2)X^2
+	ef_elem rhs = ef_add(ef_square(ef_square(P.x)), ef_mull((ef_elem) B, ef_square(ef_square(P.z)))); //X^4 + BZ^4
+	return equal_ef_elem(lhs, rhs);
+}
+
+uint64_t ec_point_lproj_equal(ec_point_lproj P, ec_point_lproj Q) {
+	ef_elem zP_inv = ef_inv(P.z);
+	ef_elem xP_normalized = ef_mull(P.x, zP_inv);
+	ef_elem lP_normalized = ef_mull(P.l, zP_inv);
+	ef_elem zQ_inv = ef_inv(Q.z);
+	ef_elem xQ_normalized = ef_mull(Q.x, zQ_inv);
+	ef_elem lQ_normalized = ef_mull(Q.l, zQ_inv);
+	
+	return equal_ef_elem(xP_normalized, xQ_normalized) && equal_ef_elem(lP_normalized, lQ_normalized);
 }
 
 ec_point_lproj ec_rand_point_lproj() {
@@ -83,12 +98,12 @@ ec_point_lproj ec_point_lproj_neg(ec_point_lproj p) {
 
 // Assumption: q != +-p
 ec_point_lproj ec_point_lproj_add(ec_point_lproj p, ec_point_lproj q) {
-  printf("p: \n");
+  /*printf("p: \n");
   ec_print_point_lproj_expr(p);
 
   printf("\nq: \n");
   ec_print_point_lproj_expr(q);
-
+*/
   ef_elem u = ef_add(ef_mull(p.l, q.z), ef_mull(q.l, p.z));
 
   ef_elem v = ef_square(ef_add(ef_mull(p.x, q.z), ef_mull(q.x, p.z)));
