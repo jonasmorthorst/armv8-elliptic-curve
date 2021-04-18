@@ -468,11 +468,3 @@ poly64x2_t bf_red_psquare(bf_polyx2 c) {
 poly64x2_t bf_inv(poly64x2_t a) {
 	return bf_addchain_inv(a);
 }
-
-void bf_init() {
-	//precomp_inv_tables();
-}
-
-void bf_post() {
-	
-}

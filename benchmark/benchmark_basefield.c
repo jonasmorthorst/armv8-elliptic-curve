@@ -165,8 +165,6 @@ void benchmark_bf_addchain_lookup_inv() {
 }
 
 void benchmark_bf_all() {
-	bf_init();
-	
 	benchmark_bf_add();
 	benchmark_bf_pmull32();
 	benchmark_bf_pmull64();
@@ -176,6 +174,5 @@ void benchmark_bf_all() {
 	benchmark_bf_fermat_inv();
 	benchmark_bf_addchain_inv();
 	benchmark_bf_addchain_lookup_inv();
-	bf_post();
 }
 

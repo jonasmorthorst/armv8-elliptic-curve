@@ -33,10 +33,6 @@ poly64x2_t bf_red_psquare(bf_polyx2 c);
 
 poly64x2_t bf_inv(poly64x2_t a);
 
-void bf_init();
-
-void bf_post();
-
 //Implementation alternatives:
 
 bf_polyx2 bf_pmull32(poly64x2_t a, poly64x2_t b);

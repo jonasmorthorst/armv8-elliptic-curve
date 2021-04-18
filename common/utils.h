@@ -6,6 +6,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+void utils_init();
+
 double average(uint64_t nums[], uint64_t len);
 
 uint64_t compare_doubles(double a, double b, double errmargin);

@@ -3,6 +3,12 @@
 
 #include "utils.h"
 
+void utils_init() {
+	// Intializes random number generator
+	time_t t;
+	srand((unsigned) time(&t));
+}
+
 double average(uint64_t nums[], uint64_t len) {
 	double sum = 0.0;
 	for (int i = 0; i < len; i++) {
@@ -60,11 +66,6 @@ double median(uint64_t sorted_nums[], uint64_t len) {
 }
 
 uint64_t rand_uint64() {
-	time_t t;
-   
-	// Intializes random number generator
-	srand((unsigned) time(&t));
-	
 	uint64_t r = 0;
 	for (int i=0; i<64; i++) {
 		r = r*2 + rand()%2;
