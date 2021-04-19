@@ -2,53 +2,30 @@
 
 #include "ec_scalarmull_tests.h"
 #include "../common/ec_scalarmull.h"
+#include "../common/ec.h"
+#include "../common/extensionfield.h"
+#include "../common/basefield.h"
 
 void ec_scalar_mull_test_example(test_ctr *ctr) {
 	//Arrange
-	poly64x2_t a0 = {16785442, 721476};
-	poly64x2_t a1 = {78099554548664, 6547959942615};
+	poly64x2_t k0 = {1984, 0};
+	poly64x2_t k1 = {0, 0};
+	ef_elem k = ef_create_elem(k0, k1);
 
-	ef_elem x = ef_create_elem(a0, a1);
-
-	poly64x2_t b0 = {972573, 353523623};
-	poly64x2_t b1 = {23523988509283, 2435335};
-
-	ef_elem y = ef_create_elem(b0, b1);
-
-	poly64x2_t c0 = {54689374, 4584};
-	poly64x2_t c1 = {34548734, 5648574685};
-
-	ef_elem z = ef_create_elem(c0, c1);
-	ec_point_lproj P = ec_create_point_lproj(x, y, z);
-
-
-	poly64x2_t a02 = {31245135, 1353};
-	poly64x2_t a12 = {153535, 35135};
-
-	ef_elem x2 = ef_create_elem(a02, a12);
-
-	poly64x2_t b02 = {135135, 135};
-	poly64x2_t b12 = {315135135, 135135};
-
-	ef_elem y2 = ef_create_elem(b02, b12);
-
-	poly64x2_t c02 = {54689374, 4584};
-	poly64x2_t c12 = {34, 314134134};
-
-	ef_elem z2 = ef_create_elem(c02, c12);
-	ec_point_lproj P2 = ec_create_point_lproj(x2, y2, z2);
+	ef_elem QX = ef_create_elem(bf_create_elem(0X2CFAFD7ACC5AFCFF, 0X2D234D04135BB6AC), bf_create_elem(0XB061B3D61FBCA71D, 0X6EE833ECBA9D25));
+	ef_elem QL = ef_create_elem(bf_create_elem(0XEB821D89C63B9871, 0X6E5C83A975E6B141), bf_create_elem(0XB2CC95280AEB5B47, 0X73EE26ACBE0918AB));
+	ef_elem QZ = ef_create_elem(bf_create_elem(2, 0), bf_create_elem(1, 0));
+	ec_point_lproj expected = ec_create_point_lproj(QX, QL, QZ); // Q = 1984 * GEN
 
 	//Act
-	//ec_point_lproj added = ec_point_lproj_add(p, p);
-	//ec_point_lproj Q = ec_scalarmull_single(P, 135235681);
-
-	//ec_print_expr(Q);
+	ec_point_lproj actual = ec_scalarmull_single((ec_point_lproj)GEN, k);
 
 	//Assert
-	// uint64_t correct = equal_poly64x2(a.p0, a0) & equal_poly64x2(a.p1, a1);
-	// assert_true(correct, ctr, "extensionfield: ef_create_elem_test_example FAILED");
+	uint64_t equal = ec_equal_point_lproj(expected, actual);
+	uint64_t on_curve = ec_is_on_curve(actual);
+	assert_true(equal && on_curve, ctr, "ec: ec_scalar_mull_test_example FAILED");
 }
 
 void ec_scalarmull_tests(test_ctr *ctr) {
-	
+	ec_scalar_mull_test_example(ctr);
 }
