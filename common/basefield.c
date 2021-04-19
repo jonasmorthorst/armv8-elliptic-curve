@@ -74,47 +74,47 @@ poly64x2_t bf_rand_elem() {
 	return p;
 }
 
-bf_polyx2 bf_pmull32(poly64x2_t a, poly64x2_t b) {
+poly64x2x2_t bf_pmull32(poly64x2_t a, poly64x2_t b) {
 	poly64x2_t t;
-	bf_polyx2 r;
-	r.p0 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], b[0]));
-	r.p1 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[1], b[1]));
+	poly64x2x2_t r;
+	r.val[0] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], b[0]));
+	r.val[1] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[1], b[1]));
 	t[1] = (poly64_t) veor_u64((uint64x1_t) b[0], (uint64x1_t) b[1]);
 	t[0] = (poly64_t) veor_u64((uint64x1_t) a[0], (uint64x1_t) a[1]);
 	t = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(t[1], t[0]));
-	t = (poly64x2_t) veorq_u64((uint64x2_t) t, (uint64x2_t) r.p0);
-	t = (poly64x2_t) veorq_u64((uint64x2_t) t, (uint64x2_t) r.p1);
-	r.p0[1] = (poly64_t) veor_u64((uint64x1_t) r.p0[1], (uint64x1_t) t[0]);
-	r.p1[0] = (poly64_t) veor_u64((uint64x1_t) r.p1[0], (uint64x1_t) t[1]);
+	t = (poly64x2_t) veorq_u64((uint64x2_t) t, (uint64x2_t) r.val[0]);
+	t = (poly64x2_t) veorq_u64((uint64x2_t) t, (uint64x2_t) r.val[1]);
+	r.val[0][1] = (poly64_t) veor_u64((uint64x1_t) r.val[0][1], (uint64x1_t) t[0]);
+	r.val[1][0] = (poly64_t) veor_u64((uint64x1_t) r.val[1][0], (uint64x1_t) t[1]);
 	
 	return r;
 }
 
-bf_polyx2 bf_pmull64(poly64x2_t a, poly64x2_t b) {
+poly64x2x2_t bf_pmull64(poly64x2_t a, poly64x2_t b) {
 	poly64x2_t t0, t1;
 	poly64x2_t z = {0,0};
-	bf_polyx2 r;
+	poly64x2x2_t r;
 	
-	r.p0 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], b[0]));
-	r.p1 = (poly64x2_t) vreinterpretq_u64_p128(vmull_high_p64(a, b));
+	r.val[0] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], b[0]));
+	r.val[1] = (poly64x2_t) vreinterpretq_u64_p128(vmull_high_p64(a, b));
 	t0 = vextq_p64(b, b, 1);
 	t1 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], t0[0]));
 	t0 = (poly64x2_t) vreinterpretq_u64_p128(vmull_high_p64(a, t0));
 	t0 = (poly64x2_t) veorq_u64((uint64x2_t) t0, (uint64x2_t) t1);
 	t1 = vextq_p64(z, t0, 1);
-	r.p0 = (poly64x2_t) veorq_u64((uint64x2_t) r.p0, (uint64x2_t) t1);
+	r.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) r.val[0], (uint64x2_t) t1);
 	t1 = vextq_p64(t0, z, 1);
-	r.p1 = (poly64x2_t) veorq_u64((uint64x2_t) r.p1, (uint64x2_t) t1);
+	r.val[1] = (poly64x2_t) veorq_u64((uint64x2_t) r.val[1], (uint64x2_t) t1);
 	
 	return r;
 	
 }
 
 //First tried to find an arm bit-interleaving instruction, but later realised this works:
-bf_polyx2 bf_psquare_neon(poly64x2_t a) {
-	bf_polyx2 r;
-	r.p0 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], a[0]));
-	r.p1 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[1], a[1]));
+poly64x2x2_t bf_psquare_neon(poly64x2_t a) {
+	poly64x2x2_t r;
+	r.val[0] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], a[0]));
+	r.val[1] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[1], a[1]));
 	return r;
 }
 
@@ -140,7 +140,7 @@ void bf_red_generic_precomp() {
 	}
 }
 
-poly64x2_t bf_red_generic(bf_polyx2 c) {
+poly64x2_t bf_red_generic(poly64x2x2_t c) {
 	/* Step 1 */
 	bf_red_generic_precomp();
 	
@@ -149,14 +149,14 @@ poly64x2_t bf_red_generic(bf_polyx2 c) {
 	int index = 1;
 	for(int digit = 252; digit >= 128; digit--) {
 		/* Step 2.1 */
-		if((c.p1[index] & digit_val) == digit_val) {
+		if((c.val[1][index] & digit_val) == digit_val) {
 			int j = (digit - 127)/64; //Can be 0 or 1
 			int k = (digit - 127) - 64*j;
 			if(j == 1) {
-				c.p0[1] = (poly64_t) veor_u64((uint64x1_t) reduction_polynomials[k][0], (uint64x1_t) c.p0[1]);
-				c.p1[0] = (poly64_t) veor_u64((uint64x1_t) reduction_polynomials[k][1], (uint64x1_t) c.p1[0]);
+				c.val[0][1] = (poly64_t) veor_u64((uint64x1_t) reduction_polynomials[k][0], (uint64x1_t) c.val[0][1]);
+				c.val[1][0] = (poly64_t) veor_u64((uint64x1_t) reduction_polynomials[k][1], (uint64x1_t) c.val[1][0]);
 			} else {
-				c.p0 = bf_add(reduction_polynomials[k], c.p0);
+				c.val[0] = bf_add(reduction_polynomials[k], c.val[0]);
 			}
 		}
 		
@@ -167,86 +167,86 @@ poly64x2_t bf_red_generic(bf_polyx2 c) {
 			digit_val /= 2;
 		}
 	}
-	if((c.p0[1] & pow2to63) == pow2to63) {
-		c.p0[0] = reduction_polynomials[0][0] ^ c.p0[0];
-		c.p0[1] &= pow2to63 - 1;
+	if((c.val[0][1] & pow2to63) == pow2to63) {
+		c.val[0][0] = reduction_polynomials[0][0] ^ c.val[0][0];
+		c.val[0][1] &= pow2to63 - 1;
 	}
 	
-	return c.p0;
+	return c.val[0];
 }
 
 //For future ref: vshlq_n_u64 doesn't carry from uint64x2_t[0] to [1]
-poly64x2_t bf_red_formula(bf_polyx2 c) {
+poly64x2_t bf_red_formula(poly64x2x2_t c) {
 	poly64x2_t result = {0, 0};
-	uint64_t bit127set = (c.p0[1] & pow2to63) == pow2to63;
-	uint64_t bit191set = (c.p1[0] & pow2to63) == pow2to63;
+	uint64_t bit127set = (c.val[0][1] & pow2to63) == pow2to63;
+	uint64_t bit191set = (c.val[1][0] & pow2to63) == pow2to63;
 	
-	poly64x2_t term0to126 = {c.p0[0], c.p0[1] & (pow2to63 - 1)};
+	poly64x2_t term0to126 = {c.val[0][0], c.val[0][1] & (pow2to63 - 1)};
 	result = bf_add(term0to126, result);
 	
-	poly64x2_t term252to127_rshift127 = {(c.p1[0] << 1) + bit127set, (c.p1[1] << 1) + bit191set};
+	poly64x2_t term252to127_rshift127 = {(c.val[1][0] << 1) + bit127set, (c.val[1][1] << 1) + bit191set};
 	result = bf_add(term252to127_rshift127, result);
 	
-	poly64x2_t term190to127_rshift64 = {pow2to63*bit127set, c.p1[0] & (pow2to63 - 1)};
+	poly64x2_t term190to127_rshift64 = {pow2to63*bit127set, c.val[1][0] & (pow2to63 - 1)};
 	result = bf_add(term190to127_rshift64, result);
 	
-	poly64x2_t term252to191_rshift128 = {pow2to63*bit191set, c.p1[1]};
+	poly64x2_t term252to191_rshift128 = {pow2to63*bit191set, c.val[1][1]};
 	result = bf_add(term252to191_rshift128, result);
 	
-	poly64x2_t term252to191_rshift191 = {(c.p1[1] << 1) + bit191set, 0};
+	poly64x2_t term252to191_rshift191 = {(c.val[1][1] << 1) + bit191set, 0};
 	result = bf_add(term252to191_rshift191, result);
 	
 	return result;
 }
-poly64x2_t bf_red_neon(bf_polyx2 c) {
+poly64x2_t bf_red_neon(poly64x2x2_t c) {
 	poly64x2_t t0, t1; 
 	//t0={bit126to0, bit190to128}
 	//t1={(bit127 XOR bit191)*2^63, bit191*2^63)}
-	t0[0] = (poly64_t) veor_u64((uint64x1_t) c.p0[1], (uint64x1_t) c.p1[0]);
+	t0[0] = (poly64_t) veor_u64((uint64x1_t) c.val[0][1], (uint64x1_t) c.val[1][0]);
 	t1[0] = (poly64_t) vand_u64((uint64x1_t) t0[0], (uint64x1_t) pow2to63);
-	t1[1] = (poly64_t) vand_u64((uint64x1_t) c.p1[0], (uint64x1_t) pow2to63);
+	t1[1] = (poly64_t) vand_u64((uint64x1_t) c.val[1][0], (uint64x1_t) pow2to63);
 	t0[0] = (poly64_t) vand_u64((uint64x1_t) t0[0], (uint64x1_t) pow2to63-1);
-	t0[1] = (poly64_t) vand_u64((uint64x1_t) c.p1[0], (uint64x1_t) pow2to63-1);
+	t0[1] = (poly64_t) vand_u64((uint64x1_t) c.val[1][0], (uint64x1_t) pow2to63-1);
 	
 	//Recognize almost bf_red_psquare
-	c.p1[0] = (poly64_t) veor_u64((uint64x1_t) t0[1], (uint64x1_t) c.p1[1]);
-	c.p0[1] = (poly64_t) veor_u64((uint64x1_t) t0[0], (uint64x1_t) c.p1[1]);
-	c.p1 = (poly64x2_t) vshlq_n_u64((uint64x2_t) c.p1, 1);
+	c.val[1][0] = (poly64_t) veor_u64((uint64x1_t) t0[1], (uint64x1_t) c.val[1][1]);
+	c.val[0][1] = (poly64_t) veor_u64((uint64x1_t) t0[0], (uint64x1_t) c.val[1][1]);
+	c.val[1] = (poly64x2_t) vshlq_n_u64((uint64x2_t) c.val[1], 1);
 	
-	c.p0[0] = (poly64_t) veor_u64((uint64x1_t) c.p0[0], (uint64x1_t) t1[0]);
+	c.val[0][0] = (poly64_t) veor_u64((uint64x1_t) c.val[0][0], (uint64x1_t) t1[0]);
 	t1 = (poly64x2_t) vshrq_n_u64((uint64x2_t) t1, 63);
-	c.p0 = (poly64x2_t) veorq_u64((uint64x2_t) c.p0, (uint64x2_t) t1);
+	c.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) c.val[0], (uint64x2_t) t1);
 	
-	return (poly64x2_t) veorq_u64((uint64x2_t) c.p1, (uint64x2_t) c.p0);
+	return (poly64x2_t) veorq_u64((uint64x2_t) c.val[1], (uint64x2_t) c.val[0]);
 }
 
 //Carry shift is not needed here!! 191 bit is always 0.
-poly64x2_t bf_red_psquare_formula(bf_polyx2 c) {
+poly64x2_t bf_red_psquare_formula(poly64x2x2_t c) {
 	poly64x2_t result = {0, 0};
 	
-	result = bf_add(c.p0, result);
+	result = bf_add(c.val[0], result);
 	
-	poly64x2_t term255to128_rshift127 = {c.p1[0] << 1, c.p1[1] << 1};
+	poly64x2_t term255to128_rshift127 = {c.val[1][0] << 1, c.val[1][1] << 1};
 	result = bf_add(term255to128_rshift127, result);
 	
-	poly64x2_t term191to128_rshift64 = {0, c.p1[0]};
+	poly64x2_t term191to128_rshift64 = {0, c.val[1][0]};
 	result = bf_add(term191to128_rshift64, result);
 	
-	poly64x2_t term255to192_rshift128 = {0, c.p1[1]};
+	poly64x2_t term255to192_rshift128 = {0, c.val[1][1]};
 	result = bf_add(term255to192_rshift128, result);
 	
-	poly64x2_t term255to192_rshift191 = {c.p1[1] << 1, 0};
+	poly64x2_t term255to192_rshift191 = {c.val[1][1] << 1, 0};
 	result = bf_add(term255to192_rshift191, result);
 	
 	return result;
 }
 
 //veor3q not defined?
-poly64x2_t bf_red_psquare_neon(bf_polyx2 c) {
-	c.p1[0] = (poly64_t) veor_u64((uint64x1_t) c.p1[0], (uint64x1_t) c.p1[1]);
-	c.p0[1] = (poly64_t) veor_u64((uint64x1_t) c.p0[1], (uint64x1_t) c.p1[0]);
-	c.p1 = (poly64x2_t) vshlq_n_u64((uint64x2_t) c.p1, 1);
-	return (poly64x2_t) veorq_u64((uint64x2_t) c.p0, (uint64x2_t) c.p1);
+poly64x2_t bf_red_psquare_neon(poly64x2x2_t c) {
+	c.val[1][0] = (poly64_t) veor_u64((uint64x1_t) c.val[1][0], (uint64x1_t) c.val[1][1]);
+	c.val[0][1] = (poly64_t) veor_u64((uint64x1_t) c.val[0][1], (uint64x1_t) c.val[1][0]);
+	c.val[1] = (poly64x2_t) vshlq_n_u64((uint64x2_t) c.val[1], 1);
+	return (poly64x2_t) veorq_u64((uint64x2_t) c.val[0], (uint64x2_t) c.val[1]);
 }
 
 //Simple and slow, compute a^(-1) as a^((2^127)-2).
@@ -449,19 +449,19 @@ poly64x2_t bf_add(poly64x2_t a, poly64x2_t b) {
 	return (poly64x2_t) veorq_u64((uint64x2_t) a, (uint64x2_t) b);
 }
 
-bf_polyx2 bf_pmull(poly64x2_t a, poly64x2_t b) {
+poly64x2x2_t bf_pmull(poly64x2_t a, poly64x2_t b) {
 	return bf_pmull64(a,b);
 }
 
-bf_polyx2 bf_psquare(poly64x2_t a) {
+poly64x2x2_t bf_psquare(poly64x2_t a) {
 	return bf_psquare_neon(a);
 }
 
-poly64x2_t bf_red(bf_polyx2 c) {
+poly64x2_t bf_red(poly64x2x2_t c) {
 	return bf_red_neon(c);
 }
 
-poly64x2_t bf_red_psquare(bf_polyx2 c) {
+poly64x2_t bf_red_psquare(poly64x2x2_t c) {
 	return bf_red_psquare_neon(c);
 }
 

@@ -1,10 +1,10 @@
 #include "ec_scalarmull.h"
 
 // Algorithm 3.27
-ec_point_lproj ec_scalarmull_single(ec_point_lproj P, uint64_t k) {
+ec_point_lproj ec_scalarmull_single(ec_point_lproj P, poly64x2x2_t k) {
   // Init q to infinity
   // TODO: Make helper methods
-  poly64x2_t p_one = {1, 0};
+  /*poly64x2_t p_one = {1, 0};
   poly64x2_t p_zero = {0, 0};
 
   ef_elem ef_one = ef_create_elem(p_one, p_zero);
@@ -32,9 +32,10 @@ ec_point_lproj ec_scalarmull_single(ec_point_lproj P, uint64_t k) {
     k = k/2;
   }
 
-  return Q;
+  return Q;*/
+  return P;
 }
 
-ec_point_lproj ec_scalarmull_double(ec_point_lproj P1, uint64_t k1, ec_point_lproj P2, uint64_t k2) {
+ec_point_lproj ec_scalarmull_double(ec_point_lproj P1, poly64x2x2_t k1, ec_point_lproj P2, poly64x2x2_t k2) {
 	return P1;
 }

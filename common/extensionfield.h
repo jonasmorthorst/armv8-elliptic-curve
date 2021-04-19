@@ -3,9 +3,7 @@
 #ifndef EXTENSIONFIELD_H
 #define EXTENSIONFIELD_H
 
-typedef struct {
-	poly64x2_t p0, p1;
-} ef_elem;
+typedef poly64x2x2_t ef_elem;
 
 ef_elem ef_create_elem(poly64x2_t p0, poly64x2_t p1);
 

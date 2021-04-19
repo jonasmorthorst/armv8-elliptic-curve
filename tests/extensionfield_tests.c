@@ -13,7 +13,7 @@ void ef_create_elem_test_example(test_ctr *ctr) {
 	ef_elem a = ef_create_elem(a0, a1);
 	
 	//Assert
-	uint64_t correct = equal_poly64x2(a.p0, a0) & equal_poly64x2(a.p1, a1);
+	uint64_t correct = equal_poly64x2(a.val[0], a0) & equal_poly64x2(a.val[1], a1);
 	assert_true(correct, ctr, "extensionfield: ef_create_elem_test_example FAILED");
 }
 

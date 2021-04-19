@@ -83,7 +83,7 @@ void benchmark_bf_red() {
 	for(int i = 0; i < num_runs; i++) {
 		poly64x2_t a = bf_rand_elem();
 		poly64x2_t b = bf_rand_elem();
-		bf_polyx2 c = bf_pmull(a,b); //To get more avrg input
+		poly64x2x2_t c = bf_pmull(a,b); //To get more avrg input
 		uint64_t start = read_pmccntr();
 		bf_red(c);
 		uint64_t end = read_pmccntr();
@@ -101,7 +101,7 @@ void benchmark_bf_red_psquare() {
 	
 	for(int i = 0; i < num_runs; i++) {
 		poly64x2_t a = bf_rand_elem();
-		bf_polyx2 c = bf_psquare(a); //To get more avrg input
+		poly64x2x2_t c = bf_psquare(a); //To get more avrg input
 		uint64_t start = read_pmccntr();
 		bf_red_psquare(c);
 		uint64_t end = read_pmccntr();

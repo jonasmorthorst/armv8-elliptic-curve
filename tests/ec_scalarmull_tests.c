@@ -40,9 +40,9 @@ void ec_scalar_mull_test_example(test_ctr *ctr) {
 
 	//Act
 	//ec_point_lproj added = ec_point_lproj_add(p, p);
-	ec_point_lproj Q = ec_scalarmull_single(P, 135235681);
+	//ec_point_lproj Q = ec_scalarmull_single(P, 135235681);
 
-	ec_print_expr(Q);
+	//ec_print_expr(Q);
 
 	//Assert
 	// uint64_t correct = equal_poly64x2(a.p0, a0) & equal_poly64x2(a.p1, a1);

@@ -37,24 +37,24 @@ uint64_t equal_poly64x2(poly64x2_t a, poly64x2_t b) {
 	return (a[0] == b[0]) && (a[1] == b[1]);
 }
 
-uint64_t equal_bf_polyx2(bf_polyx2 a, bf_polyx2 b) {
-	return (a.p0[0] == b.p0[0]) &&
-		   (a.p0[1] == b.p0[1]) &&
-		   (a.p1[0] == b.p1[0]) &&
-		   (a.p1[1] == b.p1[1]);
+uint64_t equal_poly64x2x2(poly64x2x2_t a, poly64x2x2_t b) {
+	return (a.val[0][0] == b.val[0][0]) &&
+		   (a.val[0][1] == b.val[0][1]) &&
+		   (a.val[1][0] == b.val[1][0]) &&
+		   (a.val[1][1] == b.val[1][1]);
 }
 
 uint64_t equal_ef_elem(ef_elem a, ef_elem b) {
-	return (a.p0[0] == b.p0[0]) &&
-		   (a.p0[1] == b.p0[1]) &&
-		   (a.p1[0] == b.p1[0]) &&
-		   (a.p1[1] == b.p1[1]);
+	return (a.val[0][0] == b.val[0][0]) &&
+		   (a.val[0][1] == b.val[0][1]) &&
+		   (a.val[1][0] == b.val[1][0]) &&
+		   (a.val[1][1] == b.val[1][1]);
 }
 
-bf_polyx2 concat_bf_poly(poly64x2_t p0, poly64x2_t p1) {
-	bf_polyx2 p;
-	p.p0 = p0;
-	p.p1 = p1;
+poly64x2x2_t concat_bf_poly(poly64x2_t p0, poly64x2_t p1) {
+	poly64x2x2_t p;
+	p.val[0] = p0;
+	p.val[1] = p1;
 	return p;
 }
 

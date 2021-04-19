@@ -88,44 +88,44 @@ void equal_poly64x2_test_notequal(test_ctr *ctr) {
 	assert_false(equal, ctr, "utils: equal_poly64x2_test_notequal FAILED");
 }
 
-void equal_bf_polyx2_test_equal(test_ctr *ctr) {
+void equal_poly64x2x2_test_equal(test_ctr *ctr) {
 	//Arrange
-	bf_polyx2 a;
+	poly64x2x2_t a;
 	poly64x2_t a0 = {8594687, 97466431};
 	poly64x2_t a1 = {93651237, 10389541};
-	a.p0 = a0;
-	a.p1 = a1;
-	bf_polyx2 b;
+	a.val[0] = a0;
+	a.val[1] = a1;
+	poly64x2x2_t b;
 	poly64x2_t b0 = {8594687, 97466431};
 	poly64x2_t b1 = {93651237, 10389541};
-	b.p0 = b0;
-	b.p1 = b1;
+	b.val[0] = b0;
+	b.val[1] = b1;
 	
 	//Act
-	uint64_t equal = equal_bf_polyx2(a, b);
+	uint64_t equal = equal_poly64x2x2(a, b);
 	
 	//Assert
-	assert_true(equal, ctr, "utils: equal_bf_polyx2_test_equal FAILED");
+	assert_true(equal, ctr, "utils: equal_poly64x2x2_test_equal FAILED");
 }
 
-void equal_bf_polyx2_test_notequal(test_ctr *ctr) {
+void equal_poly64x2x2_test_notequal(test_ctr *ctr) {
 	//Arrange
-	bf_polyx2 a;
+	poly64x2x2_t a;
 	poly64x2_t a0 = {8594687, 97466431};
 	poly64x2_t a1 = {93651237, 10389541};
-	a.p0 = a0;
-	a.p1 = a1;
-	bf_polyx2 b;
+	a.val[0] = a0;
+	a.val[1] = a1;
+	poly64x2x2_t b;
 	poly64x2_t b0 = {8594686, 97466431};
 	poly64x2_t b1 = {93651237, 10389541};
-	b.p0 = b0;
-	b.p1 = b1;
+	b.val[0] = b0;
+	b.val[1] = b1;
 	
 	//Act
-	uint64_t equal = equal_bf_polyx2(a, b);
+	uint64_t equal = equal_poly64x2x2(a, b);
 	
 	//Assert
-	assert_false(equal, ctr, "utils: equal_bf_polyx2_test_notequal FAILED");
+	assert_false(equal, ctr, "utils: equal_poly64x2x2_test_notequal FAILED");
 }
 
 void equal_ef_elem_test_equal(test_ctr *ctr) {
@@ -133,13 +133,13 @@ void equal_ef_elem_test_equal(test_ctr *ctr) {
 	ef_elem a;
 	poly64x2_t a0 = {6749534, 697497494916};
 	poly64x2_t a1 = {7681514, 14870085};
-	a.p0 = a0;
-	a.p1 = a1;
+	a.val[0] = a0;
+	a.val[1] = a1;
 	ef_elem b;
 	poly64x2_t b0 = {6749534, 697497494916};
 	poly64x2_t b1 = {7681514, 14870085};
-	b.p0 = b0;
-	b.p1 = b1;
+	b.val[0] = b0;
+	b.val[1] = b1;
 	
 	//Act
 	uint64_t equal = equal_ef_elem(a, b);
@@ -153,13 +153,13 @@ void equal_ef_elem_test_notequal(test_ctr *ctr) {
 	ef_elem a;
 	poly64x2_t a0 = {6749534, 697497494916};
 	poly64x2_t a1 = {7681514, 14870085};
-	a.p0 = a0;
-	a.p1 = a1;
+	a.val[0] = a0;
+	a.val[1] = a1;
 	ef_elem b;
 	poly64x2_t b0 = {6749534, 697497394916};
 	poly64x2_t b1 = {7681514, 14870085};
-	b.p0 = b0;
-	b.p1 = b1;
+	b.val[0] = b0;
+	b.val[1] = b1;
 	
 	//Act
 	uint64_t equal = equal_ef_elem(a, b);
@@ -174,10 +174,10 @@ void concat_bf_poly_test(test_ctr *ctr) {
 	poly64x2_t a1 = {333666999, 71421283542};
 	
 	//Act
-	bf_polyx2 a = concat_bf_poly(a0, a1);
+	poly64x2x2_t a = concat_bf_poly(a0, a1);
 	
 	//Assert
-	uint64_t equal = equal_poly64x2(a.p0, a0) && equal_poly64x2(a.p1, a1);
+	uint64_t equal = equal_poly64x2(a.val[0], a0) && equal_poly64x2(a.val[1], a1);
 	assert_true(equal, ctr, "utils: concat_bf_poly_test FAILED");
 }
 
@@ -231,8 +231,8 @@ void util_tests(test_ctr *ctr) {
 	compare_doubles_test_greaterthan(ctr);
 	equal_poly64x2_test_equal(ctr);
 	equal_poly64x2_test_notequal(ctr);
-	equal_bf_polyx2_test_equal(ctr);
-	equal_bf_polyx2_test_notequal(ctr);
+	equal_poly64x2x2_test_equal(ctr);
+	equal_poly64x2x2_test_notequal(ctr);
 	equal_ef_elem_test_equal(ctr);
 	equal_ef_elem_test_notequal(ctr);
 	concat_bf_poly_test(ctr);
