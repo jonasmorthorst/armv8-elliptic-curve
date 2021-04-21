@@ -47,11 +47,11 @@ uint64_t ec_equal_point_lproj(ec_point_lproj P, ec_point_lproj Q) {
 	return equal_ef_elem(xP_normalized, xQ_normalized) && equal_ef_elem(lP_normalized, lQ_normalized);
 }
 
-ec_point_lproj ec_rand_point_lproj() {
+// Generate random number in range [1, ORDER-1]
+poly64x2x2_t ec_rand_scalar() {
 	poly64x2x2_t order = (poly64x2x2_t) SUBGROUP_ORDER;
 	poly64x2x2_t k;
 
-	// Generate random number in range [1, ORDER-1]
 	int in_range = 0;
 	while (!in_range) {
 		poly64_t a0 = rand_uint64();
@@ -72,6 +72,12 @@ ec_point_lproj ec_rand_point_lproj() {
 		k.val[0] = p1;
 		k.val[1] = p2;
 	}
+
+	return k;
+}
+
+ec_point_lproj ec_rand_point_lproj() {
+	poly64x2x2_t k = ec_rand_scalar();
 
 	return ec_scalarmull_single((ec_point_lproj) GEN, k);
 }

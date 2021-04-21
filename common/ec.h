@@ -25,6 +25,8 @@ uint64_t ec_is_on_curve(ec_point_lproj P);
 
 uint64_t ec_equal_point_lproj(ec_point_lproj P, ec_point_lproj Q);
 
+poly64x2x2_t ec_rand_scalar();
+
 ec_point_lproj ec_rand_point_lproj();
 
 ec_point_lproj ec_neg(ec_point_lproj P);
