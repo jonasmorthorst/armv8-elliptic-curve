@@ -53,7 +53,7 @@ ec_point_lproj ec_rand_point_lproj() {
 
 	// Generate random number in range [1, ORDER-1]
 	int in_range = 0;
-	while (!good) {
+	while (!in_range) {
 		poly64_t a0 = rand_uint64();
 		poly64_t a1 = rand_uint64();
 		poly64_t a2 = rand_uint64();
