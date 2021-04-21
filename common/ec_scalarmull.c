@@ -27,6 +27,22 @@ ec_point_lproj ec_scalarmull_single(ec_point_lproj P, poly64x2x2_t k) {
   return Q;
 }
 
-ec_point_lproj ec_scalarmull_double(ec_point_lproj P1, poly64x2x2_t k1, ec_point_lproj P2, poly64x2x2_t k2) {
-	return P1;
+#define pow2to64 {{{0, 1}, {0,0}}}
+
+// Algorithm 3.48
+ec_point_lproj ec_scalarmull_double(ec_point_lproj P, poly64x2x2_t k, ec_point_lproj Q, poly64x2x2_t l) {
+  ec_point_lproj R = (ec_point_lproj) INFTY;
+
+  for(int i = 1; i >= 0; i--) {
+    for(int j = 1; j >= 0; j--) {
+      R = ec_scalarmull_single(R, (poly64x2x2_t) pow2to64);
+
+      ec_point_lproj k_i_P = ec_scalarmull_single(P, (poly64x2x2_t) {{{k.val[i][j], 0}, {0,0}}});
+      ec_point_lproj l_i_Q = ec_scalarmull_single(Q, (poly64x2x2_t) {{{l.val[i][j], 0}, {0,0}}});
+
+      R = ec_add(R, ec_add(k_i_P, l_i_Q));
+    }
+  }
+
+  return R;
 }
