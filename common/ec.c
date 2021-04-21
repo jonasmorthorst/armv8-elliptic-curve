@@ -2,6 +2,7 @@
 
 #include "ec.h"
 #include "utils.h"
+#include "ec_scalarmull.h"
 
 ec_point_lproj ec_create_point_lproj(ef_elem x, ef_elem l, ef_elem z) {
 	ec_point_lproj P;
@@ -42,12 +43,37 @@ uint64_t ec_equal_point_lproj(ec_point_lproj P, ec_point_lproj Q) {
 	ef_elem zQ_inv = ef_inv(Q.z);
 	ef_elem xQ_normalized = ef_mull(Q.x, zQ_inv);
 	ef_elem lQ_normalized = ef_mull(Q.l, zQ_inv);
-	
+
 	return equal_ef_elem(xP_normalized, xQ_normalized) && equal_ef_elem(lP_normalized, lQ_normalized);
 }
 
 ec_point_lproj ec_rand_point_lproj() {
-	return ec_create_point_lproj(ef_rand_elem(), ef_rand_elem(), ef_rand_elem());
+	poly64x2x2_t order = (poly64x2x2_t) SUBGROUP_ORDER;
+	poly64x2x2_t k;
+
+	// Generate random number in range [1, ORDER-1]
+	int in_range = 0;
+	while (!good) {
+		poly64_t a0 = rand_uint64();
+		poly64_t a1 = rand_uint64();
+		poly64_t a2 = rand_uint64();
+		poly64_t a3 = rand_uint64();
+
+		if (a0 > order.val[1][1]) continue;
+		if (a0 == order.val[1][1] && a1 > order.val[1][0]) continue;
+		if (a0 == order.val[1][1] && a1 == order.val[1][0] && a2 > order.val[0][1]) continue;
+		if (a0 == order.val[1][1] && a1 == order.val[1][0] && a2 == order.val[0][1] && a3 >= order.val[0][0]) continue;
+
+		in_range = 1;
+
+		poly64x2_t p1 = { a0, a1 };
+		poly64x2_t p2 = { a2, a3 };
+
+		k.val[0] = p1;
+		k.val[1] = p2;
+	}
+
+	return ec_scalarmull_single((ec_point_lproj) GEN, k);
 }
 
 ec_point_lproj ec_neg(ec_point_lproj P) {
@@ -70,7 +96,7 @@ ec_point_lproj ec_add(ec_point_lproj P, ec_point_lproj Q) {
 	if(ec_equal_point_lproj(P, Q)) {
 		return ec_double(P);
 	}
-	
+
 	ef_elem u = ef_add(ef_mull(P.l, Q.z), ef_mull(Q.l, P.z)); // U = L_P * Z_Q + L_Q * Z_P
 	ef_elem w1 = ef_mull(P.x, Q.z); //W1 = X_P * Z_Q
 	ef_elem w2 = ef_mull(Q.x, P.z); //W2 = X_Q * Z_P
@@ -88,11 +114,11 @@ ec_point_lproj ec_add(ec_point_lproj P, ec_point_lproj Q) {
  * I think I have found a proof for why we don't need to check that P = -P here.
  * It seems that our projective lambda coords do not allow finite points of order 2:
  * 2*P = infty <-> P = -P <-> (x, l, z) = (x, l+z, z) => z=0
- * 
- * For the case of the point at infty, 
+ *
+ * For the case of the point at infty,
  * a quick calculation shows that this alg outputs infty again!
  */
-ec_point_lproj ec_double(ec_point_lproj P) {	
+ec_point_lproj ec_double(ec_point_lproj P) {
 	ef_elem u = ef_mull(P.l, P.z); //U = L_P * Z_P
 	ef_elem v = ef_square(P.z); //V = Z_P^2
 	ef_elem w = ef_add(ef_square(P.l), ef_add(u, ef_mull((ef_elem) A, v))); //W = L_P^2 + (L_P * Z_P) + A * Z_P^2
