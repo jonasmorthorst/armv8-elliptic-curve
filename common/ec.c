@@ -12,6 +12,13 @@ ec_point_lproj ec_create_point_lproj(ef_elem x, ef_elem l, ef_elem z) {
 	return P;
 }
 
+ec_point_laffine ec_create_point_laffine(ef_elem x, ef_elem l) {
+	ec_point_laffine P;
+	P.x = x;
+	P.l = l;
+	return P;
+}
+
 void ec_print_expr(ec_point_lproj P) {
 	printf("x: ");
 	ef_print_expr_nl(P.x);
@@ -28,6 +35,13 @@ void ec_print_hex(ec_point_lproj P) {
 	ef_print_hex_nl(P.l);
 	printf(" z: ");
 	ef_print_hex_nl(P.z);
+}
+
+void ec_print_hex_laffine(ec_point_laffine P) {
+	printf("x: ");
+	ef_print_hex_nl(P.x);
+	printf(" l: ");
+	ef_print_hex_nl(P.l);
 }
 
 uint64_t ec_is_on_curve(ec_point_lproj P) {
@@ -82,6 +96,16 @@ ec_point_lproj ec_rand_point_lproj() {
 	return ec_scalarmull_single((ec_point_lproj) GEN, k);
 }
 
+ec_point_laffine ec_rand_point_laffine() {
+	ec_point_laffine L;
+	ec_point_lproj P = ec_rand_point_lproj();
+
+	L.x = ef_mull(P.x, ef_inv(P.z));
+	L.l = ef_mull(P.l, ef_inv(P.z));
+
+	return L;
+}
+
 ec_point_lproj ec_neg(ec_point_lproj P) {
 	P.l = ef_add(P.l, P.z);
 
@@ -133,4 +157,22 @@ ec_point_lproj ec_double(ec_point_lproj P) {
 	R.z = ef_mull(w, v);
 	R.l = ef_add(ef_add(ef_add(ef_square(ef_mull(P.x, P.z)), R.x), ef_mull(w, u)), R.z);
 	return R;
+}
+
+ec_point_lproj ec_double_then_add(ec_point_laffine P, ec_point_lproj Q) {
+  ef_elem T = ef_add(ef_add(ef_square(Q.l), ef_mull(Q.l, Q.z)), ef_mull((ef_elem)A, ef_square(Q.z)));
+
+  ef_elem one = (ef_elem) {{{1, 0}, {0, 0}}};
+
+  ef_elem E = ef_add(ef_mull(ef_square(Q.x), ef_square(Q.z)), ef_mull(T,ef_add(ef_square(Q.l), ef_mull(ef_add(ef_add((ef_elem)A, one), P.l), ef_square(Q.z)))));
+  ef_elem F = ef_mull(P.x, ef_square(Q.z));
+  ef_elem G = ef_square(ef_add(F, T));
+
+  ec_point_lproj R;
+
+  R.x = ef_mull(F, ef_square(E));
+  R.z = ef_mull(ef_mull(E, G), ef_square(Q.z));
+  R.l = ef_add(ef_mull(T, ef_square(ef_add(E, G))), ef_mull(ef_add(P.l, one), R.z));
+
+  return R;
 }
