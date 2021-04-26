@@ -15,11 +15,19 @@ typedef struct {
 	ef_elem x, l, z;
 } ec_point_lproj;
 
+typedef struct {
+	ef_elem x, l;
+} ec_point_laffine;
+
 ec_point_lproj ec_create_point_lproj(ef_elem x, ef_elem l, ef_elem z);
+
+ec_point_laffine ec_create_point_laffine(ef_elem x, ef_elem l);
 
 void ec_print_expr(ec_point_lproj P);
 
 void ec_print_hex(ec_point_lproj P);
+
+void ec_print_hex_laffine(ec_point_laffine P);
 
 uint64_t ec_is_on_curve(ec_point_lproj P);
 
@@ -29,10 +37,14 @@ poly64x2x2_t ec_rand_scalar();
 
 ec_point_lproj ec_rand_point_lproj();
 
+ec_point_laffine ec_rand_point_laffine();
+
 ec_point_lproj ec_neg(ec_point_lproj P);
 
 ec_point_lproj ec_add(ec_point_lproj P1, ec_point_lproj P2);
 
 ec_point_lproj ec_double(ec_point_lproj P);
+
+ec_point_lproj ec_double_then_add(ec_point_laffine P, ec_point_lproj Q);
 
 #endif

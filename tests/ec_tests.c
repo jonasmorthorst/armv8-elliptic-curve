@@ -89,6 +89,30 @@ void ec_rand_point_lproj_test_on_curve(test_ctr *ctr) {
 	assert_true(correct, ctr, "ec: ec_rand_point_lproj_test_on_curve FAILED");
 }
 
+void ec_rand_point_laffine_test_on_curve(test_ctr *ctr) {
+	uint64_t correct = 1;
+	for(int i = 0; i < 10; i++) {
+		//Arrange & Act
+		ec_point_laffine P = ec_rand_point_laffine();
+		ef_elem one = (ef_elem) {{{1, 0}, {0, 0}}};
+		ec_point_lproj L;
+
+		L.x = P.x;
+		L.l = P.l;
+		L.z = one;
+
+
+		//Assert
+		correct = ec_is_on_curve(L);
+		if(!correct) {
+			printf("p: ");
+			ec_print_hex(L);
+			break;
+		}
+	}
+	assert_true(correct, ctr, "ec: ec_rand_point_laffine_test_on_curve FAILED");
+}
+
 void ec_add_test_example(test_ctr *ctr) {
 	//Arrange
 	ef_elem PX = ef_create_elem(bf_create_elem(6574758758697437213U, 9029938885770167062U), bf_create_elem(2238988517843169761U, 2100850367268144132U));
@@ -607,6 +631,21 @@ void ec_neg_test_add_point_with_neg_is_infty_rnd(test_ctr *ctr) {
 	assert_true(correct, ctr, "ec: ec_neg_test_add_point_with_inverse_is_infty_rnd FAILED");
 }
 
+void ec_double_then_add_rand_test(test_ctr *ctr) {
+	//Arrange
+	ec_point_laffine P = ec_rand_point_laffine();
+	ec_point_lproj Q = ec_rand_point_lproj();
+
+	//Act
+	ec_point_lproj result = ec_double_then_add(P, Q);
+
+	//Assert
+	uint64_t on_curve = ec_is_on_curve(result);
+
+	ec_print_hex(result);
+	assert_true(on_curve, ctr, "ec: ec_double_then_add_rand_test FAILED");
+}
+
 void ec_tests(test_ctr *ctr) {
 	ec_create_point_lproj_test_example(ctr);
 
@@ -616,6 +655,7 @@ void ec_tests(test_ctr *ctr) {
 	ec_is_on_curve_test_generator_on_curve(ctr);
 	ec_is_on_curve_test_point_not_on_curve(ctr);
 	ec_rand_point_lproj_test_on_curve(ctr);
+	ec_rand_point_laffine_test_on_curve(ctr);
 
 	ec_add_test_example(ctr);
 	ec_add_test_is_on_curve_rnd(ctr);
@@ -645,4 +685,6 @@ void ec_tests(test_ctr *ctr) {
 	ec_neg_of_infty_is_infty(ctr);
 	ec_neg_test_add_point_with_neg_is_infty(ctr);
 	ec_neg_test_add_point_with_neg_is_infty_rnd(ctr);
+
+	ec_double_then_add_rand_test(ctr);
 }
