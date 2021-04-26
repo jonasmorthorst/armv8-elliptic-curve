@@ -140,6 +140,19 @@ ec_point_lproj ec_add(ec_point_lproj P, ec_point_lproj Q) {
 	return R;
 }
 
+ec_point_lproj ec_add_mixed(ec_point_laffine P, ec_point_lproj Q) {
+	ef_elem E = ef_add(ef_mull(P.l, Q.z), Q.l); //A = L_P * Z_Q + L_Q
+	ef_elem F = ef_mull(P.x, Q.z); //X_P * Z_Q
+	ef_elem G = ef_square(ef_add(F, Q.x)); //B = (X_P * Z_Q + X_Q)^2
+	ef_elem H = ef_mull(E, Q.x); //A * Q.x
+	//P.l.val[0] = bf_add(P.l.val[0], (poly64x2_t) {1, 0});
+	ec_point_lproj R;
+	R.x = ef_mull(ef_mull(E, F), H); //A * (X_P * Z_Q) * A * Q.x
+	R.z = ef_mull(ef_mull(E, G), Q.z); //A * B * Z_Q
+	R.l = ef_add(ef_square(ef_add(G, H)), ef_mull(R.z, ef_add(P.l, (ef_elem) {{{1, 0}, {0, 0}}}))); //(G+H)^2 + R.z + R.z * P.l
+	return R;
+}
+
 /*
  * I think I have found a proof for why we don't need to check that P = -P here.
  * It seems that our projective lambda coords do not allow finite points of order 2:
@@ -175,4 +188,25 @@ ec_point_lproj ec_double_then_add(ec_point_laffine P, ec_point_lproj Q) {
   R.l = ef_add(ef_mull(T, ef_square(ef_add(E, G))), ef_mull(ef_add(P.l, one), R.z));
 
   return R;
+}
+
+ec_point_lproj ec_double_then_addtwo(ec_point_laffine P1, ec_point_laffine P2, ec_point_lproj Q) {
+	ef_elem LP1_plus_1 = ef_add(P1.l, (ef_elem) {{{1, 0}, {0, 0}}});
+	ef_elem LQ_sqr = ef_square(Q.l);
+	ef_elem ZQ_sqr = ef_square(Q.z);
+	ef_elem T = ef_add(ef_add(LQ_sqr, ef_mull(Q.l, Q.z)), ef_mull((ef_elem) A, ZQ_sqr)); //L_Q^2 + L_Q*Z_Q + A*Z_Q^2
+	ef_elem E = ef_add(ef_mull(ef_square(Q.x), ZQ_sqr), ef_mull(T, ef_add(LQ_sqr, ef_mull(ef_add((ef_elem) A, LP1_plus_1), ZQ_sqr)))); //X_Q^2*Z_Q^2 + T * (L_Q^2 + (a + L_P1 + 1)*Z_Q^2)
+	ef_elem F = ef_mull(P1.x, ZQ_sqr); //X_P1 * Z_Q^2
+	ef_elem G = ef_square(ef_add(F, T)); //(F+T)^2
+	ef_elem H = ef_mull(ef_square(E), F); //X_2Q+P1 = F * E^2
+	ef_elem I = ef_mull(ef_mull(E, G), ZQ_sqr); //Z_2Q+P1 = E * G * Z_Q^2
+	ef_elem J = ef_add(ef_mull(ef_add(LP1_plus_1, P2.l), I), ef_mull(T, ef_square(ef_add(E, G)))); //(L_P1 + L_P2 + 1)*I+T*(E+G)^2
+	ef_elem K = ef_mull(P2.x, I); // X_P2 * I
+	ef_elem L = ef_square(ef_add(H, K)); //(H+K)^2
+	ef_elem M = ef_mull(H, J); //H * J
+	ec_point_lproj R;
+	R.x = ef_mull(ef_mull(J, K), M);
+	R.z = ef_mull(ef_mull(I, J), L);
+	R.l = ef_add(ef_square(ef_add(L, M)), ef_mull(R.z, ef_add(P2.l, (ef_elem) {{{1, 0}, {0, 0}}})));
+	return R;
 }

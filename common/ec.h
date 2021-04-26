@@ -43,8 +43,12 @@ ec_point_lproj ec_neg(ec_point_lproj P);
 
 ec_point_lproj ec_add(ec_point_lproj P1, ec_point_lproj P2);
 
+ec_point_lproj ec_add_mixed(ec_point_laffine P, ec_point_lproj Q);
+
 ec_point_lproj ec_double(ec_point_lproj P);
 
 ec_point_lproj ec_double_then_add(ec_point_laffine P, ec_point_lproj Q);
+
+ec_point_lproj ec_double_then_addtwo(ec_point_laffine P1, ec_point_laffine P2, ec_point_lproj Q);
 
 #endif

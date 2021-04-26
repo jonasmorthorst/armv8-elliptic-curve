@@ -631,7 +631,23 @@ void ec_neg_test_add_point_with_neg_is_infty_rnd(test_ctr *ctr) {
 	assert_true(correct, ctr, "ec: ec_neg_test_add_point_with_inverse_is_infty_rnd FAILED");
 }
 
-void ec_double_then_add_rand_test(test_ctr *ctr) {
+void ec_add_mixed_test_crosscheck_rnd(test_ctr *ctr) {
+	//Arrange
+	ef_elem one = (ef_elem) {{{1, 0}, {0, 0}}};
+	ec_point_laffine P = ec_rand_point_laffine();
+	ec_point_lproj P_proj = ec_create_point_lproj(P.x, P.l, one);
+	ec_point_lproj Q = ec_rand_point_lproj();
+
+	//Act
+	ec_point_lproj expected = ec_add(P_proj, Q);
+	ec_point_lproj result = ec_add_mixed(P, Q);
+
+	//Assert
+	uint64_t equal = ec_equal_point_lproj(expected, result);
+	assert_true(equal, ctr, "ec: ec_add_mixed_test_is_on_curve_rnd FAILED");
+}
+
+void ec_double_then_add_test_is_on_curve_rnd(test_ctr *ctr) {
 	//Arrange
 	ec_point_laffine P = ec_rand_point_laffine();
 	ec_point_lproj Q = ec_rand_point_lproj();
@@ -641,13 +657,30 @@ void ec_double_then_add_rand_test(test_ctr *ctr) {
 
 	//Assert
 	uint64_t on_curve = ec_is_on_curve(result);
+	assert_true(on_curve, ctr, "ec: ec_double_then_add_test_is_on_curve_rnd FAILED");
+}
 
-	ec_print_hex(result);
-	assert_true(on_curve, ctr, "ec: ec_double_then_add_rand_test FAILED");
+void ec_double_then_addtwo_test_crosscheck_rnd(test_ctr *ctr) {
+	//Arrange
+	ef_elem one = (ef_elem) {{{1, 0}, {0, 0}}};
+	ec_point_laffine P1 = ec_rand_point_laffine();
+	ec_point_lproj P1proj = ec_create_point_lproj(P1.x, P1.l, one);
+	ec_point_laffine P2 = ec_rand_point_laffine();
+	ec_point_lproj P2proj = ec_create_point_lproj(P2.x, P2.l, one);
+	ec_point_lproj Q = ec_rand_point_lproj();
+
+	//Act
+	ec_point_lproj expected = ec_add_mixed(P2, ec_double_then_add(P1, Q));
+	
+	ec_point_lproj result = ec_double_then_addtwo(P1, P2, Q);
+
+	//Assert
+	uint64_t equal = ec_equal_point_lproj(expected, result);
+	assert_true(equal, ctr, "ec: ec_double_then_addtwo_test_is_on_curve_rnd FAILED");
 }
 
 void ec_tests(test_ctr *ctr) {
-	ec_create_point_lproj_test_example(ctr);
+	/*ec_create_point_lproj_test_example(ctr);
 
 	ec_equal_point_lproj_test_equivalent_example(ctr);
 	ec_equal_point_lproj_test_notequivalent_example(ctr);
@@ -686,5 +719,9 @@ void ec_tests(test_ctr *ctr) {
 	ec_neg_test_add_point_with_neg_is_infty(ctr);
 	ec_neg_test_add_point_with_neg_is_infty_rnd(ctr);
 
-	ec_double_then_add_rand_test(ctr);
+	ec_double_then_add_test_is_on_curve_rnd(ctr);
+	*/
+	ec_add_mixed_test_crosscheck_rnd(ctr);
+	
+	ec_double_then_addtwo_test_crosscheck_rnd(ctr);
 }
