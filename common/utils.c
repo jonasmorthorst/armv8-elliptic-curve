@@ -18,9 +18,9 @@ double average(uint64_t nums[], uint64_t len) {
 }
 
 /* Returns:
- *  0 if diff within [-errmargin, errmargin], 
+ *  0 if diff within [-errmargin, errmargin],
  *  1 if a is greater
- * -1 if b is greater  
+ * -1 if b is greater
  */
 uint64_t compare_doubles(double a, double b, double errmargin) {
 	double diff = a - b;
@@ -71,4 +71,12 @@ uint64_t rand_uint64() {
 		r = r*2 + rand()%2;
 	}
 	return r;
+}
+
+ec_point_laffine lproj_to_laffine(ec_point_lproj P) {
+	ec_point_laffine L;
+	L.x = ef_mull(P.x, ef_inv(P.z));
+	L.l = ef_mull(P.l, ef_inv(P.z));
+
+	return L;
 }
