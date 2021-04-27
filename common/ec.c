@@ -114,7 +114,7 @@ poly64x2x2_t ec_rand_scalar() {
 ec_point_lproj ec_rand_point_lproj() {
 	poly64x2x2_t k = ec_rand_scalar();
 
-	return ec_scalarmull_single((ec_point_lproj) GEN, k);
+	return ec_scalarmull_single_lproj((ec_point_lproj) GEN, k);
 }
 
 ec_point_laffine ec_rand_point_laffine() {

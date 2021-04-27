@@ -2,6 +2,8 @@
 
 #include "basefield.h"
 #include "extensionfield.h"
+#include "ec.h"
+#include "ec_scalarmull.h"
 
 #ifndef UTILS_H
 #define UTILS_H
@@ -23,5 +25,8 @@ poly64x2x2_t concat_bf_poly(poly64x2_t p0, poly64x2_t p1);
 double median(uint64_t sorted_nums[], uint64_t len);
 
 uint64_t rand_uint64();
+
+ec_point_laffine lproj_to_laffine(ec_point_lproj P);
+
 
 #endif
