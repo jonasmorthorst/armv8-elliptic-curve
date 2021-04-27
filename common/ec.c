@@ -19,6 +19,22 @@ ec_point_laffine ec_create_point_laffine(ef_elem x, ef_elem l) {
 	return P;
 }
 
+ec_point_lproj ec_point_laffine_to_point_lproj(ec_point_laffine P) {
+	ec_point_lproj R;
+	R.x = P.x;
+	R.l = P.l;
+	R.z = (ef_elem) {{{1, 0}, {0, 0}}};
+	return R;
+}
+
+ec_point_laffine ec_point_lproj_to_point_laffine(ec_point_lproj P) {
+	ef_elem Z_inv = ef_inv(P.z);
+	ec_point_laffine R;
+	R.x = ef_mull(P.x, Z_inv);
+	R.l = ef_mull(P.l, Z_inv);
+	return R;
+}
+
 void ec_print_expr(ec_point_lproj P) {
 	printf("x: ");
 	ef_print_expr_nl(P.x);
@@ -59,6 +75,11 @@ uint64_t ec_equal_point_lproj(ec_point_lproj P, ec_point_lproj Q) {
 	ef_elem lQ_normalized = ef_mull(Q.l, zQ_inv);
 
 	return equal_ef_elem(xP_normalized, xQ_normalized) && equal_ef_elem(lP_normalized, lQ_normalized);
+}
+
+uint64_t ec_equal_point_mixed(ec_point_laffine P, ec_point_lproj Q) {
+	ec_point_laffine Q_affine = ec_point_lproj_to_point_laffine(Q);
+	return equal_ef_elem(P.x, Q_affine.x) && equal_ef_elem(P.l, Q_affine.l);
 }
 
 // Generate random number in range [1, ORDER-1]
@@ -141,6 +162,16 @@ ec_point_lproj ec_add(ec_point_lproj P, ec_point_lproj Q) {
 }
 
 ec_point_lproj ec_add_mixed(ec_point_laffine P, ec_point_lproj Q) {
+	if(ec_equal_point_lproj(Q, (ec_point_lproj) INFTY)) {
+		return ec_point_laffine_to_point_lproj(P);
+	}
+	if(ec_equal_point_mixed(P, ec_neg(Q))) {
+		return (ec_point_lproj) INFTY;
+	}
+	if(ec_equal_point_mixed(P, Q)) {
+		return ec_double(Q);
+	}
+
 	ef_elem E = ef_add(ef_mull(P.l, Q.z), Q.l); //A = L_P * Z_Q + L_Q
 	ef_elem F = ef_mull(P.x, Q.z); //X_P * Z_Q
 	ef_elem G = ef_square(ef_add(F, Q.x)); //B = (X_P * Z_Q + X_Q)^2
@@ -164,7 +195,7 @@ ec_point_lproj ec_add_mixed(ec_point_laffine P, ec_point_lproj Q) {
 ec_point_lproj ec_double(ec_point_lproj P) {
 	ef_elem u = ef_mull(P.l, P.z); //U = L_P * Z_P
 	ef_elem v = ef_square(P.z); //V = Z_P^2
-	ef_elem w = ef_add(ef_square(P.l), ef_add(u, ef_mull((ef_elem) A, v))); //W = L_P^2 + (L_P * Z_P) + A * Z_P^2
+	ef_elem w = ef_add(ef_square(P.l), ef_add(u, ef_mull_A(v))); //W = L_P^2 + (L_P * Z_P) + A * Z_P^2
 	ec_point_lproj R;
 	R.x = ef_square(w);
 	R.z = ef_mull(w, v);
@@ -173,28 +204,29 @@ ec_point_lproj ec_double(ec_point_lproj P) {
 }
 
 ec_point_lproj ec_double_then_add(ec_point_laffine P, ec_point_lproj Q) {
-  ef_elem T = ef_add(ef_add(ef_square(Q.l), ef_mull(Q.l, Q.z)), ef_mull((ef_elem)A, ef_square(Q.z)));
+	ef_elem LQ_sqr = ef_square(Q.l);
+	ef_elem ZQ_sqr = ef_square(Q.z);
+	ef_elem T = ef_add(ef_add(LQ_sqr, ef_mull(Q.l, Q.z)), ef_mull_A(ZQ_sqr));
 
-  ef_elem one = (ef_elem) {{{1, 0}, {0, 0}}};
+	ef_elem one = (ef_elem) {{{1, 0}, {0, 0}}};
 
-  ef_elem E = ef_add(ef_mull(ef_square(Q.x), ef_square(Q.z)), ef_mull(T,ef_add(ef_square(Q.l), ef_mull(ef_add(ef_add((ef_elem)A, one), P.l), ef_square(Q.z)))));
-  ef_elem F = ef_mull(P.x, ef_square(Q.z));
-  ef_elem G = ef_square(ef_add(F, T));
+	ef_elem E = ef_add(ef_mull(ef_square(Q.x), ZQ_sqr), ef_mull(T,ef_add(LQ_sqr, ef_mull(ef_add(ef_add((ef_elem)A, one), P.l), ZQ_sqr))));
+	ef_elem F = ef_mull(P.x, ZQ_sqr);
+	ef_elem G = ef_square(ef_add(F, T));
 
-  ec_point_lproj R;
-
-  R.x = ef_mull(F, ef_square(E));
-  R.z = ef_mull(ef_mull(E, G), ef_square(Q.z));
-  R.l = ef_add(ef_mull(T, ef_square(ef_add(E, G))), ef_mull(ef_add(P.l, one), R.z));
-
-  return R;
+	ec_point_lproj R;
+	R.x = ef_mull(F, ef_square(E));
+	R.z = ef_mull(ef_mull(E, G), ZQ_sqr);
+	R.l = ef_add(ef_mull(T, ef_square(ef_add(E, G))), ef_mull(ef_add(P.l, one), R.z));
+	return R;
 }
 
 ec_point_lproj ec_double_then_addtwo(ec_point_laffine P1, ec_point_laffine P2, ec_point_lproj Q) {
-	ef_elem LP1_plus_1 = ef_add(P1.l, (ef_elem) {{{1, 0}, {0, 0}}});
+	ef_elem one = (ef_elem) {{{1, 0}, {0, 0}}};
+	ef_elem LP1_plus_1 = ef_add(P1.l, one);
 	ef_elem LQ_sqr = ef_square(Q.l);
 	ef_elem ZQ_sqr = ef_square(Q.z);
-	ef_elem T = ef_add(ef_add(LQ_sqr, ef_mull(Q.l, Q.z)), ef_mull((ef_elem) A, ZQ_sqr)); //L_Q^2 + L_Q*Z_Q + A*Z_Q^2
+	ef_elem T = ef_add(ef_add(LQ_sqr, ef_mull(Q.l, Q.z)), ef_mull_A(ZQ_sqr)); //L_Q^2 + L_Q*Z_Q + A*Z_Q^2
 	ef_elem E = ef_add(ef_mull(ef_square(Q.x), ZQ_sqr), ef_mull(T, ef_add(LQ_sqr, ef_mull(ef_add((ef_elem) A, LP1_plus_1), ZQ_sqr)))); //X_Q^2*Z_Q^2 + T * (L_Q^2 + (a + L_P1 + 1)*Z_Q^2)
 	ef_elem F = ef_mull(P1.x, ZQ_sqr); //X_P1 * Z_Q^2
 	ef_elem G = ef_square(ef_add(F, T)); //(F+T)^2
@@ -207,6 +239,6 @@ ec_point_lproj ec_double_then_addtwo(ec_point_laffine P1, ec_point_laffine P2, e
 	ec_point_lproj R;
 	R.x = ef_mull(ef_mull(J, K), M);
 	R.z = ef_mull(ef_mull(I, J), L);
-	R.l = ef_add(ef_square(ef_add(L, M)), ef_mull(R.z, ef_add(P2.l, (ef_elem) {{{1, 0}, {0, 0}}})));
+	R.l = ef_add(ef_square(ef_add(L, M)), ef_mull(R.z, ef_add(P2.l, one)));
 	return R;
 }

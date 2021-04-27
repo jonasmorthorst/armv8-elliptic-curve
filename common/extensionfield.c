@@ -63,6 +63,15 @@ ef_elem ef_mull(ef_elem a, ef_elem b) {
 	return ef_create_elem(bf_add(a0b0, a1b1), bf_add(a0b0, bigprod)); //(a0*b0+a1*b1)+(a0*b0 + (a0+a1)*(b0+b1))u
 }
 
+//Multiplies a with the curve parameter A=u
+//(a1*u+a0)*u = a1*u^2 + a0*u = a1*(u+1) + a0*u = (a0 + a1)*u + a1
+ef_elem ef_mull_A(ef_elem a) {
+	ef_elem r;
+	r.val[0] = a.val[1];
+	r.val[1] = bf_add(a.val[0], a.val[1]);
+	return r;
+}
+
 ef_elem ef_square(ef_elem a) {
 	poly64x2_t a0_squared = bf_red_psquare(bf_psquare(a.val[0])); //a0^2
 	poly64x2_t a1_squared = bf_red_psquare(bf_psquare(a.val[1])); //a1^2

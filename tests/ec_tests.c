@@ -680,7 +680,7 @@ void ec_double_then_addtwo_test_crosscheck_rnd(test_ctr *ctr) {
 }
 
 void ec_tests(test_ctr *ctr) {
-	/*ec_create_point_lproj_test_example(ctr);
+	ec_create_point_lproj_test_example(ctr);
 
 	ec_equal_point_lproj_test_equivalent_example(ctr);
 	ec_equal_point_lproj_test_notequivalent_example(ctr);
@@ -720,7 +720,7 @@ void ec_tests(test_ctr *ctr) {
 	ec_neg_test_add_point_with_neg_is_infty_rnd(ctr);
 
 	ec_double_then_add_test_is_on_curve_rnd(ctr);
-	*/
+	 
 	ec_add_mixed_test_crosscheck_rnd(ctr);
 	
 	ec_double_then_addtwo_test_crosscheck_rnd(ctr);
