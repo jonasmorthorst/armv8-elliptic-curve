@@ -19,7 +19,7 @@ ec_point_laffine ec_create_point_laffine(ef_elem x, ef_elem l) {
 	return P;
 }
 
-ec_point_lproj ec_point_laffine_to_point_lproj(ec_point_laffine P) {
+ec_point_lproj ec_laffine_to_lproj(ec_point_laffine P) {
 	ec_point_lproj R;
 	R.x = P.x;
 	R.l = P.l;
@@ -27,7 +27,7 @@ ec_point_lproj ec_point_laffine_to_point_lproj(ec_point_laffine P) {
 	return R;
 }
 
-ec_point_laffine ec_point_lproj_to_point_laffine(ec_point_lproj P) {
+ec_point_laffine ec_lproj_to_laffine(ec_point_lproj P) {
 	ef_elem Z_inv = ef_inv(P.z);
 	ec_point_laffine R;
 	R.x = ef_mull(P.x, Z_inv);
@@ -78,7 +78,7 @@ uint64_t ec_equal_point_lproj(ec_point_lproj P, ec_point_lproj Q) {
 }
 
 uint64_t ec_equal_point_mixed(ec_point_laffine P, ec_point_lproj Q) {
-	ec_point_laffine Q_affine = ec_point_lproj_to_point_laffine(Q);
+	ec_point_laffine Q_affine = ec_lproj_to_laffine(Q);
 	return equal_ef_elem(P.x, Q_affine.x) && equal_ef_elem(P.l, Q_affine.l);
 }
 
@@ -118,18 +118,12 @@ ec_point_lproj ec_rand_point_lproj() {
 }
 
 ec_point_laffine ec_rand_point_laffine() {
-	ec_point_laffine L;
 	ec_point_lproj P = ec_rand_point_lproj();
-
-	L.x = ef_mull(P.x, ef_inv(P.z));
-	L.l = ef_mull(P.l, ef_inv(P.z));
-
-	return L;
+	return ec_lproj_to_laffine(P);
 }
 
 ec_point_lproj ec_neg(ec_point_lproj P) {
 	P.l = ef_add(P.l, P.z);
-
 	return P;
 }
 
@@ -163,7 +157,7 @@ ec_point_lproj ec_add(ec_point_lproj P, ec_point_lproj Q) {
 
 ec_point_lproj ec_add_mixed(ec_point_laffine P, ec_point_lproj Q) {
 	if(ec_equal_point_lproj(Q, (ec_point_lproj) INFTY)) {
-		return ec_point_laffine_to_point_lproj(P);
+		return ec_laffine_to_lproj(P);
 	}
 	if(ec_equal_point_mixed(P, ec_neg(Q))) {
 		return (ec_point_lproj) INFTY;

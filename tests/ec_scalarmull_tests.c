@@ -17,7 +17,7 @@ void ec_scalarmull_single_test_example(test_ctr *ctr) {
 	ec_point_lproj expected = ec_create_point_lproj(EX, EL, EZ); // expected = 1984 * GEN
 
 	//Act
-	ec_point_lproj actual = ec_scalarmull_single(lproj_to_laffine((ec_point_lproj)GEN), k);
+	ec_point_lproj actual = ec_scalarmull_single(ec_lproj_to_laffine((ec_point_lproj)GEN), k);
 
 	//Assert
 	uint64_t equal = ec_equal_point_lproj(expected, actual);

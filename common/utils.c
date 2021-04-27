@@ -72,11 +72,3 @@ uint64_t rand_uint64() {
 	}
 	return r;
 }
-
-ec_point_laffine lproj_to_laffine(ec_point_lproj P) {
-	ec_point_laffine L;
-	L.x = ef_mull(P.x, ef_inv(P.z));
-	L.l = ef_mull(P.l, ef_inv(P.z));
-
-	return L;
-}
