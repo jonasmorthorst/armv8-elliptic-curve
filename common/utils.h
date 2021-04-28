@@ -28,5 +28,6 @@ uint64_t rand_uint64();
 
 ec_point_laffine lproj_to_laffine(ec_point_lproj P);
 
+uint64x2_t mult_u64(uint64_t a, uint64_t b);
 
 #endif

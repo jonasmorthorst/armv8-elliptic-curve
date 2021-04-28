@@ -236,3 +236,24 @@ ec_point_lproj ec_double_then_addtwo(ec_point_laffine P1, ec_point_laffine P2, e
 	R.l = ef_add(ef_square(ef_add(L, M)), ef_mull(R.z, ef_add(P2.l, one)));
 	return R;
 }
+
+//We will only need this endomorphism for lambda affine coords for scalar mul GLV trick
+ec_point_laffine ec_endo_affine(ec_point_laffine P) {
+	P.x.val[0] = bf_add(P.x.val[0], P.x.val[1]);
+	P.l.val[0] = bf_add(P.l.val[0], P.l.val[1]);
+	P.l.val[1] = bf_add(P.l.val[1], (poly64x2_t) {1,0});
+	return P;
+}
+
+ec_split_scalars ec_scalar_decomp(uint64x2x2_t k) {
+	
+	// b1 = k / 2^127 (where / is integer division) (Original comments say it is -k / 2^127, mistery why that is)
+	uint64x2_t b1;
+	b1[0] = (k.val[1][0] << 1) | (k.val[0][1] >> 63);
+	b1[1] = (k.val[1][1] << 1) | (k.val[1][0] >> 63);
+	
+	//b2 = k*t / 2^254
+
+	ec_split_scalars result;
+	return result;
+}

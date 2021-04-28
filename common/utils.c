@@ -72,3 +72,24 @@ uint64_t rand_uint64() {
 	}
 	return r;
 }
+
+//We can't multiply 64 bit integers directly, so need this :/
+//Read a paper that seemed to indicate Karatsuba is not rly worth it for small bitsizes.
+//Inspiration from here: https://stackoverflow.com/questions/25095741/how-can-i-multiply-64-bit-operands-and-get-128-bit-result-portably
+uint64x2_t mult_u64(uint64_t a, uint64_t b) {
+	uint64x2_t result;
+	uint64_t al = a & 0xFFFFFFFF;
+	uint64_t ah = a >> 32;
+	uint64_t bl = b & 0XFFFFFFFF;
+	uint64_t bh = b >> 32;
+	uint64_t albl = al * bl;
+	uint64_t albh = al * bh;
+	uint64_t ahbl = ah * bl;
+	uint64_t ahbh = ah * bh;
+	
+	//Can see that this way we don't get carry that must be handled :D
+	uint64_t cross = (albl >> 32) + (ahbl & 0xFFFFFFFF) + albh;
+	result[0] = (cross << 32) | (albl & 0xFFFFFFFF);
+    result[1] = (ahbl >> 32) + (cross >> 32) + ahbh;
+	return result;
+}

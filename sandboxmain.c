@@ -9,9 +9,8 @@
 int main() {
 	init_components();
 	
-	ef_print_expr_nl(ef_rand_elem());
-	poly64x2_t one = {1, 0};
-	ef_print_expr_nl(ef_create_elem(one, one));
+	uint64x2_t result = mult_u64(18446744073709551615U, 18446744073709551615U);
+	printf("%lu, %lu \n", result[0], result[1]);
 	
 	dispose_components();
 	return 0;

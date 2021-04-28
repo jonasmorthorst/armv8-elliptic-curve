@@ -145,8 +145,7 @@ void ec_add_test_is_on_curve_rnd(test_ctr *ctr) {
 		//Arrange
 		ec_point_lproj P = ec_rand_point_lproj();
 		ec_point_lproj Q = ec_rand_point_lproj();
-		ec_print_hex(P);
-
+		
 		//Act
 		ec_point_lproj sum = ec_add(P, Q);
 
@@ -679,6 +678,26 @@ void ec_double_then_addtwo_test_crosscheck_rnd(test_ctr *ctr) {
 	assert_true(equal, ctr, "ec: ec_double_then_addtwo_test_is_on_curve_rnd FAILED");
 }
 
+void ec_endo_affine_test_is_on_curve_rnd(test_ctr *ctr) {
+	uint64_t correct = 1;
+	for(int i = 0; i < 3; i++) {
+		//Arrange
+		ec_point_laffine P = ec_rand_point_laffine();
+		
+		//Act
+		ec_point_laffine phi_P = ec_endo_affine(P);
+		
+		//Assert
+		correct = ec_is_on_curve(ec_laffine_to_lproj(phi_P));
+		if(!correct) {
+			printf("P: \n");
+			ec_print_hex_laffine(P);
+			break;
+		}
+	}
+	assert_true(correct, ctr, "ec: ec_endo_affine_test_is_on_curve_rnd FAILED");
+}
+
 void ec_tests(test_ctr *ctr) {
 	ec_create_point_lproj_test_example(ctr);
 
@@ -724,4 +743,6 @@ void ec_tests(test_ctr *ctr) {
 	ec_add_mixed_test_crosscheck_rnd(ctr);
 	
 	ec_double_then_addtwo_test_crosscheck_rnd(ctr);
+	
+	ec_endo_affine_test_is_on_curve_rnd(ctr);
 }
