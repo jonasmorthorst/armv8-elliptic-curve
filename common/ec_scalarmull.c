@@ -14,11 +14,17 @@ ec_point_lproj ec_scalarmull_single(ec_point_laffine P, poly64x2x2_t k) {
 
       for(int t = 63; t >= 0; t--) {
         Q = ec_double(Q);
+        ec_point_lproj temp = ec_add_mixed(P, Q);
 
-        if (k.val[i][j] & c) {
-          // Laver den altid
-          Q = ec_add_mixed(P, Q);
-        }
+        uint64_t r0, val;
+        asm ("ANDS %[val], %[k], %[c];"
+            "CSEL %[r0], %[temp], %[q], NE;"
+            : [val] "=r" ( val ), [r0] "=r" ( r0 )
+            : [k] "r" (k.val[i][j]), [c] "r" (c), [q] "r" (&Q), [temp] "r" (&temp)
+            );
+
+        ec_point_lproj* ref = (ec_point_lproj*)r0;
+        Q = *ref;
 
         c = c/2;
       }
