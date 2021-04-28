@@ -23,7 +23,7 @@ typedef struct {
 typedef struct {
 	uint64x2_t k1, k2;
 	uint64_t k1_sign, k2_sign;
-} ec_split_scalars;
+} ec_split_scalar;
 
 ec_point_lproj ec_create_point_lproj(ef_elem x, ef_elem l, ef_elem z);
 
@@ -64,5 +64,7 @@ ec_point_lproj ec_double_then_add(ec_point_laffine P, ec_point_lproj Q);
 ec_point_lproj ec_double_then_addtwo(ec_point_laffine P1, ec_point_laffine P2, ec_point_lproj Q);
 
 ec_point_laffine ec_endo_affine(ec_point_laffine P);
+
+ec_split_scalar ec_scalar_decomp(uint64x2x2_t k);
 
 #endif

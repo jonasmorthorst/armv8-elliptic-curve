@@ -245,15 +245,121 @@ ec_point_laffine ec_endo_affine(ec_point_laffine P) {
 	return P;
 }
 
-ec_split_scalars ec_scalar_decomp(uint64x2x2_t k) {
-	
-	// b1 = k / 2^127 (where / is integer division) (Original comments say it is -k / 2^127, mistery why that is)
+ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {
+	ec_split_scalar result;
+	// Step 1: b1 = k / 2^127 (where / is integer division) (Original comments say it is -k / 2^127, mistery why that is)
 	uint64x2_t b1;
 	b1[0] = (k.val[1][0] << 1) | (k.val[0][1] >> 63);
 	b1[1] = (k.val[1][1] << 1) | (k.val[1][0] >> 63);
 	
-	//b2 = k*t / 2^254
-
-	ec_split_scalars result;
+	//Step 2: b2 = k*trace / 2^254
+	// Mult trace by each word in k.
+	//All of this can probably be optimized because we can't reach the top word without ext atm.
+	//Also there's no reliable 64 bit add instructions with carry :/
+	uint64x2_t tk0 = mult_u64((uint64_t) TRACE, k.val[0][0]);
+	uint64x2_t tk1 = mult_u64((uint64_t) TRACE, k.val[0][1]);
+	uint64x2_t tk2 = mult_u64((uint64_t) TRACE, k.val[1][0]);
+	uint64x2_t tk3 = mult_u64((uint64_t) TRACE, k.val[1][1]);
+	
+	//Add previous [1] with next [0]
+	//We are only interested in the last two words of the result, rest will be consumed by division by 2^254.
+	uint64_t res0=tk0[0], res1=0, res2=0, res3=0, res4=0, zero = 0;
+	asm ("ADDS %[res1], %[tk01], %[tk10];"
+		 "ADCS %[res2], %[tk11], %[tk20];"
+		 "ADCS %[res3], %[tk21], %[tk30];"
+		 "ADC %[res4], %[tk31], %[zero];"
+		: [res1] "=r" (res1), [res2] "=r" (res2), [res3] "=r" (res3), [res4] "=r" (res4)
+		: [tk01] "r" (tk0[1]), [tk10] "r" (tk1[0]), [tk11] "r" (tk1[1]), [tk20] "r" (tk2[0]), [tk21] "r" (tk2[1]), [tk30] "r" (tk3[0]), [tk31] "r" (tk3[1]), [zero] "r" (zero)
+		);
+	//printf("%lu, %lu, %lu, %lu, %lu\n", res0, res1, res2, res3, res4);
+	
+	//Divide k*trace by 2^254
+	uint64_t b2 = (res3 >> 62) | (res4 << 2);
+	b2 |= 1; //Mystery or!
+	
+	//Step 3: b1*t
+	uint64x2_t b1_times_t = mult_u64((uint64_t) TRACE, b1[0]);
+	uint64x2_t b11_times_t = mult_u64((uint64_t) TRACE, b1[1]);
+	b1_times_t[1] += b11_times_t[0]; //He ignores last word of result???
+	
+	//Step 4: b2*t
+	uint64x2_t b2_times_t = mult_u64((uint64_t) TRACE, b2);
+	
+	//k1 computation
+	
+	//Step 5: b1*q (q = 2^127)
+	uint64x2_t b1_times_q = {0, b1[0] << 63};
+	
+	//Step 6: {res0, res1} = b1*q + b2*t
+	asm ("ADDS %[res0], %[b1q0], %[b2t0];"
+		 "ADC %[res1], %[b1q1], %[b2t1];"
+		: [res0] "=r" (res0), [res1] "=r" (res1)
+		: [b1q0] "r" (b1_times_q[0]), [b1q1] "r" (b1_times_q[1]), [b2t0] "r" (b2_times_t[0]), [b2t1] "r" (b2_times_t[1])
+		);
+		
+	//Step 7: {res0, res1} = b1*q + b2*t - b1
+	//Hope operands are in the correct order
+	asm ("SUBS %[res0], %[res0], %[b10];"
+		 "SBC %[res1], %[res1], %[b11];"
+		: [res0] "=r" (res0), [res1] "=r" (res1)
+		: [b10] "r" (b1[0]), [b11] "r" (b1[1])
+		);
+	
+	//Step 8: Determine sign of k-tmp (0 for positive), just by checking second word?? Maybe if res1=k.val[0][1] you can show that it will not be negative.
+	uint64_t sign = res1 < k.val[0][1];
+	
+	//Step 9: {res0, res1} = (b1*q + b2*t - b1) - k
+	//Opposite order of the paper, why tho?? And we just subtract with the first two words of k like it is nothing.
+	asm ("SUBS %[res0], %[res0], %[k00];"
+		 "SBC %[res1], %[res1], %[k01];"
+		: [res0] "=r" (res0), [res1] "=r" (res1)
+		: [k00] "r" (k.val[0][0]), [k01] "r" (k.val[0][1])
+		);
+	
+	//Step 10: Now take two's complement if needed and then flip sign, because we should have computed the operand order from the paper all along???
+	res0 = res0 ^ (zero - sign);
+	res1 = res1 ^ (zero - sign);
+	asm ("ADDS %[res0], %[res0], %[sign];"
+		 "ADC %[res1], %[res1], %[zero];"
+		: [res0] "=r" (res0), [res1] "=r" (res1)
+		: [sign] "r" (sign), [zero] "r" (zero)
+		);
+	result.k1 = (uint64x2_t) {res0, res1};
+	result.k1_sign = sign ^ 0x1;
+	printf("%lu, %lu, sign %lu\n", result.k1[0], result.k1[1], result.k1_sign);
+	
+	//k2 computation
+	
+	//Step 11: {res0, res1} = b1*t + b2
+	asm ("ADDS %[res0], %[b1t0], %[b2];"
+		 "ADC %[res1], %[b1t1], %[zero];"
+		: [res0] "=r" (res0), [res1] "=r" (res1)
+		: [b1t0] "r" (b1_times_t[0]), [b1t1] "r" (b1_times_t[1]), [b2] "r" (b2), [zero] "r" (zero)
+		);
+	
+	//Step 12: b2*q (q = 2^127)
+	uint64x2_t b2_times_q = {0, b2 << 63};
+	
+	//Step 13: k2 sign (0 for positive)
+	sign = b2_times_q[1] < res1;
+	
+	//Step 14: {res0, res1} = b2*q - (b1*t + b2)
+	asm ("SUBS %[res0], %[b2q0], %[res0];"
+		 "SBC %[res1], %[b2q1], %[res1];"
+		: [res0] "=r" (res0), [res1] "=r" (res1)
+		: [b2q0] "r" (b2_times_q[0]), [b2q1] "r" (b2_times_q[1])
+		);
+	
+	//Step 15: Now take two's complement if needed and then flip sign again.
+	res0 = res0 ^ (zero - sign);
+	res1 = res1 ^ (zero - sign);
+	asm ("ADDS %[res0], %[res0], %[sign];"
+		 "ADC %[res1], %[res1], %[zero];"
+		: [res0] "=r" (res0), [res1] "=r" (res1)
+		: [sign] "r" (sign), [zero] "r" (zero)
+		);
+	result.k2 = (uint64x2_t) {res0, res1};
+	result.k2_sign = sign ^ 0x1;
+	
 	return result;
 }
