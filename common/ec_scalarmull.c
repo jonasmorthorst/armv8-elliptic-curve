@@ -76,3 +76,25 @@ ec_point_lproj ec_scalarmull_double(ec_point_lproj P, poly64x2x2_t k, ec_point_l
 
   return R;
 }
+
+ec_point_laffine ec_scalarmull_single_endo(ec_point_laffine P, uint64x2x2_t k) {
+	ec_split_scalar decomp = ec_scalar_decomp(k);
+	ec_point_laffine Q = ec_endo_laffine(P);
+	if(decomp.k1_sign) {
+		P = ec_neg_laffine(P);
+	}
+	if(decomp.k2_sign) {
+		Q = ec_neg_laffine(Q);
+	}
+	
+	//Atm we need to do this, not permanent solution
+	poly64x2x2_t k1 = (poly64x2x2_t) {{decomp.k1, {0, 0}}};
+	poly64x2x2_t k2 = (poly64x2x2_t) {{decomp.k2, {0, 0}}};
+	ec_point_lproj P_proj = ec_laffine_to_lproj(P);
+	ec_point_lproj Q_proj = ec_laffine_to_lproj(Q);
+	
+	//Maybe I will just have my own loop here directly
+	ec_point_lproj res_lproj = ec_scalarmull_double(P_proj, k1, Q_proj, k2);
+	ec_point_laffine res_laffine = ec_lproj_to_laffine(res_lproj);
+	return res_laffine;
+}

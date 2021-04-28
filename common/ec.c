@@ -44,6 +44,13 @@ void ec_print_expr(ec_point_lproj P) {
 	ef_print_expr_nl(P.z);
 }
 
+void ec_print_expr_laffine(ec_point_laffine P) {
+	printf("x: ");
+	ef_print_expr_nl(P.x);
+	printf(" l: ");
+	ef_print_expr_nl(P.l);
+}
+
 void ec_print_hex(ec_point_lproj P) {
 	printf("x: ");
 	ef_print_hex_nl(P.x);
@@ -124,6 +131,11 @@ ec_point_laffine ec_rand_point_laffine() {
 
 ec_point_lproj ec_neg(ec_point_lproj P) {
 	P.l = ef_add(P.l, P.z);
+	return P;
+}
+
+ec_point_laffine ec_neg_laffine(ec_point_laffine P) {
+	P.l.val[0] = bf_add(P.l.val[0], (poly64x2_t) {1,0});
 	return P;
 }
 
@@ -238,7 +250,7 @@ ec_point_lproj ec_double_then_addtwo(ec_point_laffine P1, ec_point_laffine P2, e
 }
 
 //We will only need this endomorphism for lambda affine coords for scalar mul GLV trick
-ec_point_laffine ec_endo_affine(ec_point_laffine P) {
+ec_point_laffine ec_endo_laffine(ec_point_laffine P) {
 	P.x.val[0] = bf_add(P.x.val[0], P.x.val[1]);
 	P.l.val[0] = bf_add(P.l.val[0], P.l.val[1]);
 	P.l.val[1] = bf_add(P.l.val[1], (poly64x2_t) {1,0});
@@ -290,50 +302,56 @@ ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {
 	//Step 5: b1*q (q = 2^127)
 	uint64x2_t b1_times_q = {0, b1[0] << 63};
 	
-	//Step 6: {res0, res1} = b1*q + b2*t
-	asm ("ADDS %[res0], %[b1q0], %[b2t0];"
-		 "ADC %[res1], %[b1q1], %[b2t1];"
-		: [res0] "=r" (res0), [res1] "=r" (res1)
+	//Step 6: {step6_0, step6_1} = b1*q + b2*t
+	uint64_t step6_0, step6_1;
+	asm ("ADDS %[step60], %[b1q0], %[b2t0];"
+		 "ADC %[step61], %[b1q1], %[b2t1];"
+		: [step60] "=r" (step6_0), [step61] "=r" (step6_1)
 		: [b1q0] "r" (b1_times_q[0]), [b1q1] "r" (b1_times_q[1]), [b2t0] "r" (b2_times_t[0]), [b2t1] "r" (b2_times_t[1])
 		);
 		
-	//Step 7: {res0, res1} = b1*q + b2*t - b1
+	//Step 7: {step7_0, step7_1} = b1*q + b2*t - b1
 	//Hope operands are in the correct order
-	asm ("SUBS %[res0], %[res0], %[b10];"
-		 "SBC %[res1], %[res1], %[b11];"
-		: [res0] "=r" (res0), [res1] "=r" (res1)
-		: [b10] "r" (b1[0]), [b11] "r" (b1[1])
+	uint64_t step7_0, step7_1;
+	asm ("SUBS %[step70], %[step60], %[b10];"
+		 "SBC %[step71], %[step61], %[b11];"
+		: [step70] "=r" (step7_0), [step71] "=r" (step7_1)
+		: [step60] "r" (step6_0), [step61] "r" (step6_1), [b10] "r" (b1[0]), [b11] "r" (b1[1])
 		);
 	
 	//Step 8: Determine sign of k-tmp (0 for positive), just by checking second word?? Maybe if res1=k.val[0][1] you can show that it will not be negative.
-	uint64_t sign = res1 < k.val[0][1];
+	uint64_t sign1 = res1 < k.val[0][1];
 	
-	//Step 9: {res0, res1} = (b1*q + b2*t - b1) - k
+	//Step 9: {step90, step91} = (b1*q + b2*t - b1) - k
 	//Opposite order of the paper, why tho?? And we just subtract with the first two words of k like it is nothing.
-	asm ("SUBS %[res0], %[res0], %[k00];"
-		 "SBC %[res1], %[res1], %[k01];"
-		: [res0] "=r" (res0), [res1] "=r" (res1)
-		: [k00] "r" (k.val[0][0]), [k01] "r" (k.val[0][1])
+	uint64_t step9_0, step9_1;
+	asm ("SUBS %[step90], %[step70], %[k00];"
+		 "SBC %[step91], %[step71], %[k01];"
+		: [step90] "=r" (step9_0), [step91] "=r" (step9_1)
+		: [step70] "r" (step7_0), [step71] "r" (step7_1), [k00] "r" (k.val[0][0]), [k01] "r" (k.val[0][1])
 		);
 	
 	//Step 10: Now take two's complement if needed and then flip sign, because we should have computed the operand order from the paper all along???
-	res0 = res0 ^ (zero - sign);
-	res1 = res1 ^ (zero - sign);
-	asm ("ADDS %[res0], %[res0], %[sign];"
-		 "ADC %[res1], %[res1], %[zero];"
-		: [res0] "=r" (res0), [res1] "=r" (res1)
-		: [sign] "r" (sign), [zero] "r" (zero)
+	uint64_t step10a_0 = step9_0 ^ (zero - sign1);
+	uint64_t step10a_1 = step9_1 ^ (zero - sign1);
+	uint64_t step10b_0, step10b_1;
+	asm ("ADDS %[step10b0], %[step10a0], %[sign];"
+		 "ADC %[step10b1], %[step10a1], %[zero];"
+		: [step10b0] "=r" (step10b_0), [step10b1] "=r" (step10b_1)
+		: [step10a0] "r" (step10a_0), [step10a1] "r" (step10a_1), [sign] "r" (sign1), [zero] "r" (zero)
 		);
-	result.k1 = (uint64x2_t) {res0, res1};
-	result.k1_sign = sign ^ 0x1;
-	printf("%lu, %lu, sign %lu\n", result.k1[0], result.k1[1], result.k1_sign);
+	result.k1[0] = step10b_0;
+	result.k1[1] = step10b_1;
+	result.k1_sign = sign1 ^ 0x1;
+	//printf("%lu, %lu, sign %lu\n", result.k1[0], result.k1[1], result.k1_sign);
 	
 	//k2 computation
 	
-	//Step 11: {res0, res1} = b1*t + b2
-	asm ("ADDS %[res0], %[b1t0], %[b2];"
-		 "ADC %[res1], %[b1t1], %[zero];"
-		: [res0] "=r" (res0), [res1] "=r" (res1)
+	//Step 11: {step11_0, step11_1} = b1*t + b2
+	uint64_t step11_0, step11_1;
+	asm ("ADDS %[step110], %[b1t0], %[b2];"
+		 "ADC %[step111], %[b1t1], %[zero];"
+		: [step110] "=r" (step11_0), [step111] "=r" (step11_1)
 		: [b1t0] "r" (b1_times_t[0]), [b1t1] "r" (b1_times_t[1]), [b2] "r" (b2), [zero] "r" (zero)
 		);
 	
@@ -341,25 +359,28 @@ ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {
 	uint64x2_t b2_times_q = {0, b2 << 63};
 	
 	//Step 13: k2 sign (0 for positive)
-	sign = b2_times_q[1] < res1;
+	uint64_t sign2 = b2_times_q[1] < step11_1;
 	
-	//Step 14: {res0, res1} = b2*q - (b1*t + b2)
-	asm ("SUBS %[res0], %[b2q0], %[res0];"
-		 "SBC %[res1], %[b2q1], %[res1];"
-		: [res0] "=r" (res0), [res1] "=r" (res1)
-		: [b2q0] "r" (b2_times_q[0]), [b2q1] "r" (b2_times_q[1])
+	//Step 14: {step14_0, step14_1} = b2*q - (b1*t + b2)
+	uint64_t step14_0, step14_1;
+	asm ("SUBS %[step140], %[b2q0], %[step110];"
+		 "SBC %[step141], %[b2q1], %[step111];"
+		: [step140] "=r" (step14_0), [step141] "=r" (step14_1)
+		: [step110] "r" (step11_0), [step111] "r" (step11_1), [b2q0] "r" (b2_times_q[0]), [b2q1] "r" (b2_times_q[1])
 		);
 	
 	//Step 15: Now take two's complement if needed and then flip sign again.
-	res0 = res0 ^ (zero - sign);
-	res1 = res1 ^ (zero - sign);
-	asm ("ADDS %[res0], %[res0], %[sign];"
-		 "ADC %[res1], %[res1], %[zero];"
-		: [res0] "=r" (res0), [res1] "=r" (res1)
-		: [sign] "r" (sign), [zero] "r" (zero)
+	uint64_t step15a_0 = step14_0 ^ (zero - sign2);
+	uint64_t step15a_1 = step14_1 ^ (zero - sign2);
+	uint64_t step15b_0, step15b_1;
+	asm ("ADDS %[step15b0], %[step15a0], %[sign];"
+		 "ADC %[step15b1], %[step15a1], %[zero];"
+		: [step15b0] "=r" (step15b_0), [step15b1] "=r" (step15b_1)
+		: [step15a0] "r" (step15a_0), [step15a1] "r" (step15a_1), [sign] "r" (sign2), [zero] "r" (zero)
 		);
-	result.k2 = (uint64x2_t) {res0, res1};
-	result.k2_sign = sign ^ 0x1;
+	result.k2[0] = step15b_0;
+	result.k2[1] = step15b_1;
+	result.k2_sign = sign2 ^ 0x1;
 	
 	return result;
 }
