@@ -308,17 +308,17 @@ void ec_scalarmull_single_test_k_one_is_identity(test_ctr *ctr) {
 void ec_scalarmull_single_endo_test_example(test_ctr *ctr) {
 	//Arrange
 	uint64x2x2_t k = (uint64x2x2_t) {{{12345, 0}, {0,0}}};
-	
+
 	ec_point_lproj P_lproj = (ec_point_lproj) GEN;
 	ec_point_laffine P_laffine = ec_lproj_to_laffine(P_lproj);
-	
+
 	ef_elem EX = ef_create_elem(bf_create_elem(6574758758697437213U, 9029938885770167062U), bf_create_elem(2238988517843169761U, 2100850367268144132U));
 	ef_elem EL = ef_create_elem(bf_create_elem(6503207926092968936U, 3219845272070329794U), bf_create_elem(10930336994397273494U, 8947327516344479714U));
 	ec_point_laffine E = ec_create_point_laffine(EX, EL); //E = 12345 * GEN
-	
+
 	//Act
 	ec_point_laffine R = ec_scalarmull_single_endo(P_laffine, k);
-	
+
 	//Assert
 	uint64_t correct = ec_equal_point_laffine(R, E);
 	assert_true(correct, ctr, "ec_scalarmull_single_endo_test_example FAILED");
@@ -328,11 +328,11 @@ void ec_scalarmull_single_endo_test_crosscheck_rnd(test_ctr *ctr) {
 	//Arrange
 	uint64x2x2_t k = ec_rand_scalar();
 	ec_point_laffine P = ec_rand_point_laffine();
-	
+
 	//Act
 	ec_point_laffine kP = ec_scalarmull_single_endo(P, k);
 	ec_point_laffine crosscheck = ec_lproj_to_laffine(ec_scalarmull_single(P, k));
-		
+
 	//Assert
 	uint64_t equal = ec_equal_point_laffine(kP, crosscheck);
 	if(!equal) {

@@ -87,18 +87,18 @@ ec_point_lproj ec_scalarmull_double(ec_point_lproj P, uint64x2x2_t k, ec_point_l
 ec_point_laffine ec_scalarmull_single_endo(ec_point_laffine P, uint64x2x2_t k) {
 	ec_point_lproj new;
 	uint64x1_t old_ptr, new_ptr, tmp, digitval;
-	
+
 	ec_split_scalar decomp = ec_scalar_decomp(k);
 	ec_point_laffine Q = ec_endo_laffine(P);
-	
+
 	digitval[0]=1;
 	ec_point_laffine P_neg = ec_neg_laffine(P);
 	CMOV(tmp, decomp.k1_sign, digitval, P, P_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
 	ec_point_laffine Q_neg = ec_neg_laffine(Q);
 	CMOV(tmp, decomp.k2_sign, digitval, Q, Q_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
-	
+
 	ec_point_lproj R = (ec_point_lproj) INFTY;
-	
+
 	for(int i = 1; i >= 0; i--) {
 		digitval[0] = pow2to63;
 		for(int digit = 63; digit >= 0; digit--) {
@@ -106,10 +106,10 @@ ec_point_laffine ec_scalarmull_single_endo(ec_point_laffine P, uint64x2x2_t k) {
 
 			new = ec_add_mixed(P, R);
 			CMOV(tmp, decomp.k1[i], digitval, R, new, old_ptr, new_ptr, typeof(ec_point_lproj));
-			
+
 			new = ec_add_mixed(Q, R);
 			CMOV(tmp, decomp.k2[i], digitval, R, new, old_ptr, new_ptr, typeof(ec_point_lproj));
-			
+
 			digitval[0] >>= 1;
 		}
 	}
@@ -120,15 +120,15 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	//w=5 really only takes 4 bits at a time though
 	ec_point_lproj new;
 	uint64x1_t old_ptr, new_ptr, tmp,  ;
-	
+
 	ec_split_scalar decomp = ec_scalar_decomp(k);
-	
+
 	digitval[0]=1;
 	ec_point_laffine P_neg = ec_neg_laffine(P);
 	CMOV(tmp, decomp.k1_sign, digitval, P, P_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
-	
+
 	uint64_t neg_Q_flag = decomp.k1_sign ^ decomp.k2_sign; //If sign is different they must be negated
-	
+
 	ec_point_laffine lookup[15]; //2^(w-1)-1 = 2^4 - 1 = 15
 	ec_point_lproj P2 = ec_double(ec_laffine_to_lproj(P));
 	ec_point_lproj P4 = ec_double(P2);
@@ -148,19 +148,52 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	lookup[12] = ec_lproj_to_laffine(ec_add_mixed(lookup[4], P8));
 	lookup[13] = ec_lproj_to_laffine(ec_add_mixed(lookup[5], P8));
 	lookup[14] = ec_lproj_to_laffine(ec_add_mixed(lookup[6], P8));
-	
+
 	ec_point_lproj R = (ec_point_lproj) INFTY;
-	
+
 	for(int i = 1; i >= 0; i--) {
 		uint64_t windowmask = 0xF000000000000000;
 		for(int j = 60; j >= 0; j -= 4) {
 			R = ec_double(ec_double(ec_double(R)));
 			uint64_t k1 = (decomp.k1[i] & windowmask) >> j;
 			uint64_t k2 = (decomp.k2[i] & windowmask) >> j;
-			
-			
+
+
 			windowmask >>= 4;
 		}
 	}
 	return ec_lproj_to_laffine(R);
 }*/
+
+ec_naf ec_to_naf(poly64x2x2_t k) {
+  ec_naf naf;
+  naf.val[0] = 12523513251212;
+  naf.val[1] = 12235512;
+  naf.val[2] = 125125312;
+  naf.val[3] = 1252312;
+  naf.val[4] = 12523512;
+  naf.val[6] = 12513252352;
+  naf.val[7] = 25;
+
+  return naf;
+}
+
+void ec_print_naf(ec_naf k) {
+  for(int i = 7; i >= 0; i--) {
+    poly64_t c = pow2to63;
+    for(int j = 0; j < 32; j++) {
+
+      int secondSet = k.val[i] & c;
+      c = c/2;
+      int firstSet = k.val[i] & c;
+      c = c/2;
+
+      if (firstSet && secondSet) printf(" 2 ");
+      if (firstSet && !secondSet) printf(" 1 ");
+      if (!firstSet && secondSet) printf(" -1 ");
+      if (!firstSet && !secondSet) printf(" 0 ");
+    }
+  }
+
+  printf("\n");
+}
