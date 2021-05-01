@@ -76,40 +76,39 @@ ec_point_lproj ec_scalarmull_double(ec_point_lproj P, uint64x2x2_t k, ec_point_l
   return R;
 }
 
+#define CMOV(tmpx1, cmpval, eqcondx1, old, new, old_ptrx1, new_ptrx1, point_type) \
+	tmpx1[0] = cmpval & eqcondx1[0]; \
+	tmpx1 = vceq_u64(tmpx1, eqcondx1); \
+	old_ptrx1[0] = (uint64_t) &old; \
+	new_ptrx1[0] = (uint64_t) &new; \
+	tmpx1 = vbsl_u64(tmpx1, new_ptrx1, old_ptrx1); \
+	old = *((point_type*) tmpx1[0]); \
+
 ec_point_laffine ec_scalarmull_single_endo(ec_point_laffine P, uint64x2x2_t k) {
-	ec_split_scalar decomp = ec_scalar_decomp(k);
-	ec_point_laffine Q = ec_endo_laffine(P);
-	if(decomp.k1_sign) {
-		P = ec_neg_laffine(P);
-	}
-	if(decomp.k2_sign) {
-		Q = ec_neg_laffine(Q);
-	}
-	ec_point_lproj R = (ec_point_lproj) INFTY;
 	ec_point_lproj new;
 	uint64x1_t old_ptr, new_ptr, tmp, digitval;
+	
+	ec_split_scalar decomp = ec_scalar_decomp(k);
+	ec_point_laffine Q = ec_endo_laffine(P);
+	
+	digitval[0]=1;
+	ec_point_laffine P_neg = ec_neg_laffine(P);
+	CMOV(tmp, decomp.k1_sign, digitval, P, P_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+	ec_point_laffine Q_neg = ec_neg_laffine(Q);
+	CMOV(tmp, decomp.k2_sign, digitval, Q, Q_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+	
+	ec_point_lproj R = (ec_point_lproj) INFTY;
+	
 	for(int i = 1; i >= 0; i--) {
 		digitval[0] = pow2to63;
 		for(int digit = 63; digit >= 0; digit--) {
 			R = ec_double(R);
 
 			new = ec_add_mixed(P, R);
-			//cmov:
-			tmp[0] = decomp.k1[i] & digitval[0];
-			tmp = vceq_u64(tmp, digitval);
-			old_ptr[0] = (uint64_t) &R;
-			new_ptr[0] = (uint64_t) &new;
-			tmp = vbsl_u64(tmp, new_ptr, old_ptr);
-			R = *((ec_point_lproj*) tmp[0]);
+			CMOV(tmp, decomp.k1[i], digitval, R, new, old_ptr, new_ptr, typeof(ec_point_lproj));
 			
 			new = ec_add_mixed(Q, R);
-			//cmov:
-			tmp[0] = decomp.k2[i] & digitval[0];
-			tmp = vceq_u64(tmp, digitval);
-			old_ptr[0] = (uint64_t) &R;
-			new_ptr[0] = (uint64_t) &new;
-			tmp = vbsl_u64(tmp, new_ptr, old_ptr);
-			R = *((ec_point_lproj*) tmp[0]);
+			CMOV(tmp, decomp.k2[i], digitval, R, new, old_ptr, new_ptr, typeof(ec_point_lproj));
 			
 			digitval[0] >>= 1;
 		}
