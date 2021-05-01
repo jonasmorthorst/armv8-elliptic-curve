@@ -90,16 +90,16 @@ uint64_t ec_equal_point_mixed(ec_point_laffine P, ec_point_lproj Q) {
 }
 
 // Generate random number in range [1, ORDER-1]
-poly64x2x2_t ec_rand_scalar() {
-	poly64x2x2_t order = (poly64x2x2_t) SUBGROUP_ORDER;
-	poly64x2x2_t k;
+uint64x2x2_t ec_rand_scalar() {
+	uint64x2x2_t order = (uint64x2x2_t) SUBGROUP_ORDER;
+	uint64x2x2_t k;
 
 	int in_range = 0;
 	while (!in_range) {
-		poly64_t a0 = rand_uint64();
-		poly64_t a1 = rand_uint64();
-		poly64_t a2 = rand_uint64();
-		poly64_t a3 = rand_uint64();
+		uint64_t a0 = rand_uint64();
+		uint64_t a1 = rand_uint64();
+		uint64_t a2 = rand_uint64();
+		uint64_t a3 = rand_uint64();
 
 		if (a0 > order.val[1][1]) continue;
 		if (a0 == order.val[1][1] && a1 > order.val[1][0]) continue;
@@ -108,8 +108,8 @@ poly64x2x2_t ec_rand_scalar() {
 
 		in_range = 1;
 
-		poly64x2_t p1 = { a0, a1 };
-		poly64x2_t p2 = { a2, a3 };
+		uint64x2_t p1 = { a0, a1 };
+		uint64x2_t p2 = { a2, a3 };
 
 		k.val[0] = p1;
 		k.val[1] = p2;
@@ -119,7 +119,7 @@ poly64x2x2_t ec_rand_scalar() {
 }
 
 ec_point_lproj ec_rand_point_lproj() {
-	poly64x2x2_t k = ec_rand_scalar();
+	uint64x2x2_t k = ec_rand_scalar();
 
 	return ec_scalarmull_single_lproj((ec_point_lproj) GEN, k);
 }
@@ -257,9 +257,28 @@ ec_point_laffine ec_endo_laffine(ec_point_laffine P) {
 	return P;
 }
 
+//c += a	  
+#define ADDACC_128(a0, a1, c0, c1)\
+	asm ("ADDS %0, %0, %2;"\
+				  "ADC %1, %1, %3;"\
+				  : "+r" (c0), "+r" (c1)\
+				  : "r" (a0), "r" (a1)\
+				  );
+
+//c -= a	
+#define SUBACC_128(a0, a1, c0, c1)\
+	asm ("SUBS %0, %0, %2;" \
+		 "SBC %1, %1, %3;"\
+		: "+r" (c0), "+r" (c1)\
+		: "r" (a0), "r" (a1)\
+		);
+
 ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {
 	ec_split_scalar result;
-	// Step 1: b1 = k / 2^127 (where / is integer division) (Original comments say it is -k / 2^127, mistery why that is)
+	uint64_t tmp0, tmp1, tmp2, tmp3, sign;
+	uint64_t zero = 0;
+	
+	// Step 1: b1 = k / 2^127 (where / is integer division) (Original comments say it is -k / 2^127, mystery why that is)
 	uint64x2_t b1;
 	b1[0] = (k.val[1][0] << 1) | (k.val[0][1] >> 63);
 	b1[1] = (k.val[1][1] << 1) | (k.val[1][0] >> 63);
@@ -275,18 +294,16 @@ ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {
 	
 	//Add previous [1] with next [0]
 	//We are only interested in the last two words of the result, rest will be consumed by division by 2^254.
-	uint64_t res0=tk0[0], res1=0, res2=0, res3=0, res4=0, zero = 0;
-	asm ("ADDS %[res1], %[tk01], %[tk10];"
-		 "ADCS %[res2], %[tk11], %[tk20];"
-		 "ADCS %[res3], %[tk21], %[tk30];"
-		 "ADC %[res4], %[tk31], %[zero];"
-		: [res1] "=r" (res1), [res2] "=r" (res2), [res3] "=r" (res3), [res4] "=r" (res4)
+	asm ("ADDS %[tmp0], %[tk01], %[tk10];"
+		 "ADCS %[tmp0], %[tk11], %[tk20];"
+		 "ADCS %[tmp0], %[tk21], %[tk30];"
+		 "ADC %[tmp1], %[tk31], %[zero];"
+		: [tmp0] "+r" (tmp0), [tmp1] "+r" (tmp1)
 		: [tk01] "r" (tk0[1]), [tk10] "r" (tk1[0]), [tk11] "r" (tk1[1]), [tk20] "r" (tk2[0]), [tk21] "r" (tk2[1]), [tk30] "r" (tk3[0]), [tk31] "r" (tk3[1]), [zero] "r" (zero)
 		);
-	//printf("%lu, %lu, %lu, %lu, %lu\n", res0, res1, res2, res3, res4);
 	
 	//Divide k*trace by 2^254
-	uint64_t b2 = (res3 >> 62) | (res4 << 2);
+	uint64_t b2 = (tmp0 >> 62) | (tmp1 << 2);
 	b2 |= 1; //Mystery or!
 	
 	//Step 3: b1*t
@@ -299,88 +316,56 @@ ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {
 	
 	//k1 computation
 	
-	//Step 5: b1*q (q = 2^127)
-	uint64x2_t b1_times_q = {0, b1[0] << 63};
+	//Step 5: {tmp0, tmp1} = b1*q (q = 2^127)
+	tmp0 = 0;
+	tmp1 = b1[0] << 63;
 	
-	//Step 6: {step6_0, step6_1} = b1*q + b2*t
-	uint64_t step6_0, step6_1;
-	asm ("ADDS %[step60], %[b1q0], %[b2t0];"
-		 "ADC %[step61], %[b1q1], %[b2t1];"
-		: [step60] "=r" (step6_0), [step61] "=r" (step6_1)
-		: [b1q0] "r" (b1_times_q[0]), [b1q1] "r" (b1_times_q[1]), [b2t0] "r" (b2_times_t[0]), [b2t1] "r" (b2_times_t[1])
-		);
+	//Step 6: {tmp0, tmp1} = b1*q + b2*t
+	ADDACC_128(b2_times_t[0], b2_times_t[1], tmp0, tmp1);
 		
-	//Step 7: {step7_0, step7_1} = b1*q + b2*t - b1
+	//Step 7: {tmp0, tmp1} = b1*q + b2*t - b1
 	//Hope operands are in the correct order
-	uint64_t step7_0, step7_1;
-	asm ("SUBS %[step70], %[step60], %[b10];"
-		 "SBC %[step71], %[step61], %[b11];"
-		: [step70] "=r" (step7_0), [step71] "=r" (step7_1)
-		: [step60] "r" (step6_0), [step61] "r" (step6_1), [b10] "r" (b1[0]), [b11] "r" (b1[1])
-		);
+	SUBACC_128(b1[0], b1[1], tmp0, tmp1);
 	
 	//Step 8: Determine sign of k-tmp (0 for positive), just by checking second word?? Maybe if res1=k.val[0][1] you can show that it will not be negative.
-	uint64_t sign1 = res1 < k.val[0][1];
+	sign = tmp1 < k.val[0][1];
 	
-	//Step 9: {step90, step91} = (b1*q + b2*t - b1) - k
+	//Step 9: {tmp0, tmp1} = (b1*q + b2*t - b1) - k
 	//Opposite order of the paper, why tho?? And we just subtract with the first two words of k like it is nothing.
-	uint64_t step9_0, step9_1;
-	asm ("SUBS %[step90], %[step70], %[k00];"
-		 "SBC %[step91], %[step71], %[k01];"
-		: [step90] "=r" (step9_0), [step91] "=r" (step9_1)
-		: [step70] "r" (step7_0), [step71] "r" (step7_1), [k00] "r" (k.val[0][0]), [k01] "r" (k.val[0][1])
-		);
+	SUBACC_128(k.val[0][0], k.val[0][1], tmp0, tmp1);
 	
-	//Step 10: Now take two's complement if needed and then flip sign, because we should have computed the operand order from the paper all along???
-	uint64_t step10a_0 = step9_0 ^ (zero - sign1);
-	uint64_t step10a_1 = step9_1 ^ (zero - sign1);
-	uint64_t step10b_0, step10b_1;
-	asm ("ADDS %[step10b0], %[step10a0], %[sign];"
-		 "ADC %[step10b1], %[step10a1], %[zero];"
-		: [step10b0] "=r" (step10b_0), [step10b1] "=r" (step10b_1)
-		: [step10a0] "r" (step10a_0), [step10a1] "r" (step10a_1), [sign] "r" (sign1), [zero] "r" (zero)
-		);
-	result.k1[0] = step10b_0;
-	result.k1[1] = step10b_1;
-	result.k1_sign = sign1 ^ 0x1;
-	//printf("%lu, %lu, sign %lu\n", result.k1[0], result.k1[1], result.k1_sign);
+	//Step 10: Now take two's complement if needed and then flip sign, no matter order of ops may need to do two's complement transform.
+	tmp0 ^= (zero - sign);
+	tmp1 ^= (zero - sign);
+	ADDACC_128(sign, zero, tmp0, tmp1);
+	result.k1[0] = tmp0;
+	result.k1[1] = tmp1;
+	result.k1_sign = sign ^ 0x1;
 	
 	//k2 computation
 	
-	//Step 11: {step11_0, step11_1} = b1*t + b2
-	uint64_t step11_0, step11_1;
-	asm ("ADDS %[step110], %[b1t0], %[b2];"
-		 "ADC %[step111], %[b1t1], %[zero];"
-		: [step110] "=r" (step11_0), [step111] "=r" (step11_1)
-		: [b1t0] "r" (b1_times_t[0]), [b1t1] "r" (b1_times_t[1]), [b2] "r" (b2), [zero] "r" (zero)
-		);
+	//Step 11: {tmp2, tmp3} = b1*t + b2
+	tmp2 = b1_times_t[0];
+	tmp3 = b1_times_t[1];
+	ADDACC_128(b2, zero, tmp2, tmp3);
 	
-	//Step 12: b2*q (q = 2^127)
-	uint64x2_t b2_times_q = {0, b2 << 63};
+	//Step 12: {tmp0, tmp1} = b2*q (q = 2^127)
+	tmp0 = 0;
+	tmp1 = b2 << 63;
 	
 	//Step 13: k2 sign (0 for positive)
-	uint64_t sign2 = b2_times_q[1] < step11_1;
+	sign = tmp1 < tmp3;
 	
-	//Step 14: {step14_0, step14_1} = b2*q - (b1*t + b2)
-	uint64_t step14_0, step14_1;
-	asm ("SUBS %[step140], %[b2q0], %[step110];"
-		 "SBC %[step141], %[b2q1], %[step111];"
-		: [step140] "=r" (step14_0), [step141] "=r" (step14_1)
-		: [step110] "r" (step11_0), [step111] "r" (step11_1), [b2q0] "r" (b2_times_q[0]), [b2q1] "r" (b2_times_q[1])
-		);
+	//Step 14: {tmp0, tmp1} = b2*q - (b1*t + b2)
+	SUBACC_128(tmp2, tmp3, tmp0, tmp1);
 	
 	//Step 15: Now take two's complement if needed and then flip sign again.
-	uint64_t step15a_0 = step14_0 ^ (zero - sign2);
-	uint64_t step15a_1 = step14_1 ^ (zero - sign2);
-	uint64_t step15b_0, step15b_1;
-	asm ("ADDS %[step15b0], %[step15a0], %[sign];"
-		 "ADC %[step15b1], %[step15a1], %[zero];"
-		: [step15b0] "=r" (step15b_0), [step15b1] "=r" (step15b_1)
-		: [step15a0] "r" (step15a_0), [step15a1] "r" (step15a_1), [sign] "r" (sign2), [zero] "r" (zero)
-		);
-	result.k2[0] = step15b_0;
-	result.k2[1] = step15b_1;
-	result.k2_sign = sign2 ^ 0x1;
+	tmp0 ^= (zero - sign);
+	tmp1 ^= (zero - sign);
+	ADDACC_128(sign, zero, tmp0, tmp1);
+	result.k2[0] = tmp0;
+	result.k2[1] = tmp1;
+	result.k2_sign = sign ^ 0x1;
 	
 	return result;
 }

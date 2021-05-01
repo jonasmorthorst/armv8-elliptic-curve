@@ -9,7 +9,7 @@
 
 void ec_scalarmull_single_test_example(test_ctr *ctr) {
 	//Arrange
-	ef_elem k = ef_create_elem(bf_create_elem(1984, 0), bf_create_elem(0, 0));
+	uint64x2x2_t k = (uint64x2x2_t) {{{1984, 0}, {0, 0}}};
 
 	ef_elem EX = ef_create_elem(bf_create_elem(0X2CFAFD7ACC5AFCFF, 0X2D234D04135BB6AC), bf_create_elem(0XB061B3D61FBCA71D, 0X6EE833ECBA9D25));
 	ef_elem EL = ef_create_elem(bf_create_elem(0XEB821D89C63B9871, 0X6E5C83A975E6B141), bf_create_elem(0XB2CC95280AEB5B47, 0X73EE26ACBE0918AB));
@@ -27,7 +27,7 @@ void ec_scalarmull_single_test_example(test_ctr *ctr) {
 
 void ec_scalarmull_single_test_linearity(test_ctr *ctr) {
 	//Arrange
-	ef_elem k = ef_create_elem(bf_create_elem(7876556743120, 65714569742132121), bf_create_elem(11, 0));
+	uint64x2x2_t k = (uint64x2x2_t) {{{7876556743120, 65714569742132121}, {11, 0}}};
 
 	ef_elem PX = ef_create_elem(bf_create_elem(0X51441C4EE272FE55, 0X2DB9775DAEDDE550), bf_create_elem(0X12DD1A65F1D5B480, 0X6CB9034E20AD0EEB));
 	ef_elem PL = ef_create_elem(bf_create_elem(0X7AA01DC08C73455A, 0X51F2DF8B2F5FA18C), bf_create_elem(0X6730BC49B9A98F41, 0X57DEBE6DBCE321DE));
@@ -50,7 +50,7 @@ void ec_scalarmull_single_test_linearity(test_ctr *ctr) {
 
 void ec_scalarmull_single_test_negation_order_indifference(test_ctr *ctr) {
 	//Arrange
-	ef_elem k = ef_create_elem(bf_create_elem(76591954, 7695159674259757), bf_create_elem(95124743611111, 56214));
+	uint64x2x2_t k = (uint64x2x2_t) {{{76591954, 7695159674259757}, {95124743611111, 56214}}};
 	ef_elem PX = ef_create_elem(bf_create_elem(0X2A955F2AB87B63BD, 0X7B5F4418CA97D542), bf_create_elem(0XDD55878DFFE87C62, 0X1CE397B5452EAAD4));
 	ef_elem PL = ef_create_elem(bf_create_elem(0XB55AF6853BAA916A, 0X368B1A5434DF7331), bf_create_elem(0X4B3628231E3A83C2, 0XCA5DED000C90027));
 	ef_elem PZ = ef_create_elem(bf_create_elem(0X90, 0), bf_create_elem(0X0000800000000000, 0X400));
@@ -67,7 +67,7 @@ void ec_scalarmull_single_test_negation_order_indifference(test_ctr *ctr) {
 
 void ec_scalarmull_single_test_order_of_gen_is_order_of_subgroup(test_ctr *ctr) {
 	//Arrange
-	poly64x2x2_t order_minus_1 = (poly64x2x2_t) SUBGROUP_ORDER;
+	uint64x2x2_t order_minus_1 = (uint64x2x2_t) SUBGROUP_ORDER;
 	order_minus_1.val[0][0]--;
 
 	//Act
@@ -81,9 +81,9 @@ void ec_scalarmull_single_test_order_of_gen_is_order_of_subgroup(test_ctr *ctr) 
 
 void ec_scalarmull_single_test_final_k_at_once_same_as_factor_one_at_a_time(test_ctr *ctr) {
 	//Arrange
-	ef_elem k1 = ef_create_elem(bf_create_elem(0XB56483101AD77613, 0X123A67F2366799C), bf_create_elem(0, 0));
-	ef_elem k2 = ef_create_elem(bf_create_elem(0XEEFFEE6752A38174, 0X7544), bf_create_elem(0, 0));
-	ef_elem k = ef_create_elem(bf_create_elem(0XD6D3C77A003A139C, 0XACF7CBD9DC139043), bf_create_elem(0X99A09D4FE2DACA55, 0X85)); //k=k1*k2
+	uint64x2x2_t k1 = (uint64x2x2_t) {{{0XB56483101AD77613, 0X123A67F2366799C}, {0, 0}}};
+	uint64x2x2_t k2 = (uint64x2x2_t) {{{0XEEFFEE6752A38174, 0X7544}, {0, 0}}};
+	uint64x2x2_t k = (uint64x2x2_t) {{{0XD6D3C77A003A139C, 0XACF7CBD9DC139043}, {0X99A09D4FE2DACA55, 0X85}}}; //k=k1*k2
 
 	ef_elem PX = ef_create_elem(bf_create_elem(0XD2C27333EFC0AE61, 0X4306673487679D76), bf_create_elem(0X909BEC5477E860BB, 0X480D39C8A1B98266));
 	ef_elem PL = ef_create_elem(bf_create_elem(0XF84FB0B45D95FC31, 0X24C3FF4B68C78BE3), bf_create_elem(0X963FE2DA0544E1A4, 0X17B6B0A1380A490));
@@ -102,7 +102,7 @@ void ec_scalarmull_single_test_final_k_at_once_same_as_factor_one_at_a_time(test
 
 void ec_scalarmull_single_test_k_one_is_identity(test_ctr *ctr) {
 	//Arrange
-	ef_elem k = ef_create_elem(bf_create_elem(1, 0), bf_create_elem(0, 0));
+	uint64x2x2_t k = (uint64x2x2_t) {{{1, 0}, {0, 0}}};
 
 	ef_elem PX = ef_create_elem(bf_create_elem(0X7674C426F68A7C0D, 0X26C3E68569307393), bf_create_elem(0X9BFA0D5F1CB2BB3F, 0X53889FE5B08254D3));
 	ef_elem PL = ef_create_elem(bf_create_elem(0X4F88EF9F49D18A5E, 0X5C7C38B577B3EAF4), bf_create_elem(0XCDD4DCBE486CC880, 0X18FEF6543ECA3ABC));
@@ -119,8 +119,8 @@ void ec_scalarmull_single_test_k_one_is_identity(test_ctr *ctr) {
 
 // void ec_scalarmull_double_test_example(test_ctr *ctr) {
 // 	//Arrange
-// 	ef_elem k1 = ef_create_elem(bf_create_elem(0X4168B72, 0), bf_create_elem(0, 0));
-// 	ef_elem k2 = ef_create_elem(bf_create_elem(0X3F28CB71575AF, 0), bf_create_elem(0, 0));
+// 	uint64x2x2_t k1 = (uint64x2x2_t) {{{0X4168B72, 0}, {0, 0}}};
+// 	uint64x2x2_t k2 = (uint64x2x2_t) {{{0X3F28CB71575AF, 0}, {0, 0}}};
 //
 // 	ef_elem PX = ef_create_elem(bf_create_elem(0X277FDD6F541DF784, 0X3EEE553504EC41D7), bf_create_elem(0X911D456F43BC03E9, 0X73784D7E0FF24D9D));
 // 	ef_elem PL = ef_create_elem(bf_create_elem(0X7002B4AE8DC97103, 0X758EF7198CCF5839), bf_create_elem(0X9830E5CA1DC22270, 0X35183A0FF5A7A2E1));
@@ -147,8 +147,8 @@ void ec_scalarmull_single_test_k_one_is_identity(test_ctr *ctr) {
 //
 // void ec_scalarmull_double_test_linearity(test_ctr *ctr) {
 // 	//Arrange
-// 	ef_elem k1 = ef_create_elem(bf_create_elem(0XABCDEF123, 0XABCDEF123), bf_create_elem(0XABCDEF123, 0XABCDEF123));
-// 	ef_elem k2 = ef_create_elem(bf_create_elem(0XBCADBCADBCAD, 0XFFFFFFFF1), bf_create_elem(0X77CC77, 0XAAA));
+// 	uint64x2x2_t k1 = (uint64x2x2_t) {{{0XABCDEF123, 0XABCDEF123}, {0XABCDEF123, 0XABCDEF123}}};
+// 	uint64x2x2_t k2 = (uint64x2x2_t) {{{0XBCADBCADBCAD, 0XFFFFFFFF1}, {0X77CC77, 0XAAA}}};
 //
 // 	ef_elem P1X = ef_create_elem(bf_create_elem(0X277FDD6F541DF784, 0X3EEE553504EC41D7), bf_create_elem(0X911D456F43BC03E9, 0X73784D7E0FF24D9D));
 // 	ef_elem P1L = ef_create_elem(bf_create_elem(0X7002B4AE8DC97103, 0X758EF7198CCF5839), bf_create_elem(0X9830E5CA1DC22270, 0X35183A0FF5A7A2E1));
@@ -181,8 +181,8 @@ void ec_scalarmull_single_test_k_one_is_identity(test_ctr *ctr) {
 //
 // void ec_scalarmull_double_test_commutative(test_ctr *ctr) {
 // 	//Arrange
-// 	ef_elem k1 = ef_create_elem(bf_create_elem(0XAAA, 0XBBB), bf_create_elem(0XCCC, 0XDDD));
-// 	ef_elem k2 = ef_create_elem(bf_create_elem(0XEEE, 0XFFF), bf_create_elem(0X111, 0X222));
+// 	uint64x2x2_t k1 = (uint64x2x2_t) {{{0XAAA, 0XBBB}, {0XCCC, 0XDDD}}};
+// 	uint64x2x2_t k2 = (uint64x2x2_t) {{{0XEEE, 0XFFF}, {0X111, 0X222}}};
 //
 // 	ef_elem PX = ef_create_elem(bf_create_elem(0X277FDD6F541DF784, 0X3EEE553504EC41D7), bf_create_elem(0X911D456F43BC03E9, 0X73784D7E0FF24D9D));
 // 	ef_elem PL = ef_create_elem(bf_create_elem(0X7002B4AE8DC97103, 0X758EF7198CCF5839), bf_create_elem(0X9830E5CA1DC22270, 0X35183A0FF5A7A2E1));
@@ -205,8 +205,8 @@ void ec_scalarmull_single_test_k_one_is_identity(test_ctr *ctr) {
 //
 // void ec_scalarmull_double_test_negation_order_indifference(test_ctr *ctr) {
 // 	//Arrange
-// 	ef_elem k1 = ef_create_elem(bf_create_elem(0XA7A7A, 0XB8B8B), bf_create_elem(0XC9C9C, 0XD0D0D));
-// 	ef_elem k2 = ef_create_elem(bf_create_elem(0XE7E7E, 0XF8F8F), bf_create_elem(0X19191, 0X20202));
+// 	uint64x2x2_t k1 = (uint64x2x2_t) {{{0XA7A7A, 0XB8B8B}, {0XC9C9C, 0XD0D0D}}};
+// 	uint64x2x2_t k2 = (uint64x2x2_t) {{{0XE7E7E, 0XF8F8F}, {0X19191, 0X20202}}};
 //
 // 	ef_elem PX = ef_create_elem(bf_create_elem(0X7674C426F68A7C0D, 0X26C3E68569307393), bf_create_elem(0X9BFA0D5F1CB2BB3F, 0X53889FE5B08254D3));
 // 	ef_elem PL = ef_create_elem(bf_create_elem(0X4F88EF9F49D18A5E, 0X5C7C38B577B3EAF4), bf_create_elem(0XCDD4DCBE486CC880, 0X18FEF6543ECA3ABC));
@@ -229,7 +229,7 @@ void ec_scalarmull_single_test_k_one_is_identity(test_ctr *ctr) {
 //
 // void ec_scalarmull_double_test_k_ones_is_add(test_ctr *ctr) {
 // 	//Arrange
-// 	ef_elem k = ef_create_elem(bf_create_elem(1, 0), bf_create_elem(0, 0));
+// 	uint64x2x2_t k = (uint64x2x2_t) {{{1, 0}, {0, 0}}};
 //
 // 	ef_elem PX = ef_create_elem(bf_create_elem(0XD2C27333EFC0AE61, 0X4306673487679D76), bf_create_elem(0X909BEC5477E860BB, 0X480D39C8A1B98266));
 // 	ef_elem PL = ef_create_elem(bf_create_elem(0XF84FB0B45D95FC31, 0X24C3FF4B68C78BE3), bf_create_elem(0X963FE2DA0544E1A4, 0X17B6B0A1380A490));
@@ -252,8 +252,8 @@ void ec_scalarmull_single_test_k_one_is_identity(test_ctr *ctr) {
 //
 // void ec_scalarmull_double_test_crosscheck_scalarmull_single(test_ctr *ctr) {
 // 	//Arrange
-// 	ef_elem k1 = ef_create_elem(bf_create_elem(12345, 6789), bf_create_elem(10111213, 141516));
-// 	ef_elem k2 = ef_create_elem(bf_create_elem(24690, 13578), bf_create_elem(20222426, 283032)); //k2 = 2 * k1
+// 	uint64x2x2_t k1 = (uint64x2x2_t) {{{12345, 6789}, {10111213, 141516}}};
+// 	uint64x2x2_t k2 = (uint64x2x2_t) {{{24690, 13578}, {20222426, 283032}}}; //k2 = 2 * k1
 //
 // 	ef_elem PX = ef_create_elem(bf_create_elem(0X2A955F2AB87B63BD, 0X7B5F4418CA97D542), bf_create_elem(0XDD55878DFFE87C62, 0X1CE397B5452EAAD4));
 // 	ef_elem PL = ef_create_elem(bf_create_elem(0XB55AF6853BAA91FA, 0X368B1A5434DF7331), bf_create_elem(0X4B36A8231E3A83C2, 0XCA5DED000C90427));
@@ -271,7 +271,7 @@ void ec_scalarmull_single_test_k_one_is_identity(test_ctr *ctr) {
 //
 // void ec_scalarmull_double_test_point_and_neg_cancel(test_ctr *ctr) {
 // 	//Arrange
-// 	ef_elem k = ef_create_elem(bf_create_elem(999213654, 2084685670), bf_create_elem(32123142, 6462462412477));
+// 	uint64x2x2_t k = (uint64x2x2_t) {{{999213654, 2084685670}, {32123142, 6462462412477}}};
 //
 // 	ef_elem PX = ef_create_elem(bf_create_elem(0X277FDD6F541DF784, 0X3EEE553504EC41D7), bf_create_elem(0X911D456F43BC03E9, 0X73784D7E0FF24D9D));
 // 	ef_elem PL = ef_create_elem(bf_create_elem(0X7002B4AE8DC97103, 0X758EF7198CCF5839), bf_create_elem(0X9830E5CA1DC22270, 0X35183A0FF5A7A2E1));
@@ -288,8 +288,8 @@ void ec_scalarmull_single_test_k_one_is_identity(test_ctr *ctr) {
 //
 // void ec_scalarmull_double_test_point_and_neg_interfere(test_ctr *ctr) {
 // 	//Arrange
-// 	ef_elem k1 = ef_create_elem(bf_create_elem(1, 0), bf_create_elem(0, 0));
-// 	ef_elem k2 = ef_create_elem(bf_create_elem(2, 0), bf_create_elem(0, 0));
+// 	uint64x2x2_t k1 = (uint64x2x2_t) {{{1, 0}, {0, 0}}};
+// 	uint64x2x2_t k2 = (uint64x2x2_t) {{{2, 0}, {0, 0}}};
 //
 // 	ef_elem PX = ef_create_elem(bf_create_elem(0X2A955F2AB87B63BD, 0X7B5F4418CA97D542), bf_create_elem(0XDD55878DFFE87C62, 0X1CE397B5452EAAD4));
 // 	ef_elem PL = ef_create_elem(bf_create_elem(0XB55AF6853BAA916A, 0X368B1A5434DF7331), bf_create_elem(0X4B3628231E3A83C2, 0XCA5DED000C90027));
@@ -322,8 +322,8 @@ void ec_scalarmull_single_endo_test_example(test_ctr *ctr) {
 	ec_point_lproj R_lproj = ec_laffine_to_lproj(R_laffine);
 	
 	//Assert
-	printf("R.x: %lu, %lu, %lu, %lu\n", R_laffine.x.val[0][0], R_laffine.x.val[0][1], R_laffine.x.val[1][0], R_laffine.x.val[1][1]);
-	printf("R.l: %lu, %lu, %lu, %lu\n", R_laffine.l.val[0][0], R_laffine.l.val[0][1], R_laffine.l.val[1][0], R_laffine.l.val[1][1]);
+	//printf("R.x: %lu, %lu, %lu, %lu\n", R_laffine.x.val[0][0], R_laffine.x.val[0][1], R_laffine.x.val[1][0], R_laffine.x.val[1][1]);
+	//printf("R.l: %lu, %lu, %lu, %lu\n", R_laffine.l.val[0][0], R_laffine.l.val[0][1], R_laffine.l.val[1][0], R_laffine.l.val[1][1]);
 	uint64_t correct = ec_equal_point_lproj(R_lproj, E_lproj);
 	assert_true(correct, ctr, "ec_scalarmull_single_endo_test_example FAILED");
 }

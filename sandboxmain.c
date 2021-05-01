@@ -32,8 +32,8 @@ int main() {
 		Q_proj = ec_neg(Q_proj);
 		Q_affine = ec_lproj_to_laffine(Q_proj);
 	}
-	poly64x2x2_t k1 = (poly64x2x2_t) {{decomp.k1, {0, 0}}};
-	poly64x2x2_t k2 = (poly64x2x2_t) {{decomp.k2, {0, 0}}};
+	uint64x2x2_t k1 = {{ decomp.k1, {0, 0}}};
+	uint64x2x2_t k2 = {{ decomp.k2, {0, 0}}};
 	
 	ec_point_lproj R_proj = ec_scalarmull_double(P_proj, k1, Q_proj, k2);
 	ec_point_laffine R_affine = ec_lproj_to_laffine(R_proj);
