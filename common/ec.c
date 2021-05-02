@@ -74,19 +74,18 @@ uint64_t ec_is_on_curve(ec_point_lproj P) {
 }
 
 uint64_t ec_equal_point_lproj(ec_point_lproj P, ec_point_lproj Q) {
-	ef_elem zP_inv = ef_inv(P.z);
-	ef_elem xP_normalized = ef_mull(P.x, zP_inv);
-	ef_elem lP_normalized = ef_mull(P.l, zP_inv);
-	ef_elem zQ_inv = ef_inv(Q.z);
-	ef_elem xQ_normalized = ef_mull(Q.x, zQ_inv);
-	ef_elem lQ_normalized = ef_mull(Q.l, zQ_inv);
-
-	return equal_ef_elem(xP_normalized, xQ_normalized) && equal_ef_elem(lP_normalized, lQ_normalized);
+	ec_point_laffine P_affine = ec_lproj_to_laffine(P);
+	ec_point_laffine Q_affine = ec_lproj_to_laffine(Q);
+	return equal_ef_elem(P_affine.x, Q_affine.x) && equal_ef_elem(P_affine.l, Q_affine.l);
 }
 
 uint64_t ec_equal_point_mixed(ec_point_laffine P, ec_point_lproj Q) {
 	ec_point_laffine Q_affine = ec_lproj_to_laffine(Q);
 	return equal_ef_elem(P.x, Q_affine.x) && equal_ef_elem(P.l, Q_affine.l);
+}
+
+uint64_t ec_equal_point_laffine(ec_point_laffine P, ec_point_laffine Q) {
+	return equal_ef_elem(P.x, Q.x) && equal_ef_elem(P.l, Q.l);
 }
 
 // Generate random number in range [1, ORDER-1]
@@ -101,10 +100,10 @@ uint64x2x2_t ec_rand_scalar() {
 		uint64_t a2 = rand_uint64();
 		uint64_t a3 = rand_uint64();
 
-		if (a0 > order.val[1][1]) continue;
-		if (a0 == order.val[1][1] && a1 > order.val[1][0]) continue;
-		if (a0 == order.val[1][1] && a1 == order.val[1][0] && a2 > order.val[0][1]) continue;
-		if (a0 == order.val[1][1] && a1 == order.val[1][0] && a2 == order.val[0][1] && a3 >= order.val[0][0]) continue;
+		if (a3 > order.val[1][1]) continue;
+		if (a3 == order.val[1][1] && a2 > order.val[1][0]) continue;
+		if (a3 == order.val[1][1] && a2 == order.val[1][0] && a1 > order.val[0][1]) continue;
+		if (a3 == order.val[1][1] && a2 == order.val[1][0] && a1 == order.val[0][1] && a0 >= order.val[0][0]) continue;
 
 		in_range = 1;
 
@@ -259,34 +258,69 @@ ec_point_laffine ec_endo_laffine(ec_point_laffine P) {
 
 //c += a	  
 #define ADDACC_128(a0, a1, c0, c1)\
-	asm ("ADDS %0, %0, %2;"\
-				  "ADC %1, %1, %3;"\
-				  : "+r" (c0), "+r" (c1)\
-				  : "r" (a0), "r" (a1)\
-				  );
+	asm volatile("ADDS %0, %0, %2;"\
+		 "ADC %1, %1, %3;"\
+		 : "+r" (c0), "+r" (c1)\
+		 : "r" (a0), "r" (a1)\
+		 );
+
+#define ADDACC_192(a0, a1, a2, c0, c1, c2)\
+	asm volatile("ADDS %0, %0, %3;"\
+		 "ADCS %1, %1, %4;"\
+		 "ADC %2, %2, %5;"\
+		 : "+r" (c0), "+r" (c1), "+r" (c2)\
+		 : "r" (a0), "r" (a1), "r" (a2)\
+		 );
+
+#define ADDACC_256(a0, a1, a2, a3, c0, c1, c2, c3)\
+	asm volatile("ADDS %0, %0, %4;"\
+		 "ADCS %1, %1, %5;"\
+		 "ADCS %2, %2, %6;"\
+		 "ADC %3, %3, %7;"\
+		 : "+r" (c0), "+r" (c1), "+r" (c2), "+r" (c3)\
+		 : "r" (a0), "r" (a1), "r" (a2), "r" (a3)\
+		 );
 
 //c -= a	
 #define SUBACC_128(a0, a1, c0, c1)\
-	asm ("SUBS %0, %0, %2;" \
+	asm volatile("SUBS %0, %0, %2;" \
 		 "SBC %1, %1, %3;"\
 		: "+r" (c0), "+r" (c1)\
 		: "r" (a0), "r" (a1)\
 		);
 
+#define SUBACC_192(a0, a1, a2, c0, c1, c2)\
+	asm volatile("SUBS %0, %0, %3;" \
+		 "SBCS %1, %1, %4;"\
+		 "SBC %2, %2, %5;"\
+		: "+r" (c0), "+r" (c1), "+r" (c2)\
+		: "r" (a0), "r" (a1), "r" (a2)\
+		);	
+
+#define SUBACC_256(a0, a1, a2, a3, c0, c1, c2, c3)\
+	asm volatile("SUBS %0, %0, %4;" \
+		 "SBCS %1, %1, %5;"\
+		 "SBCS %2, %2, %6;"\
+		 "SBC %3, %3, %7;"\
+		: "+r" (c0), "+r" (c1), "+r" (c2), "+r" (c3)\
+		: "r" (a0), "r" (a1), "r" (a2), "r" (a3)\
+		);		
+
 ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {
 	ec_split_scalar result;
-	uint64_t tmp0, tmp1, tmp2, tmp3, sign;
+	uint64_t tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, sign;
 	uint64_t zero = 0;
 	
-	// Step 1: b1 = k / 2^127 (where / is integer division) (Original comments say it is -k / 2^127, mystery why that is)
-	uint64x2_t b1;
-	b1[0] = (k.val[1][0] << 1) | (k.val[0][1] >> 63);
-	b1[1] = (k.val[1][1] << 1) | (k.val[1][0] >> 63);
+	// Step 1: {tmp1, tmp2, tmp3, tmp4} = b1 = k / 2^127 (where / is integer division)
+	tmp0 = (k.val[1][0] << 1) | (k.val[0][1] >> 63);
+	tmp1 = (k.val[1][1] << 1) | (k.val[1][0] >> 63);
+	tmp0 += ((k.val[0][1] >> 62) & 0x1); // round
+	tmp2 = 0;
+	tmp3 = 0;
+	//printf("Step 1: %lu, %lu, %lu, %lu\n", tmp0, tmp1, tmp2, tmp3);
 	
 	//Step 2: b2 = k*trace / 2^254
 	// Mult trace by each word in k.
-	//All of this can probably be optimized because we can't reach the top word without ext atm.
-	//Also there's no reliable 64 bit add instructions with carry :/
 	uint64x2_t tk0 = mult_u64((uint64_t) TRACE, k.val[0][0]);
 	uint64x2_t tk1 = mult_u64((uint64_t) TRACE, k.val[0][1]);
 	uint64x2_t tk2 = mult_u64((uint64_t) TRACE, k.val[1][0]);
@@ -294,78 +328,99 @@ ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {
 	
 	//Add previous [1] with next [0]
 	//We are only interested in the last two words of the result, rest will be consumed by division by 2^254.
-	asm ("ADDS %[tmp0], %[tk01], %[tk10];"
-		 "ADCS %[tmp0], %[tk11], %[tk20];"
-		 "ADCS %[tmp0], %[tk21], %[tk30];"
-		 "ADC %[tmp1], %[tk31], %[zero];"
-		: [tmp0] "+r" (tmp0), [tmp1] "+r" (tmp1)
+	asm volatile ("ADDS %[tmp4], %[tk01], %[tk10];"
+		 "ADCS %[tmp4], %[tk11], %[tk20];"
+		 "ADCS %[tmp4], %[tk21], %[tk30];"
+		 "ADC %[tmp5], %[tk31], %[zero];"
+		: [tmp4] "+r" (tmp4), [tmp5] "+r" (tmp5)
 		: [tk01] "r" (tk0[1]), [tk10] "r" (tk1[0]), [tk11] "r" (tk1[1]), [tk20] "r" (tk2[0]), [tk21] "r" (tk2[1]), [tk30] "r" (tk3[0]), [tk31] "r" (tk3[1]), [zero] "r" (zero)
 		);
 	
 	//Divide k*trace by 2^254
-	uint64_t b2 = (tmp0 >> 62) | (tmp1 << 2);
-	b2 |= 1; //Mystery or!
+	uint64_t b2 = (tmp4 >> 62) | (tmp5 << 2);
+	b2 += ((tmp4 >> 61) & 0x1); //Round
+	//printf("Step 2: %lu\n", b2);
 	
 	//Step 3: b1*t
-	uint64x2_t b1_times_t = mult_u64((uint64_t) TRACE, b1[0]);
-	uint64x2_t b11_times_t = mult_u64((uint64_t) TRACE, b1[1]);
-	b1_times_t[1] += b11_times_t[0]; //He ignores last word of result???
+	uint64x2_t b10_times_t = mult_u64((uint64_t) TRACE, tmp0);
+	uint64x2_t b11_times_t = mult_u64((uint64_t) TRACE, tmp1);
+	uint64_t b1_times_t0, b1_times_t1, b1_times_t2;
+	b1_times_t0 = b10_times_t[0];
+	b1_times_t1 = b10_times_t[1];
+	b1_times_t2 = b11_times_t[1];
+	ADDACC_128(b11_times_t[0], zero, b1_times_t1, b1_times_t2);
+	//printf("Step 3: %lu, %lu, %lu\n", b1_times_t0, b1_times_t1, b1_times_t2);
 	
 	//Step 4: b2*t
 	uint64x2_t b2_times_t = mult_u64((uint64_t) TRACE, b2);
+	//printf("Step 4: %lu, %lu\n", b2_times_t[0], b2_times_t[1]);
 	
 	//k1 computation
 	
-	//Step 5: {tmp0, tmp1} = b1*q (q = 2^127)
-	tmp0 = 0;
-	tmp1 = b1[0] << 63;
+	//Step 5: {tmp4, tmp5, tmp6, tmp7} = b1*q (q = 2^127)
+	tmp4 = 0;
+	tmp5 = tmp0 << 63;
+	tmp6 = (tmp0 >> 1) | (tmp1 << 63);
+	tmp7 = tmp1 >> 1;
+	//printf("Step 5: %lu, %lu, %lu, %lu\n", tmp4, tmp5, tmp6, tmp7);
 	
-	//Step 6: {tmp0, tmp1} = b1*q + b2*t
-	ADDACC_128(b2_times_t[0], b2_times_t[1], tmp0, tmp1);
+	//Step 6: {tmp0, tmp1, tmp2, tmp3} = b1 + k
+	ADDACC_256(k.val[0][0], k.val[0][1], k.val[1][0], k.val[1][1], tmp0, tmp1, tmp2, tmp3);
+	//printf("%lu\n", k.val[0][0]);
+	//printf("Step 6: %lu, %lu, %lu, %lu\n", tmp0, tmp1, tmp2, tmp3);
+	
+	//Step 7: {tmp4, tmp5, tmp6, tmp7} = b1*q + b2*t
+	ADDACC_256(b2_times_t[0], b2_times_t[1], zero, zero, tmp4, tmp5, tmp6, tmp7);
+	//printf("Step 7: %lu, %lu, %lu, %lu\n", tmp4, tmp5, tmp6, tmp7);
+	
+	//Step 8: Determine sign of k1 (They don't check top tho?)
+	sign = (tmp2 < tmp6) | ((tmp2 == tmp6) & (tmp1 < tmp5));
+	//printf("Step 8: %lu\n", sign);
 		
-	//Step 7: {tmp0, tmp1} = b1*q + b2*t - b1
-	//Hope operands are in the correct order
-	SUBACC_128(b1[0], b1[1], tmp0, tmp1);
+	//Step 9: {tmp0, tmp1, tmp2, tmp3} = (b1 + k) - (b1*q + b2*t)
+	SUBACC_256(tmp4, tmp5, tmp6, tmp7, tmp0, tmp1, tmp2, tmp3);
+	//printf("Step 9: %lu, %lu, %lu, %lu\n", tmp0, tmp1, tmp2, tmp3);
 	
-	//Step 8: Determine sign of k-tmp (0 for positive), just by checking second word?? Maybe if res1=k.val[0][1] you can show that it will not be negative.
-	sign = tmp1 < k.val[0][1];
-	
-	//Step 9: {tmp0, tmp1} = (b1*q + b2*t - b1) - k
-	//Opposite order of the paper, why tho?? And we just subtract with the first two words of k like it is nothing.
-	SUBACC_128(k.val[0][0], k.val[0][1], tmp0, tmp1);
-	
-	//Step 10: Now take two's complement if needed and then flip sign, no matter order of ops may need to do two's complement transform.
+	//Step 10: Now take two's complement if needed
 	tmp0 ^= (zero - sign);
 	tmp1 ^= (zero - sign);
 	ADDACC_128(sign, zero, tmp0, tmp1);
 	result.k1[0] = tmp0;
 	result.k1[1] = tmp1;
-	result.k1_sign = sign ^ 0x1;
+	result.k1_sign = sign;
+	//printf("Step 10: %lu, %lu, sign: %lu\n", tmp0, tmp1, sign);
 	
 	//k2 computation
 	
-	//Step 11: {tmp2, tmp3} = b1*t + b2
-	tmp2 = b1_times_t[0];
-	tmp3 = b1_times_t[1];
-	ADDACC_128(b2, zero, tmp2, tmp3);
+	//Step 11: {tmp0, tmp1, tmp2} = b1*t + b2
+	tmp0 = b1_times_t0;
+	tmp1 = b1_times_t1;
+	tmp2 = b1_times_t2;
+	ADDACC_192(b2, zero, zero, tmp0, tmp1, tmp2);
+	//printf("Step 11: %lu, %lu, %lu\n", tmp0, tmp1, tmp2);
 	
-	//Step 12: {tmp0, tmp1} = b2*q (q = 2^127)
-	tmp0 = 0;
-	tmp1 = b2 << 63;
+	//Step 12: {tmp3, tmp4, tmp5} = b2*q (q = 2^127)
+	tmp3 = 0;
+	tmp4 = b2 << 63;
+	tmp5 = b2 >> 1;
+	//printf("Step 12: %lu, %lu, %lu\n", tmp3, tmp4, tmp5);
 	
-	//Step 13: k2 sign (0 for positive)
-	sign = tmp1 < tmp3;
+	//Step 13: k2 sign (0 for positive) (Here they properly check top, not bottom though)
+	sign = (tmp2 < tmp5) | ((tmp2 == tmp5) & (tmp1 < tmp4));
+	//printf("Step 13: %lu\n", sign);
 	
-	//Step 14: {tmp0, tmp1} = b2*q - (b1*t + b2)
-	SUBACC_128(tmp2, tmp3, tmp0, tmp1);
+	//Step 14: {tmp0, tmp1, tmp2} = b2*q - (b1*t + b2)
+	SUBACC_192(tmp3, tmp4, tmp5, tmp0, tmp1, tmp2);
+	//printf("Step 14: %lu, %lu, %lu\n", tmp0, tmp1, tmp2);
 	
-	//Step 15: Now take two's complement if needed and then flip sign again.
+	//Step 15: Now take two's complement if needed.
 	tmp0 ^= (zero - sign);
 	tmp1 ^= (zero - sign);
 	ADDACC_128(sign, zero, tmp0, tmp1);
 	result.k2[0] = tmp0;
 	result.k2[1] = tmp1;
-	result.k2_sign = sign ^ 0x1;
+	result.k2_sign = sign;
+	//printf("Step 15: %lu, %lu sign: %lu\n", tmp0, tmp1, sign);
 	
 	return result;
 }

@@ -314,18 +314,32 @@ void ec_scalarmull_single_endo_test_example(test_ctr *ctr) {
 	
 	ef_elem EX = ef_create_elem(bf_create_elem(6574758758697437213U, 9029938885770167062U), bf_create_elem(2238988517843169761U, 2100850367268144132U));
 	ef_elem EL = ef_create_elem(bf_create_elem(6503207926092968936U, 3219845272070329794U), bf_create_elem(10930336994397273494U, 8947327516344479714U));
-	ef_elem EZ = ef_create_elem(bf_create_elem(1, 0), bf_create_elem(0, 0));
-	ec_point_lproj E_lproj = ec_create_point_lproj(EX, EL, EZ); //E = 12345 * GEN
+	ec_point_laffine E = ec_create_point_laffine(EX, EL); //E = 12345 * GEN
 	
 	//Act
-	ec_point_laffine R_laffine = ec_scalarmull_single_endo(P_laffine, k);
-	ec_point_lproj R_lproj = ec_laffine_to_lproj(R_laffine);
+	ec_point_laffine R = ec_scalarmull_single_endo(P_laffine, k);
 	
 	//Assert
-	//printf("R.x: %lu, %lu, %lu, %lu\n", R_laffine.x.val[0][0], R_laffine.x.val[0][1], R_laffine.x.val[1][0], R_laffine.x.val[1][1]);
-	//printf("R.l: %lu, %lu, %lu, %lu\n", R_laffine.l.val[0][0], R_laffine.l.val[0][1], R_laffine.l.val[1][0], R_laffine.l.val[1][1]);
-	uint64_t correct = ec_equal_point_lproj(R_lproj, E_lproj);
+	uint64_t correct = ec_equal_point_laffine(R, E);
 	assert_true(correct, ctr, "ec_scalarmull_single_endo_test_example FAILED");
+}
+
+void ec_scalarmull_single_endo_test_crosscheck_rnd(test_ctr *ctr) {
+	//Arrange
+	uint64x2x2_t k = ec_rand_scalar();
+	ec_point_laffine P = ec_rand_point_laffine();
+	
+	//Act
+	ec_point_laffine kP = ec_scalarmull_single_endo(P, k);
+	ec_point_laffine crosscheck = ec_lproj_to_laffine(ec_scalarmull_single(P, k));
+		
+	//Assert
+	uint64_t equal = ec_equal_point_laffine(kP, crosscheck);
+	if(!equal) {
+		printf("k: %lu, %lu, %lu, %lu\n", k.val[0][0], k.val[0][1], k.val[1][0], k.val[1][1]);
+		ec_print_hex_laffine(P);
+	}
+	assert_true(equal, ctr, "ec_scalarmull_single_endo_test_crosscheck_rnd FAILED");
 }
 
 void ec_scalarmull_tests(test_ctr *ctr) {
@@ -346,4 +360,5 @@ void ec_scalarmull_tests(test_ctr *ctr) {
 	// ec_scalarmull_double_test_point_and_neg_interfere(ctr);
 	
 	ec_scalarmull_single_endo_test_example(ctr);
+	ec_scalarmull_single_endo_test_crosscheck_rnd(ctr);
 }

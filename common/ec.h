@@ -47,6 +47,8 @@ uint64_t ec_equal_point_lproj(ec_point_lproj P, ec_point_lproj Q);
 
 uint64_t ec_equal_point_mixed(ec_point_laffine P, ec_point_lproj Q);
 
+uint64_t ec_equal_point_laffine(ec_point_laffine P, ec_point_laffine Q);
+
 uint64x2x2_t ec_rand_scalar();
 
 ec_point_lproj ec_rand_point_lproj();

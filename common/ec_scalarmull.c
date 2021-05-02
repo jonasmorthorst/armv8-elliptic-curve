@@ -115,3 +115,52 @@ ec_point_laffine ec_scalarmull_single_endo(ec_point_laffine P, uint64x2x2_t k) {
 	}
 	return ec_lproj_to_laffine(R);
 }
+/*
+ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint64x2x2_t k) {
+	//w=5 really only takes 4 bits at a time though
+	ec_point_lproj new;
+	uint64x1_t old_ptr, new_ptr, tmp,  ;
+	
+	ec_split_scalar decomp = ec_scalar_decomp(k);
+	
+	digitval[0]=1;
+	ec_point_laffine P_neg = ec_neg_laffine(P);
+	CMOV(tmp, decomp.k1_sign, digitval, P, P_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+	
+	uint64_t neg_Q_flag = decomp.k1_sign ^ decomp.k2_sign; //If sign is different they must be negated
+	
+	ec_point_laffine lookup[15]; //2^(w-1)-1 = 2^4 - 1 = 15
+	ec_point_lproj P2 = ec_double(ec_laffine_to_lproj(P));
+	ec_point_lproj P4 = ec_double(P2);
+	ec_point_lproj P8 = ec_double(P8);
+	lookup[0] = P;
+	lookup[1] = ec_lproj_to_laffine(P2);
+	lookup[2] = ec_lproj_to_laffine(ec_add_mixed(P, P2));
+	lookup[3] = ec_lproj_to_laffine(P4);
+	lookup[4] = ec_lproj_to_laffine(ec_add_mixed(P, P4));
+	lookup[5] = ec_lproj_to_laffine(ec_add_mixed(lookup[1], P4));
+	lookup[6] = ec_lproj_to_laffine(ec_add_mixed(lookup[2], P4));
+	lookup[7] = ec_lproj_to_laffine(P8);
+	lookup[8] = ec_lproj_to_laffine(ec_add_mixed(P, P8));
+	lookup[9] = ec_lproj_to_laffine(ec_add_mixed(lookup[1], P8));
+	lookup[10] = ec_lproj_to_laffine(ec_add_mixed(lookup[2], P8));
+	lookup[11] = ec_lproj_to_laffine(ec_add_mixed(lookup[3], P8));
+	lookup[12] = ec_lproj_to_laffine(ec_add_mixed(lookup[4], P8));
+	lookup[13] = ec_lproj_to_laffine(ec_add_mixed(lookup[5], P8));
+	lookup[14] = ec_lproj_to_laffine(ec_add_mixed(lookup[6], P8));
+	
+	ec_point_lproj R = (ec_point_lproj) INFTY;
+	
+	for(int i = 1; i >= 0; i--) {
+		uint64_t windowmask = 0xF000000000000000;
+		for(int j = 60; j >= 0; j -= 4) {
+			R = ec_double(ec_double(ec_double(R)));
+			uint64_t k1 = (decomp.k1[i] & windowmask) >> j;
+			uint64_t k2 = (decomp.k2[i] & windowmask) >> j;
+			
+			
+			windowmask >>= 4;
+		}
+	}
+	return ec_lproj_to_laffine(R);
+}*/
