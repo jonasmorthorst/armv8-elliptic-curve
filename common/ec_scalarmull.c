@@ -165,33 +165,113 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	return ec_lproj_to_laffine(R);
 }*/
 
-ec_naf ec_to_naf(poly64x2x2_t k) {
-  ec_naf naf;
-  naf.val[0] = 12523513251212;
-  naf.val[1] = 12235512;
-  naf.val[2] = 125125312;
-  naf.val[3] = 1252312;
-  naf.val[4] = 12523512;
-  naf.val[6] = 12513252352;
-  naf.val[7] = 25;
+ec_naf ec_to_naf(poly64x2_t k) {
+  char m = 8;
 
+  ec_naf naf = { 0 };
+
+  // naf.val[0] = 209; //11010001
+  // naf.val[1] = 91;  //01011011
+  // naf.val[2] = 11;  //00001011
+
+  int i = 0;
+
+
+  while (k[1] > 0 || k[0] > m) {
+    int naf_index = i/2; // Rounds up
+    int64_t k_i_temp = k[0]%(2*m)-m; // (k mod 16 only needs lower word)
+    printf("k_i_temp: %ld\n", k_i_temp);
+
+    printf("k[0]: %lu\n", k[0]);
+    printf("k[1]: %lu\n", k[1]);
+
+    // Extract 00001111
+    char digit = k_i_temp & 15;
+
+    // If i is odd - store in higher bits
+    if (i & 1) {
+      digit = digit << 4;
+      naf.val[naf_index] = naf.val[naf_index] | digit;
+    } else {
+      naf.val[naf_index] = digit;
+    }
+
+    printf("naf index: %d\n", naf_index);
+    printf("naf: %hhu\n", naf.val[naf_index]);
+
+
+    // Subtraction
+    uint64_t sub_res_0, sub_res_1;
+    int64_t zero = 0;
+    asm volatile ("SUBS %[sub_res_0], %[k0], %[ki0];"
+        "SBC %[sub_res_1], %[k1], %[ki1];"
+      : [sub_res_0] "+r" (sub_res_0), [sub_res_1] "+r" (sub_res_1)
+      : [k0] "r" (k[0]), [k1] "r" (k[1]), [ki0] "r" (k_i_temp), [ki1] "r" (zero)
+      );
+
+    printf("sub_res_0: %lu\n", sub_res_0);
+    printf("sub_res_1: %lu\n", sub_res_1);
+
+    // Division by 8 => >> 3
+    // We need to shift with carry
+
+    // First shift lower bits
+    sub_res_0 = sub_res_0 >> 3;
+
+    // Then higher bits with 3 bits carry
+    uint64_t carries = sub_res_1 & 7;
+
+    // Can we use both output input MOV R0,R0,ROR 3
+    uint64_t shift_res;
+    asm ("ROR %[res], %[input], #3;"
+      : [res] "=r" (shift_res)
+      : [input] "r" (carries)
+      );
+
+    sub_res_0 = sub_res_0 | shift_res;
+
+    // First shift higher bits
+    sub_res_1 = sub_res_1 >> 3;
+    k[0] = sub_res_0;
+    k[1] = sub_res_1;
+
+    i++;
+  }
+	
   return naf;
 }
 
 void ec_print_naf(ec_naf k) {
-  for(int i = 7; i >= 0; i--) {
-    poly64_t c = pow2to63;
-    for(int j = 0; j < 32; j++) {
 
-      int secondSet = k.val[i] & c;
-      c = c/2;
-      int firstSet = k.val[i] & c;
-      c = c/2;
+  // 1011 0001
 
-      if (firstSet && secondSet) printf(" 2 ");
-      if (firstSet && !secondSet) printf(" 1 ");
-      if (!firstSet && secondSet) printf(" -1 ");
-      if (!firstSet && !secondSet) printf(" 0 ");
+  //d2 0000 1011
+  for(int i = 15; i >= 0; i--) {
+    //00001111
+    unsigned char c1 = 15;
+    //11110000
+    unsigned char c2 = 240;
+    //00001000
+    unsigned char c1_sign_mask = 8;
+    //00000111
+    unsigned char c1_val_mask = 7;
+
+    char d2 = ((char)k.val[i] & c2) >> 4;
+    char d2_signed = d2 & c1_sign_mask;
+
+    if (d2_signed) {
+      printf(" %hhd ", (char)(d2 | c2));
+    } else {
+      printf(" %hhd ", d2);
+    }
+
+    char d1 = k.val[i] & c1;
+    char d1_signed = d1 & c1_sign_mask;
+
+    if (d1_signed) {
+      printf(" %hhd ", (char)(d1 | c2));
+    } else {
+      printf(" %hhd ", d1);
     }
   }
 
