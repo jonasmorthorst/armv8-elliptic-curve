@@ -188,34 +188,14 @@ ec_naf ec_to_naf(poly64x2_t k) {
     char digit = k_i_temp & 15;
 
     // If i is odd - store in higher bits
-    if (i & 1) {
-      digit = digit << 4;
-      naf.val[naf_index] = naf.val[naf_index] | digit;
-    } else {
-      naf.val[naf_index] = digit;
-    }
+    digit = digit << 4*(i&1);
+    naf.val[naf_index] = naf.val[naf_index] | digit;
 
-		// Subtraction / addition
-		//uint64_t tmp1;
+		// Subtraction
 		uint64_t zero = 0;
-
-		printf("Before sub\n");
-		printf("k[0]: %lu\n", k[0]);
-		printf("k[1]: %lu\n", k[1]);
-		printf("k_i_temp: %ld\n", k_i_temp);
-		printf("0: %lu\n\n", zero);
-		// if (k_i_temp < 0) {
-		// 	tmp1 = -1*k_i_temp;
-		// 	ADDACC_128(tmp1, zero, k[0], k[1]);
-		// } else {
-		SUBACC_128(k_i_temp, zero, k[0], k[1]);
-		// }
-
-		printf("After sub\n");
-		printf("k[0]: %lu\n", k[0]);
-		printf("k[1]: %lu\n", k[1]);
-		printf("k_i_temp: %ld\n", k_i_temp);
-		printf("0: %lu\n\n\n", zero);
+		k[0] = k[0]-k_i_temp;
+		uint64_t carry = (((k[0] & k_i_temp) & 1) + (k_i_temp >> 1) + (k[0] >> 1)) >> 63;
+		k[1] = k[1] - (zero + carry);
 
     // Division by 8 => >> 3
     // We need to shift with carry
