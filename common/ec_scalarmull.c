@@ -1,21 +1,8 @@
 #include "ec_scalarmull.h"
 #include <stdio.h>
+#include "utils.h"
 
 #define pow2to63 9223372036854775808U
-
-#define SUBACC_128(a0, a1, c0, c1)\
-	asm volatile("SUBS %0, %0, %2;" \
-		 "SBC %1, %1, %3;"\
-		: "+r" (c0), "+r" (c1)\
-		: "r" (a0), "r" (a1)\
-		);
-
-#define ADDACC_128(a0, a1, c0, c1)\
-	asm volatile("ADDS %0, %0, %2;"\
-		 "ADC %1, %1, %3;"\
-		 : "+r" (c0), "+r" (c1)\
-		 : "r" (a0), "r" (a1)\
-		 );
 
 // Algorithm 3.27
 // k is a 253 bit number - therefore we use poly to represent it
@@ -209,14 +196,26 @@ ec_naf ec_to_naf(poly64x2_t k) {
     }
 
 		// Subtraction / addition
-		uint64_t tmp1;
+		//uint64_t tmp1;
 		uint64_t zero = 0;
-		if (k_i_temp < 0) {
-			tmp1 = -1*k_i_temp;
-			ADDACC_128(tmp1, zero, k[0], k[1]);
-		} else {
-			SUBACC_128(k_i_temp, zero, k[0], k[1]);
-		}
+
+		printf("Before sub\n");
+		printf("k[0]: %lu\n", k[0]);
+		printf("k[1]: %lu\n", k[1]);
+		printf("k_i_temp: %ld\n", k_i_temp);
+		printf("0: %lu\n\n", zero);
+		// if (k_i_temp < 0) {
+		// 	tmp1 = -1*k_i_temp;
+		// 	ADDACC_128(tmp1, zero, k[0], k[1]);
+		// } else {
+		SUBACC_128(k_i_temp, zero, k[0], k[1]);
+		// }
+
+		printf("After sub\n");
+		printf("k[0]: %lu\n", k[0]);
+		printf("k[1]: %lu\n", k[1]);
+		printf("k_i_temp: %ld\n", k_i_temp);
+		printf("0: %lu\n\n\n", zero);
 
     // Division by 8 => >> 3
     // We need to shift with carry

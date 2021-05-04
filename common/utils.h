@@ -8,6 +8,56 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+//c += a
+#define ADDACC_128(a0, a1, c0, c1)\
+	asm volatile("ADDS %0, %0, %2;"\
+		 "ADC %1, %1, %3;"\
+		 : "+r" (c0), "+r" (c1)\
+		 : "r" (a0), "r" (a1)\
+		 );
+
+#define ADDACC_192(a0, a1, a2, c0, c1, c2)\
+	asm volatile("ADDS %0, %0, %3;"\
+		 "ADCS %1, %1, %4;"\
+		 "ADC %2, %2, %5;"\
+		 : "+r" (c0), "+r" (c1), "+r" (c2)\
+		 : "r" (a0), "r" (a1), "r" (a2)\
+		 );
+
+#define ADDACC_256(a0, a1, a2, a3, c0, c1, c2, c3)\
+	asm volatile("ADDS %0, %0, %4;"\
+		 "ADCS %1, %1, %5;"\
+		 "ADCS %2, %2, %6;"\
+		 "ADC %3, %3, %7;"\
+		 : "+r" (c0), "+r" (c1), "+r" (c2), "+r" (c3)\
+		 : "r" (a0), "r" (a1), "r" (a2), "r" (a3)\
+		 );
+
+//c -= a
+#define SUBACC_128(a0, a1, c0, c1)\
+	asm volatile("SUBS %0, %0, %2;" \
+		 "SBC %1, %1, %3;"\
+		: "+r" (c0), "+r" (c1)\
+		: "r" (a0), "r" (a1)\
+		);
+
+#define SUBACC_192(a0, a1, a2, c0, c1, c2)\
+	asm volatile("SUBS %0, %0, %3;" \
+		 "SBCS %1, %1, %4;"\
+		 "SBC %2, %2, %5;"\
+		: "+r" (c0), "+r" (c1), "+r" (c2)\
+		: "r" (a0), "r" (a1), "r" (a2)\
+		);
+
+#define SUBACC_256(a0, a1, a2, a3, c0, c1, c2, c3)\
+	asm volatile("SUBS %0, %0, %4;" \
+		 "SBCS %1, %1, %5;"\
+		 "SBCS %2, %2, %6;"\
+		 "SBC %3, %3, %7;"\
+		: "+r" (c0), "+r" (c1), "+r" (c2), "+r" (c3)\
+		: "r" (a0), "r" (a1), "r" (a2), "r" (a3)\
+		);
+
 void utils_init();
 
 double average(uint64_t nums[], uint64_t len);
