@@ -179,18 +179,20 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	return ec_lproj_to_laffine(R);
 }*/
 
+void precompute(ec_point_laffine P, ec_point_lproj* table) {
+	int end = 8;
+
+	for (int i = 1; i < end; i++) {
+		uint64x2x2_t k = (uint64x2x2_t) {{{i, 0}, {0, 0}}};
+		table[i-1] = ec_scalarmull_single(P, k);
+	}
+}
+
 ec_naf ec_to_naf(poly64x2_t k) {
   char m = 8;
 
   ec_naf naf = { 0 };
-
-  // naf.val[0] = 209; //11010001
-  // naf.val[1] = 91;  //01011011
-  // naf.val[2] = 11;  //00001011
-
   int i = 0;
-
-
   while (k[1] > 0 || k[0] > m) {
     int naf_index = i/2; // Rounds up
     int64_t k_i_temp = k[0]%(2*m)-m; // (k mod 16 only needs lower word)

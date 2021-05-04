@@ -342,6 +342,24 @@ void ec_scalarmull_single_endo_test_crosscheck_rnd(test_ctr *ctr) {
 	assert_true(equal, ctr, "ec_scalarmull_single_endo_test_crosscheck_rnd FAILED");
 }
 
+void ec_scalarmull_test_precomputation(test_ctr *ctr) {
+	ef_elem PX = ef_create_elem(bf_create_elem(0XD2C27333EFC0AE61, 0X4306673487679D76), bf_create_elem(0X909BEC5477E860BB, 0X480D39C8A1B98266));
+	ef_elem PL = ef_create_elem(bf_create_elem(0XF84FB0B45D95FC31, 0X24C3FF4B68C78BE3), bf_create_elem(0X963FE2DA0544E1A4, 0X17B6B0A1380A490));
+	ef_elem PZ = ef_create_elem(bf_create_elem(0X100, 0), bf_create_elem(0X8000000000000000, 0X4000000000000001));
+	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //99921481365893197563 * GEN
+
+	ec_point_lproj table[7];
+	precompute(ec_lproj_to_laffine(P), table);
+
+	ec_equal_point_lproj(table[0], ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{1, 0}, {0, 0}}}));
+	ec_equal_point_lproj(table[1], ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{2, 0}, {0, 0}}}));
+	ec_equal_point_lproj(table[2], ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{3, 0}, {0, 0}}}));
+	ec_equal_point_lproj(table[3], ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{4, 0}, {0, 0}}}));
+	ec_equal_point_lproj(table[4], ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{5, 0}, {0, 0}}}));
+	ec_equal_point_lproj(table[5], ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{6, 0}, {0, 0}}}));
+	ec_equal_point_lproj(table[6], ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{7, 0}, {0, 0}}}));
+}
+
 void ec_scalarmull_tests(test_ctr *ctr) {
 	ec_scalarmull_single_test_example(ctr);
 	ec_scalarmull_single_test_linearity(ctr);
@@ -358,7 +376,9 @@ void ec_scalarmull_tests(test_ctr *ctr) {
 	// ec_scalarmull_double_test_crosscheck_scalarmull_single(ctr);
 	// ec_scalarmull_double_test_point_and_neg_cancel(ctr);
 	// ec_scalarmull_double_test_point_and_neg_interfere(ctr);
-	
+
 	ec_scalarmull_single_endo_test_example(ctr);
 	ec_scalarmull_single_endo_test_crosscheck_rnd(ctr);
+
+	ec_scalarmull_test_precomputation(ctr);
 }
