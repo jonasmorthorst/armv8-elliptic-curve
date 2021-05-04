@@ -154,7 +154,7 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 
 	ec_point_lproj Q = ec_add_mixed(P1, ec_laffine_to_lproj(P2));
 
-	for(int i=l-1; i>=0; i--) {
+	for(int i=l-2; i>=0; i--) {
 		Q = ec_double(ec_double(ec_double(Q)));
 
 		k1_digit = naf_k1.val[i];
