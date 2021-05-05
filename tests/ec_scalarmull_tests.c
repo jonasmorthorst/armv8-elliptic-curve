@@ -351,21 +351,23 @@ void ec_scalarmull_test_precomputation(test_ctr *ctr) {
 	ec_point_laffine table[16];
 	precompute(ec_lproj_to_laffine(P), table);
 
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[1]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{1, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[2]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{2, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[3]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{3, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[4]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{4, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[5]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{5, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[6]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{6, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[7]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{7, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[8]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{8, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[9]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{9, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[10]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{10, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[11]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{11, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[12]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{12, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[13]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{13, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[14]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{14, 0}, {0, 0}}}));
-	ec_equal_point_lproj(ec_laffine_to_lproj(table[15]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{15, 0}, {0, 0}}}));
+	uint64_t equal1 = ec_equal_point_lproj(ec_laffine_to_lproj(table[1]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{1, 0}, {0, 0}}}));
+	uint64_t equal2 = ec_equal_point_lproj(ec_laffine_to_lproj(table[2]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{2, 0}, {0, 0}}}));
+	uint64_t equal3 = ec_equal_point_lproj(ec_laffine_to_lproj(table[3]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{3, 0}, {0, 0}}}));
+	uint64_t equal4 = ec_equal_point_lproj(ec_laffine_to_lproj(table[4]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{4, 0}, {0, 0}}}));
+	uint64_t equal5 = ec_equal_point_lproj(ec_laffine_to_lproj(table[5]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{5, 0}, {0, 0}}}));
+	uint64_t equal6 = ec_equal_point_lproj(ec_laffine_to_lproj(table[6]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{6, 0}, {0, 0}}}));
+	uint64_t equal7 = ec_equal_point_lproj(ec_laffine_to_lproj(table[7]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{7, 0}, {0, 0}}}));
+	uint64_t equal8 = ec_equal_point_lproj(ec_laffine_to_lproj(table[8]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{8, 0}, {0, 0}}}));
+	uint64_t equal9 = ec_equal_point_lproj(ec_laffine_to_lproj(table[9]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{9, 0}, {0, 0}}}));
+	uint64_t equal10 = ec_equal_point_lproj(ec_laffine_to_lproj(table[10]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{10, 0}, {0, 0}}}));
+	uint64_t equal11 = ec_equal_point_lproj(ec_laffine_to_lproj(table[11]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{11, 0}, {0, 0}}}));
+	uint64_t equal12 = ec_equal_point_lproj(ec_laffine_to_lproj(table[12]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{12, 0}, {0, 0}}}));
+	uint64_t equal13 = ec_equal_point_lproj(ec_laffine_to_lproj(table[13]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{13, 0}, {0, 0}}}));
+	uint64_t equal14 = ec_equal_point_lproj(ec_laffine_to_lproj(table[14]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{14, 0}, {0, 0}}}));
+	uint64_t equal15 = ec_equal_point_lproj(ec_laffine_to_lproj(table[15]), ec_scalarmull_single(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{15, 0}, {0, 0}}}));
+
+	assert_true(equal1 && equal2 && equal3 && equal4 && equal5 && equal6 && equal7 && equal8 && equal9 && equal10 && equal11 && equal12 && equal13 && equal14 && equal15 , ctr, "ec_scalarmull_test_precomputation FAILED");
 }
 
 void ec_scalarmull_tests(test_ctr *ctr) {

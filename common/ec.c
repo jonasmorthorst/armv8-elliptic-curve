@@ -254,7 +254,7 @@ ec_point_laffine ec_endo_laffine(ec_point_laffine P) {
 	P.l.val[0] = bf_add(P.l.val[0], P.l.val[1]);
 	P.l.val[1] = bf_add(P.l.val[1], (poly64x2_t) {1,0});
 	return P;
-}		
+}
 
 ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {
 	ec_split_scalar result;
