@@ -132,10 +132,8 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	// printf("k1: %lu\n", decomp.k1[0]);
 	// printf("%lu\n", decomp.k2[0]);
 	// printf("%lu\n", decomp.k2[1]);
-	//
 	// printf("k1 sign %lu\n", decomp.k1_sign);
 	// printf("k2 sign %lu\n", decomp.k2_sign);
-
 
 	uint64_t c1 = 1-(decomp.k1[0]%2);
 	decomp.k1[0] = decomp.k1[0]+c1;
@@ -148,7 +146,6 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	//
 	// printf("c2: %lu\n", c2);
 	// printf("k2: %lu\n", decomp.k2[0]);
-
 
 	// Compute recodings
 	ec_naf naf_k1 = ec_to_naf(decomp.k1);
@@ -188,7 +185,6 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 
 		// printf("Q On curve: %lu\n", ec_is_on_curve(Q));
 
-
 		// printf("i: %d\n", i);
 
 		Q = ec_double(ec_double(ec_double(Q)));
@@ -207,7 +203,6 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 		// printf("P1 On curve: %lu\n", ec_is_on_curve(ec_laffine_to_lproj(P1)));
 		// printf("P2 On curve: %lu\n", ec_is_on_curve(ec_laffine_to_lproj(P2)));
 
-
 		// printf("%s\n", "P1 NEG");
 
 		P1_neg = ec_neg_laffine(P1);
@@ -223,59 +218,40 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 		// printf("P1 negated: %lu\n", ec_equal_point_laffine(P1, P1_neg));
 		// printf("P2 negated: %lu\n", ec_equal_point_laffine(P2, P2_neg));
 
-
-
 		Q = ec_double_then_addtwo(P1, P2, Q);
-
-		printf("Q after iteration i=%d\n", i);
-		ec_print_hex(Q);
+		//
+		// printf("Q after iteration i=%d\n", i);
+		// ec_print_hex(Q);
 	}
 
-	uint64x2x2_t c1_full = (uint64x2x2_t) {{{c1, 0}, {0, 0}}};
-	ec_point_lproj c1P = ec_scalarmull_single(P, c1_full);
-	Q = ec_add(Q, ec_neg(c1P));
+	if (c1 > 0) {
+		uint64x2x2_t c1_full = (uint64x2x2_t) {{{c1, 0}, {0, 0}}};
+		ec_point_lproj c1P = ec_scalarmull_single(P, c1_full);
+		Q = ec_add(Q, ec_neg(c1P));
+	}
 
-	uint64x2x2_t c2_full = (uint64x2x2_t) {{{c2, 0}, {0, 0}}};
-	ec_point_lproj c2P = ec_scalarmull_single(P, c2_full);
-	Q = ec_add(Q, ec_neg(c2P));
+	if (c2 > 0) {
+		uint64x2x2_t c2_full = (uint64x2x2_t) {{{c2, 0}, {0, 0}}};
+		ec_point_lproj c2P = ec_scalarmull_single(P, c2_full);
+		Q = ec_add_mixed(ec_neg_laffine(ec_endo_laffine(ec_lproj_to_laffine(c2P))), Q);
+	}
 
-	printf("Returning Q \n");
-	ec_print_hex(Q);
+	// printf("Returning Q \n");
+	// ec_print_hex(Q);
 
 	return ec_lproj_to_laffine(Q);
 }
 
 void precompute(ec_point_laffine P, ec_point_laffine* table) {
-	int end = 16;
-	for (int i = 1; i < end; i++) {
-		uint64x2x2_t k = (uint64x2x2_t) {{{i, 0}, {0, 0}}};
-		table[i] = ec_lproj_to_laffine(ec_scalarmull_single(P, k));
-	}
-	// digitval[0]=1;
-	// ec_point_laffine P_neg = ec_neg_laffine(P);
-	// CMOV(tmp, decomp.k1_sign, digitval, P, P_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
-	//
-	// uint64_t neg_Q_flag = decomp.k1_sign ^ decomp.k2_sign; //If sign is different they must be negated
-	//
-	// ec_point_laffine lookup[15]; //2^(w-1)-1 = 2^4 - 1 = 15
-	// ec_point_lproj P2 = ec_double(ec_laffine_to_lproj(P));
-	// ec_point_lproj P4 = ec_double(P2);
-	// ec_point_lproj P8 = ec_double(P8);
-	// lookup[0] = P;
-	// lookup[1] = ec_lproj_to_laffine(P2);
-	// lookup[2] = ec_lproj_to_laffine(ec_add_mixed(P, P2));
-	// lookup[3] = ec_lproj_to_laffine(P4);
-	// lookup[4] = ec_lproj_to_laffine(ec_add_mixed(P, P4));
-	// lookup[5] = ec_lproj_to_laffine(ec_add_mixed(lookup[1], P4));
-	// lookup[6] = ec_lproj_to_laffine(ec_add_mixed(lookup[2], P4));
-	// lookup[7] = ec_lproj_to_laffine(P8);
-	// lookup[8] = ec_lproj_to_laffine(ec_add_mixed(P, P8));
-	// lookup[9] = ec_lproj_to_laffine(ec_add_mixed(lookup[1], P8));
-	// lookup[10] = ec_lproj_to_laffine(ec_add_mixed(lookup[2], P8));
-	// lookup[11] = ec_lproj_to_laffine(ec_add_mixed(lookup[3], P8));
-	// lookup[12] = ec_lproj_to_laffine(ec_add_mixed(lookup[4], P8));
-	// lookup[13] = ec_lproj_to_laffine(ec_add_mixed(lookup[5], P8));
-	// lookup[14] = ec_lproj_to_laffine(ec_add_mixed(lookup[6], P8));
+	ec_point_lproj P2 = ec_double(ec_laffine_to_lproj(P));
+	table[1] = P;
+	table[3] = ec_lproj_to_laffine(ec_add_mixed(table[1], P2));
+	table[5] = ec_lproj_to_laffine(ec_add_mixed(table[3], P2));
+	table[7] = ec_lproj_to_laffine(ec_add_mixed(table[5], P2));
+	table[9] = ec_lproj_to_laffine(ec_add_mixed(table[7], P2));
+	table[11] = ec_lproj_to_laffine(ec_add_mixed(table[9], P2));
+	table[13] = ec_lproj_to_laffine(ec_add_mixed(table[11], P2));
+	table[15] = ec_lproj_to_laffine(ec_add_mixed(table[11], P2));
 }
 
 void print_table(ec_point_laffine* table) {

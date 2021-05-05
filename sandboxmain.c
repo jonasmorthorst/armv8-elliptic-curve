@@ -8,83 +8,10 @@
 #include "common/setup.h"
 #include "common/utils.h"
 
-void experiment() {
-	uint64x2_t k1 = { 3, 0 };
-	uint64x2_t k2 = { 0, 0 };
-	k2[0] = k2[0]+1;
-
-	ec_naf naf_k1 = ec_to_naf(k1);
-	ec_naf naf_k2 = ec_to_naf(k2);
-
-	// ec_print_naf(naf_k1);
-	// ec_print_naf(naf_k2);
-
-
-	// printf("%hhd\n", naf_k1.val[64]);
-
-	ec_point_laffine P = ec_lproj_to_laffine((ec_point_lproj) GEN);
-
-	//K1 naf 1  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -13
-	//K2 naf 1  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15  -15
-
-	uint64x2x2_t k1_digit = (uint64x2x2_t) {{{1, 0}, {0, 0}}};
-	uint64x2x2_t k2_digit = (uint64x2x2_t) {{{1, 0}, {0, 0}}};
-
-	ec_point_laffine P1 = ec_lproj_to_laffine(ec_scalarmull_single(P, k1_digit));
-	ec_point_laffine P2 = ec_lproj_to_laffine(ec_scalarmull_single(P, k2_digit));
-	P2 = ec_endo_laffine(P2);
-
-	ec_point_lproj Q = ec_add_mixed(P1, ec_laffine_to_lproj(P2));
-
-
-	for (int i = 63; i > 0; i--) {
-		//Iteration i k1_digit=-15  k2_digit=-15
-		Q = ec_double(ec_double(ec_double(Q)));
-		k1_digit = (uint64x2x2_t) {{{15, 0}, {0, 0}}};
-		k2_digit = (uint64x2x2_t) {{{15, 0}, {0, 0}}};
-
-		P1 = ec_lproj_to_laffine(ec_scalarmull_single(P, k1_digit));
-		P2 = ec_lproj_to_laffine(ec_scalarmull_single(P, k2_digit));
-		P1 = ec_neg_laffine(P1);
-		P2 = ec_neg_laffine(ec_endo_laffine(P2));
-
-		Q = ec_double_then_addtwo(P1, P2, Q);
-
-		printf("Q after iteration i=%d\n", i);
-		ec_print_hex(Q);
-	}
-
-	//Iteration i=0 k1_digit=-13  k2_digit=-15
-	Q = ec_double(ec_double(ec_double(Q)));
-	k1_digit = (uint64x2x2_t) {{{13, 0}, {0, 0}}};
-	k2_digit = (uint64x2x2_t) {{{15, 0}, {0, 0}}};
-
-	P1 = ec_lproj_to_laffine(ec_scalarmull_single(P, k1_digit));
-	P2 = ec_lproj_to_laffine(ec_scalarmull_single(P, k2_digit));
-	P1 = ec_neg_laffine(P1);
-	P2 = ec_neg_laffine(ec_endo_laffine(P2));
-
-	Q = ec_double_then_addtwo(P1, P2, Q);
-
-	printf("Q after iteration i=%d\n", 0);
-	ec_print_hex(Q);
-
-	// After loop
-	uint64x2x2_t one = (uint64x2x2_t) {{{1, 0}, {0, 0}}};
-	ec_point_lproj cP = ec_scalarmull_single(P, one);
-	Q = ec_add(Q, ec_neg(cP));
-
-	printf("Returning Q \n");
-	ec_print_hex(Q);
-}
-
-
 int main() {
 	init_components();
 
-	experiment();
-
-	printf("\n -------------------- \n");
+	// printf("\n -------------------- \n");
 
 	// uint64x2_t k = (uint64x2_t) {123, 124};
 	//
@@ -104,9 +31,9 @@ int main() {
 	//
 	// ec_print_naf_arr(naf);
 
-	//uint64x2x2_t k = (uint64x2x2_t) {{{1, 1}, {1, 1}}};
+	uint64x2x2_t k = (uint64x2x2_t) {{{1, 1}, {1, 1}}};
 
-	uint64x2x2_t k = (uint64x2x2_t) {{{3, 0}, {0, 0}}};
+	// uint64x2x2_t k = (uint64x2x2_t) {{{3, 0}, {0, 0}}};
 	ec_split_scalar decomp = ec_scalar_decomp(k);
 
 
@@ -136,8 +63,6 @@ int main() {
 	// printf("\n");
 	//
 	// ec_print_naf_arr(naf);
-
-
 
 	//Arrange
 	//uint64x2x2_t k = (uint64x2x2_t) {{{2243156791409331652485, 0}, {0, 0}}};
