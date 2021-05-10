@@ -11,6 +11,19 @@
 int main() {
 	init_components();
 
+	// signed char k1_digit = -15;
+	// uint64_t k1_sign = ((unsigned char)k1_digit >> 7);
+	//
+	// uint64_t zero = 0;
+	// signed char k1_val = k1_digit;
+	// k1_val ^= (zero - k1_sign);
+	// k1_val += k1_sign;
+	//
+	// printf("k1 sign: %lu\n", k1_sign);
+	// printf("k1 digit: %hhd\n", k1_digit);
+	// printf("k1 abs value: %hhd\n", k1_val);
+
+
 	// printf("\n -------------------- \n");
 
 // 	k: 17543080488742735143, 14748808945444813383, 8374720340618217181, 1767656777874844946
@@ -18,11 +31,14 @@ int main() {
 //  l: p0: 284c3c7af24c119f||02352b17f9da5d0a p1: 1cb1c6318570bd4a||7e49abaf1ffd8b9f
 
 	// uint64x2x2_t k = (uint64x2x2_t) {{{431572255129370311, 5384670855758030008}, {4353603234575721204, 773725909533223690}}};
-	uint64x2x2_t k = (uint64x2x2_t) {{{2, 0}, {0, 0}}};
+	uint64x2x2_t k = (uint64x2x2_t) {{{1, 0}, {0, 0}}};
 
-	ec_point_lproj expected = ec_neg(ec_scalarmull_single(ec_lproj_to_laffine((ec_point_lproj)GEN), k));
+	ec_point_laffine P = ec_rand_point_laffine();
+
+
+	ec_point_lproj expected = ec_scalarmull_single(P, k);
 	//Act
-	ec_point_lproj actual = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine((ec_point_lproj)GEN), k);
+	ec_point_lproj actual = ec_scalarmull_single_endo_w5_randaccess(P, k);
 
 	//Assert
 	uint64_t equal = ec_equal_point_lproj(expected, actual);
@@ -30,6 +46,23 @@ int main() {
 
 	printf("Equal: %lu\n", equal);
 	printf("On curve: %lu\n", on_curve);
+
+
+	// uint64x2x2_t k = ec_rand_scalar();
+	// ec_point_laffine P = ec_rand_point_laffine();
+	//
+	// ec_point_lproj expected = ec_scalarmull_single(P, k);
+	// //Act
+	// ec_point_lproj actual = ec_scalarmull_single_endo_w5_randaccess(P, k);
+	//
+	// //Assert
+	// uint64_t equal = ec_equal_point_lproj(expected, actual);
+	// uint64_t on_curve = ec_is_on_curve(actual);
+
+
+
+
+
 	//
 	// ec_naf result = ec_to_naf(k);
 	// printf("%s\n", "Our naf");

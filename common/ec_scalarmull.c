@@ -132,30 +132,35 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 	ec_split_scalar decomp = ec_scalar_decomp(k);
 
 	// decomp.k1_sign = 1;
+	uint64_t zero = 0;
 
-	printf("k1_0: %lu\n", decomp.k1[0]);
-	printf("k1_1: %lu\n", decomp.k1[1]);
-	printf("k2_0 %lu\n", decomp.k2[0]);
-	printf("k2_1 %lu\n", decomp.k2[1]);
-	printf("k1 sign %lu\n", decomp.k1_sign);
-	printf("k2 sign %lu\n", decomp.k2_sign);
+	// printf("k1_0: %lu\n", decomp.k1[0]);
+	// printf("k1_1: %lu\n", decomp.k1[1]);
+	// printf("k2_0 %lu\n", decomp.k2[0]);
+	// printf("k2_1 %lu\n", decomp.k2[1]);
+	// printf("k1 sign %lu\n", decomp.k1_sign);
+	// printf("k2 sign %lu\n", decomp.k2_sign);
 
-
-	uint64_t c1 = 1-(decomp.k1[0]%2);
+	uint64_t c1 = 1-(decomp.k1[0]&1);
 	decomp.k1[0] = decomp.k1[0]+c1;
 
-	uint64_t c2 = 1-(decomp.k2[0]%2);
+	uint64_t c2 = 1-(decomp.k2[0]&1);
 	decomp.k2[0] = decomp.k2[0]+c2;
 
-	printf("c1: %lu\n", c1);
-	printf("c2: %lu\n", c2);
+	// printf("c1: %lu\n", c1);
+	// printf("c2: %lu\n", c2);
+	//
+	// printf("k1_0: %lu\n", decomp.k1[0]);
+	// printf("k1_1: %lu\n", decomp.k1[1]);
+	// printf("k2_0 %lu\n", decomp.k2[0]);
+	// printf("k2_1 %lu\n", decomp.k2[1]);
 
 	// Compute recodings
 	ec_naf naf_k1 = ec_to_naf(decomp.k1);
 	ec_naf naf_k2 = ec_to_naf(decomp.k2);
 
-	// ec_print_naf(naf_k1);
-	// ec_print_naf(naf_k2);
+	ec_print_naf(naf_k1);
+	ec_print_naf(naf_k2);
 
 	// Precomputation
 	ec_point_laffine table[16];
@@ -164,22 +169,27 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 	// print_table(table);
 
 	signed char k1_digit = naf_k1.val[l-1];
-	uint64_t k1_sign = k1_digit >> (l-1);
-	// uint64_t k1_sign = k1_sign < 0;
-	k1_sign = k1_sign^decomp.k1_sign;
+	uint64_t k1_digit_sign = ((unsigned char)k1_digit >> 7);
+	signed char k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
+	uint64_t k1_sign = k1_digit_sign^decomp.k1_sign;
 
 	signed char k2_digit = naf_k2.val[l-1];
-	uint64_t k2_sign = k2_digit >> (l-1);
-	// uint64_t k2_sign = k2_digit < 0;
-	k2_sign = k2_sign^decomp.k2_sign;
+	uint64_t k2_digit_sign = (unsigned char)k2_digit >> 7;
+	signed char k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
+	uint64_t k2_sign = k2_digit_sign^decomp.k2_sign;
 
+
+	// printf("k1_digit_sign %lu\n", k1_digit_sign);
+	// printf("k2_digit_sign %lu\n", k2_digit_sign);
+	// printf("k1_sign %lu\n", k1_sign);
+	// printf("k2_sign %lu\n", k2_sign);
+	//
 	// printf("k1 digit: %hhd | k2 digit: %hhd \n\n", k1_digit, k2_digit);
 
-	ec_point_laffine P1 = table[abs(k1_digit)];
-	ec_point_laffine P2 = ec_endo_laffine(table[abs(k2_digit)]);
+	ec_point_laffine P1 = table[k1_val];
+	ec_point_laffine P2 = ec_endo_laffine(table[k2_val]);
 
 	ec_point_laffine P1_neg = ec_neg_laffine(P1);
-
 	CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
 	ec_point_laffine P2_neg = ec_neg_laffine(P2);
 	CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
@@ -200,30 +210,33 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 		Q = ec_double(ec_double(ec_double(Q)));
 
 		k1_digit = naf_k1.val[i];
-		k1_sign = k1_digit >> 7;
-		k1_sign = k1_sign^decomp.k1_sign;
+		k1_digit_sign = ((unsigned char)k1_digit >> 7);
+		k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
+		k1_sign = k1_digit_sign^decomp.k1_sign;
 
 		k2_digit = naf_k2.val[i];
-		k2_sign = k2_digit >> 7;
-		k2_sign = k2_sign^decomp.k2_sign;
+		k2_digit_sign = ((unsigned char)k2_digit >> 7);
+		k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
+		k2_sign = k2_digit_sign^decomp.k2_sign;
 
+		// printf("k1 digit: %hhd | k2 digit: %hhd \n", k1_digit, k2_digit);
+		// printf("k1 sign: %lu | k2 sign: %lu \n", k2_sign, k2_sign);
+		// printf("k1 val: %hhd | k2 val: %hhd \n\n", k1_val, k2_digit);
 
-		// printf("k1 digit: %hhd | k2 digit: %hhd \n\n", k1_digit, k2_digit);
-
-		P1 = table[abs(k1_digit)];
-		P2 = ec_endo_laffine(table[abs(k2_digit)]);
+		P1 = table[k1_val];
+		P2 = ec_endo_laffine(table[k2_val]);
 
 		// printf("P1 On curve: %lu\n", ec_is_on_curve(ec_laffine_to_lproj(P1)));
 		// printf("P2 On curve: %lu\n", ec_is_on_curve(ec_laffine_to_lproj(P2)));
 
 		// printf("%s\n", "P1 NEG");
 
-		P1_neg = ec_neg_laffine(P1);
 		// ec_print_hex_laffine(P1_neg);
 
 		//First XOR scalar signs
 
 		//Negate p1 by k1_sign
+		P1_neg = ec_neg_laffine(P1);
 		CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
 		P2_neg = ec_neg_laffine(P2);
 		CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
@@ -240,25 +253,28 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 		// ec_print_hex(Q);
 	}
 
-	if (c1 > 0) {
-		uint64x2x2_t c1_full = (uint64x2x2_t) {{{c1, 0}, {0, 0}}};
-		ec_point_lproj c1P = ec_scalarmull_single(P, c1_full);
+	// Fix if c1 > 0
+	uint64x2x2_t c1_full = (uint64x2x2_t) {{{c1, 0}, {0, 0}}};
+	ec_point_lproj c1P = ec_scalarmull_single(P, c1_full);
 
-		ec_point_lproj P1_neg_l = ec_neg(c1P);
-		CMOV(tmp, decomp.k1_sign, cond, c1P, P1_neg_l, old_ptr, new_ptr, typeof(ec_point_lproj));
+	ec_point_lproj P1_neg_l = ec_neg(c1P);
+	CMOV(tmp, decomp.k1_sign, cond, c1P, P1_neg_l, old_ptr, new_ptr, typeof(ec_point_lproj));
 
-		Q = ec_add(Q, ec_neg(c1P));
-	}
+	uint64x1_t c1_x1 = { c1 };
+	ec_point_lproj Q_add_neg = ec_add(Q, ec_neg(c1P));
+	CMOV(tmp, c1_x1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
-	if (c2 > 0) {
-		uint64x2x2_t c2_full = (uint64x2x2_t) {{{c2, 0}, {0, 0}}};
-		ec_point_lproj c2P = ec_scalarmull_single(P, c2_full);
 
-		ec_point_lproj P2_neg_l = ec_neg(c2P);
-		CMOV(tmp, decomp.k2_sign, cond, c2P, P2_neg_l, old_ptr, new_ptr, typeof(ec_point_lproj));
+	// Fix if c2 > 0
+	uint64x2x2_t c2_full = (uint64x2x2_t) {{{c2, 0}, {0, 0}}};
+	ec_point_lproj c2P = ec_scalarmull_single(P, c2_full);
 
-		Q = ec_add_mixed(ec_neg_laffine(ec_endo_laffine(ec_lproj_to_laffine(c2P))), Q);
-	}
+	ec_point_lproj P2_neg_l = ec_neg(c2P);
+	CMOV(tmp, decomp.k2_sign, cond, c2P, P2_neg_l, old_ptr, new_ptr, typeof(ec_point_lproj));
+
+	uint64x1_t c2_x1 = { c2 };
+	Q_add_neg = ec_add_mixed(ec_neg_laffine(ec_endo_laffine(ec_lproj_to_laffine(c2P))), Q);
+	CMOV(tmp, c2_x1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
 	// printf("Q On curve: %lu\n", ec_is_on_curve(Q));
 
