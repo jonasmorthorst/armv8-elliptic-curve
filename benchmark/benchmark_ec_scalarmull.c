@@ -50,8 +50,8 @@ void benchmark_ec_scalarmull_single_endo_w5_randaccess() {
 	uint64_t times[num_runs];
 
 	for(int i = 0; i < num_runs; i++) {
-    uint64x2x2_t k = ec_rand_scalar();
-    ec_point_laffine P = ec_rand_point_laffine();
+		uint64x2x2_t k = ec_rand_scalar();
+		ec_point_laffine P = ec_rand_point_laffine();
 
 		uint64_t start = read_pmccntr();
 		ec_scalarmull_single_endo_w5_randaccess(P, k);
