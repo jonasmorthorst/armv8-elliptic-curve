@@ -44,13 +44,6 @@ uint64_t equal_poly64x2x2(poly64x2x2_t a, poly64x2x2_t b) {
 		   (a.val[1][1] == b.val[1][1]);
 }
 
-uint64_t equal_ef_elem(ef_elem a, ef_elem b) {
-	return (a.val[0][0] == b.val[0][0]) &&
-		   (a.val[0][1] == b.val[0][1]) &&
-		   (a.val[1][0] == b.val[1][0]) &&
-		   (a.val[1][1] == b.val[1][1]);
-}
-
 poly64x2x2_t concat_bf_poly(poly64x2_t p0, poly64x2_t p1) {
 	poly64x2x2_t p;
 	p.val[0] = p0;

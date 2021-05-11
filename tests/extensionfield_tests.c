@@ -17,6 +17,46 @@ void ef_create_elem_test_example(test_ctr *ctr) {
 	assert_true(correct, ctr, "extensionfield: ef_create_elem_test_example FAILED");
 }
 
+void ef_equal_test_equal(test_ctr *ctr) {
+	//Arrange
+	ef_elem a;
+	poly64x2_t a0 = {6749534, 697497494916};
+	poly64x2_t a1 = {7681514, 14870085};
+	a.val[0] = a0;
+	a.val[1] = a1;
+	ef_elem b;
+	poly64x2_t b0 = {6749534, 697497494916};
+	poly64x2_t b1 = {7681514, 14870085};
+	b.val[0] = b0;
+	b.val[1] = b1;
+	
+	//Act
+	uint64_t equal = ef_equal(a, b);
+	
+	//Assert
+	assert_true(equal, ctr, "utils: ef_equal_test_equal FAILED");
+}
+
+void ef_equal_test_notequal(test_ctr *ctr) {
+	//Arrange
+	ef_elem a;
+	poly64x2_t a0 = {6749534, 697497494916};
+	poly64x2_t a1 = {7681514, 14870085};
+	a.val[0] = a0;
+	a.val[1] = a1;
+	ef_elem b;
+	poly64x2_t b0 = {6749534, 697497394916};
+	poly64x2_t b1 = {7681514, 14870085};
+	b.val[0] = b0;
+	b.val[1] = b1;
+	
+	//Act
+	uint64_t equal = ef_equal(a, b);
+	
+	//Assert
+	assert_false(equal, ctr, "utils: ef_equal_test_notequal FAILED");
+}
+
 void ef_add_test_example(test_ctr *ctr) {
 	//Arrange
 	poly64x2_t a0 = {31, 7};
@@ -35,7 +75,7 @@ void ef_add_test_example(test_ctr *ctr) {
 	ef_elem actual = ef_add(a, b);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(expected, actual);
+	uint64_t correct = ef_equal(expected, actual);
 	assert_true(correct, ctr, "extensionfield: ef_add_test_example FAILED");
 }
 
@@ -51,7 +91,7 @@ void ef_add_test_doubling_is_zero(test_ctr *ctr) {
 	ef_elem actual = ef_add(a, a);
 	
 	//Assert
-	uint64_t is_zero = equal_ef_elem(zero, actual);
+	uint64_t is_zero = ef_equal(zero, actual);
 	assert_true(is_zero, ctr, "extensionfield: ef_add_test_doubling_is_zero FAILED");
 }
 
@@ -67,7 +107,7 @@ void ef_add_test_zero_is_identity(test_ctr *ctr) {
 	ef_elem result = ef_add(a, zero);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(a, result);
+	uint64_t correct = ef_equal(a, result);
 	assert_true(correct, ctr, "extensionfield: ef_add_test_zero_is_identity FAILED");
 }
 
@@ -88,7 +128,7 @@ void ef_add_test_associative(test_ctr *ctr) {
 	ef_elem b_plus_c_first = ef_add(a, ef_add(b, c));
 	
 	//Assert
-	uint64_t equal = equal_ef_elem(a_plus_b_first, b_plus_c_first);
+	uint64_t equal = ef_equal(a_plus_b_first, b_plus_c_first);
 	assert_true(equal, ctr, "extensionfield: ef_add_test_associative FAILED");
 }
 
@@ -106,7 +146,7 @@ void ef_add_test_commutative(test_ctr *ctr) {
 	ef_elem b_plus_a = ef_add(b, a);
 	
 	//Assert
-	uint64_t equal = equal_ef_elem(a_plus_b, b_plus_a);
+	uint64_t equal = ef_equal(a_plus_b, b_plus_a);
 	assert_true(equal, ctr, "extensionfield: ef_add_test_commutative FAILED");
 }
 	
@@ -126,7 +166,7 @@ void ef_mull_test_example(test_ctr *ctr) {
 	ef_elem actual = ef_mull(a, b);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(expected, actual);
+	uint64_t correct = ef_equal(expected, actual);
 	assert_true(correct, ctr, "extensionfield: ef_mull_test_example FAILED");
 }
 
@@ -147,7 +187,7 @@ void ef_mull_test_associative(test_ctr *ctr) {
 	ef_elem bc_first = ef_mull(a, ef_mull(b,c));
 	
 	//Assert
-	uint64_t equal = equal_ef_elem(ab_first, bc_first);
+	uint64_t equal = ef_equal(ab_first, bc_first);
 	assert_true(equal, ctr, "extensionfield: ef_mull_test_associative FAILED");
 }
 
@@ -164,7 +204,7 @@ void ef_mull_test_associative_rnd(test_ctr *ctr) {
 		ef_elem bc_first = ef_mull(a, ef_mull(b,c));
 		
 		//Assert
-		correct &= equal_ef_elem(ab_first, bc_first);
+		correct &= ef_equal(ab_first, bc_first);
 		if(!correct) {
 			printf("a: ");
 			ef_print_hex_nl(a);
@@ -192,7 +232,7 @@ void ef_mull_test_commutative(test_ctr *ctr) {
 	ef_elem ba = ef_mull(b, a);
 	
 	//Assert
-	uint64_t equal = equal_ef_elem(ab, ba);
+	uint64_t equal = ef_equal(ab, ba);
 	assert_true(equal, ctr, "extensionfield: ef_mull_test_commutative FAILED");
 }
 
@@ -208,7 +248,7 @@ void ef_mull_test_commutative_rnd(test_ctr *ctr) {
 		ef_elem ba = ef_mull(b, a);
 		
 		//Assert
-		correct &= equal_ef_elem(ab, ba);
+		correct &= ef_equal(ab, ba);
 		if(!correct) {
 			printf("a: ");
 			ef_print_hex_nl(a);
@@ -233,7 +273,7 @@ void ef_mull_test_one_is_identity(test_ctr *ctr) {
 	ef_elem result = ef_mull(a, one);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(a, result);
+	uint64_t correct = ef_equal(a, result);
 	assert_true(correct, ctr, "extensionfield: ef_mull_test_one_is_identity FAILED");
 }
 
@@ -249,7 +289,7 @@ void ef_mull_test_zero_is_zero(test_ctr *ctr) {
 	ef_elem result = ef_mull(a, zero);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(zero, result);
+	uint64_t correct = ef_equal(zero, result);
 	assert_true(correct, ctr, "extensionfield: ef_mull_test_zero_is_zero FAILED");
 }
 	
@@ -266,7 +306,7 @@ void ef_square_test_example(test_ctr *ctr) {
 	ef_elem actual = ef_square(a);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(expected, actual);
+	uint64_t correct = ef_equal(expected, actual);
 	assert_true(correct, ctr, "extensionfield: ef_square_test_example FAILED");
 }
 
@@ -280,7 +320,7 @@ void ef_square_test_one_is_one(test_ctr *ctr) {
 	ef_elem result = ef_square(one);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(one, result);
+	uint64_t correct = ef_equal(one, result);
 	assert_true(correct, ctr, "extensionfield: ef_square_test_one_is_one FAILED");
 }
 
@@ -293,7 +333,7 @@ void ef_square_test_zero_is_zero(test_ctr *ctr) {
 	ef_elem result = ef_square(zero);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(zero, result);
+	uint64_t correct = ef_equal(zero, result);
 	assert_true(correct, ctr, "extensionfield: ef_square_test_zero_is_zero FAILED");
 }
 
@@ -308,7 +348,7 @@ void ef_square_test_crosscheck_pmull(test_ctr *ctr) {
 	ef_elem a_squared_mull = ef_mull(a, a);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(a_squared, a_squared_mull);
+	uint64_t correct = ef_equal(a_squared, a_squared_mull);
 	assert_true(correct, ctr, "extensionfield: ef_square_test_crosscheck_pmull FAILED");
 }
 
@@ -329,7 +369,7 @@ void ef_square_test_freshmans_dream(test_ctr *ctr) {
 	ef_elem plus_before = ef_square(a_plus_b);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(plus_before, plus_after);
+	uint64_t correct = ef_equal(plus_before, plus_after);
 	assert_true(correct, ctr, "extensionfield: ef_square_test_freshmans_dream FAILED");
 }
 
@@ -348,7 +388,7 @@ void ef_square_test_freshmans_dream_rnd(test_ctr *ctr) {
 		ef_elem plus_before = ef_square(a_plus_b);
 		
 		//Assert
-		correct &= equal_ef_elem(plus_before, plus_after);
+		correct &= ef_equal(plus_before, plus_after);
 		if(!correct) {
 			printf("a: ");
 			ef_print_hex_nl(a);
@@ -373,7 +413,7 @@ void ef_inv_test_example(test_ctr *ctr) {
 	ef_elem actual = ef_inv(a);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(expected, actual);
+	uint64_t correct = ef_equal(expected, actual);
 	assert_true(correct, ctr, "extensionfield: ef_inv_test_example FAILED");
 }
 
@@ -387,7 +427,7 @@ void ef_inv_test_inverse_of_one_is_one(test_ctr *ctr) {
 	ef_elem one_inv = ef_inv(one);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(one, one_inv);
+	uint64_t correct = ef_equal(one, one_inv);
 	assert_true(correct, ctr, "extensionfield: ef_inv_test_inverse_of_one_is_one FAILED");
 }
 
@@ -400,7 +440,7 @@ void ef_inv_zero_outputs_zero(test_ctr *ctr) {
 	ef_elem zero_inv = ef_inv(zero);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(zero, zero_inv);
+	uint64_t correct = ef_equal(zero, zero_inv);
 	assert_true(correct, ctr, "extensionfield: ef_inv_zero_outputs_zero FAILED");
 }
 
@@ -415,7 +455,7 @@ void ef_inv_test_inverse_of_inverse_is_original(test_ctr *ctr) {
 	ef_elem a_inv_inv = ef_inv(a_inv);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(a, a_inv_inv);
+	uint64_t correct = ef_equal(a, a_inv_inv);
 	assert_true(correct, ctr, "extensionfield: ef_inv_test_inverse_of_inverse_is_original FAILED");
 }
 
@@ -430,7 +470,7 @@ void ef_inv_test_inverse_of_inverse_is_original_rnd(test_ctr *ctr) {
 		ef_elem a_inv_inv = ef_inv(a_inv);
 	
 		//Assert
-		correct &= equal_ef_elem(a, a_inv_inv);
+		correct &= ef_equal(a, a_inv_inv);
 		if(!correct) {
 			printf("a: ");
 			ef_print_hex_nl(a);
@@ -457,7 +497,7 @@ void ef_inv_test_prod_of_inverses_is_inverse_of_prod(test_ctr *ctr) {
 	ef_elem inv_of_prod = ef_inv(prod);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(prod_of_inverses, inv_of_prod);
+	uint64_t correct = ef_equal(prod_of_inverses, inv_of_prod);
 	assert_true(correct, ctr, "extensionfield: ef_inv_test_prod_of_inverses_is_inverse_of_prod FAILED");
 }
 	
@@ -476,7 +516,7 @@ void ef_inv_test_prod_of_inverses_is_inverse_of_prod_rnd(test_ctr *ctr) {
 		ef_elem inv_of_prod = ef_inv(prod);
 		
 		//Assert
-		correct = equal_ef_elem(prod_of_inverses, inv_of_prod);
+		correct = ef_equal(prod_of_inverses, inv_of_prod);
 		if(!correct) {
 			printf("a: ");
 			ef_print_hex_nl(a);
@@ -502,7 +542,7 @@ void ef_inv_test_prod_with_inv_is_one(test_ctr *ctr) {
 	ef_elem a_times_inv = ef_mull(a, a_inv);
 	
 	//Assert
-	uint64_t correct = equal_ef_elem(a_times_inv, one);
+	uint64_t correct = ef_equal(a_times_inv, one);
 	assert_true(correct, ctr, "extensionfield: ef_inv_test_prod_with_inv_is_one FAILED");
 }
 
@@ -520,7 +560,7 @@ void ef_inv_test_prod_with_inv_is_one_rnd(test_ctr *ctr) {
 		ef_elem a_times_inv = ef_mull(a, a_inv);
 		
 		//Assert
-		correct = equal_ef_elem(a_times_inv, one);
+		correct = ef_equal(a_times_inv, one);
 		if(!correct) {
 			printf("a: ");
 			ef_print_hex_nl(a);
@@ -530,8 +570,42 @@ void ef_inv_test_prod_with_inv_is_one_rnd(test_ctr *ctr) {
 	assert_true(correct, ctr, "extensionfield: ef_inv_test_prod_with_inv_is_one_rnd FAILED");
 }
 
+void ef_sim_inv_test_crosscheck_inv_rnd(test_ctr *ctr) {
+	uint64_t correct = 1;
+	for(int i = 0; i < 10; i++) {
+		//Arrange
+		uint64_t len = 3;
+		ef_elem inputs[len];
+		ef_elem outputs[len];
+		inputs[0] = ef_rand_elem();
+		inputs[1] = ef_rand_elem();
+		inputs[2] = ef_rand_elem();
+		
+		//Act
+		ef_sim_inv(inputs, outputs, len);
+		
+		//Assert
+		correct = ef_equal(outputs[0], ef_inv(inputs[0])) 
+			   && ef_equal(outputs[1], ef_inv(inputs[1])) 
+			   && ef_equal(outputs[2], ef_inv(inputs[2]));
+		if(!correct) {
+			printf("Inputs[0]:\n");
+			ef_print_hex_nl(inputs[0]);
+			printf("Inputs[1]:\n");
+			ef_print_hex_nl(inputs[1]);
+			printf("Inputs[2]:\n");
+			ef_print_hex_nl(inputs[2]);
+			break;
+		}
+	}
+	assert_true(correct, ctr, "extensionfield: ef_sim_inv_test_crosscheck_inv_rnd FAILED");
+}
+
 void extensionfield_tests(test_ctr *ctr) {
 	ef_create_elem_test_example(ctr);
+	
+	ef_equal_test_equal(ctr);
+	ef_equal_test_notequal(ctr);
 	
 	ef_add_test_example(ctr);
 	ef_add_test_doubling_is_zero(ctr);
@@ -563,4 +637,6 @@ void extensionfield_tests(test_ctr *ctr) {
 	ef_inv_test_prod_of_inverses_is_inverse_of_prod_rnd(ctr);
 	ef_inv_test_prod_with_inv_is_one(ctr);
 	ef_inv_test_prod_with_inv_is_one_rnd(ctr);
+	
+	ef_sim_inv_test_crosscheck_inv_rnd(ctr);
 }

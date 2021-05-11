@@ -50,6 +50,13 @@ ef_elem ef_rand_elem() {
 	return ef_create_elem(bf_rand_elem(), bf_rand_elem());
 }
 
+uint64_t ef_equal(ef_elem a, ef_elem b) {
+	return (a.val[0][0] == b.val[0][0]) &&
+		   (a.val[0][1] == b.val[0][1]) &&
+		   (a.val[1][0] == b.val[1][0]) &&
+		   (a.val[1][1] == b.val[1][1]);
+}
+
 ef_elem ef_add(ef_elem a, ef_elem b) {
 	return ef_create_elem(bf_add(a.val[0], b.val[0]), bf_add(a.val[1], b.val[1]));
 }
@@ -85,4 +92,18 @@ ef_elem ef_inv(ef_elem a) {
 	poly64x2_t t = bf_add(a0a1, a0pa1_squared); //t = a0*a1 + a0^2 + a1^2
 	poly64x2_t t_inv = bf_inv(t); //t^-1
 	return ef_create_elem(bf_red(bf_pmull(a0pa1, t_inv)), bf_red(bf_pmull(a.val[1], t_inv))); //((a0+a1)*t^-1) + (a_1*t^-1)u
+}
+
+void ef_sim_inv(ef_elem inputs[], ef_elem outputs[], uint64_t len) {
+	ef_elem c[len];
+	c[0] = inputs[0];
+	for(int i = 1; i < len; i++) {
+		c[i] = ef_mull(c[i-1], inputs[i]);
+	}
+	ef_elem u = ef_inv(c[len-1]); //(a0 * a1 * ... * ak)^-1
+	for(int i = len-1; i >= 1; i--) {
+		outputs[i] = ef_mull(u, c[i-1]); //(a0 * a1 * ... ai-1 * ai)^-1 * (a0 * a1 * ... * ai-1) = ai^-1
+		u = ef_mull(u, inputs[i]);
+	}
+	outputs[0] = u;
 }

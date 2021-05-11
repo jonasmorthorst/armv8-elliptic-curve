@@ -70,22 +70,22 @@ void ec_print_hex_laffine(ec_point_laffine P) {
 uint64_t ec_is_on_curve(ec_point_lproj P) {
 	ef_elem lhs = ef_mull(ef_add(ef_square(P.l), ef_add(ef_mull(P.l, P.z), ef_mull((ef_elem) A, ef_square(P.z)))), ef_square(P.x)); //(L^2 + LZ + AZ^2)X^2
 	ef_elem rhs = ef_add(ef_square(ef_square(P.x)), ef_mull((ef_elem) B, ef_square(ef_square(P.z)))); //X^4 + BZ^4
-	return equal_ef_elem(lhs, rhs);
+	return ef_equal(lhs, rhs);
 }
 
 uint64_t ec_equal_point_lproj(ec_point_lproj P, ec_point_lproj Q) {
 	ec_point_laffine P_affine = ec_lproj_to_laffine(P);
 	ec_point_laffine Q_affine = ec_lproj_to_laffine(Q);
-	return equal_ef_elem(P_affine.x, Q_affine.x) && equal_ef_elem(P_affine.l, Q_affine.l);
+	return ef_equal(P_affine.x, Q_affine.x) && ef_equal(P_affine.l, Q_affine.l);
 }
 
 uint64_t ec_equal_point_mixed(ec_point_laffine P, ec_point_lproj Q) {
 	ec_point_laffine Q_affine = ec_lproj_to_laffine(Q);
-	return equal_ef_elem(P.x, Q_affine.x) && equal_ef_elem(P.l, Q_affine.l);
+	return ef_equal(P.x, Q_affine.x) && ef_equal(P.l, Q_affine.l);
 }
 
 uint64_t ec_equal_point_laffine(ec_point_laffine P, ec_point_laffine Q) {
-	return equal_ef_elem(P.x, Q.x) && equal_ef_elem(P.l, Q.l);
+	return ef_equal(P.x, Q.x) && ef_equal(P.l, Q.l);
 }
 
 // Generate random number in range [1, ORDER-1]

@@ -17,6 +17,8 @@ void ef_print_hex_nl(ef_elem a);
 
 ef_elem ef_rand_elem();
 
+uint64_t ef_equal(ef_elem a, ef_elem b);
+
 ef_elem ef_add(ef_elem a, ef_elem b);
 
 ef_elem ef_mull(ef_elem a, ef_elem b);
@@ -26,5 +28,7 @@ ef_elem ef_mull_A(ef_elem a);
 ef_elem ef_square(ef_elem a);
 
 ef_elem ef_inv(ef_elem a);
+
+void ef_sim_inv(ef_elem inputs[], ef_elem outputs[], uint64_t len);
 
 #endif

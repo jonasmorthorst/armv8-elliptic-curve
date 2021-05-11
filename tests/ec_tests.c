@@ -14,7 +14,7 @@ void ec_create_point_lproj_test_example(test_ctr *ctr) {
 	ec_point_lproj P = ec_create_point_lproj(x, l, z);
 
 	//Assert
-	uint64_t correct = equal_ef_elem(P.x, x) && equal_ef_elem(P.l, l) && equal_ef_elem(P.z, z);
+	uint64_t correct = ef_equal(P.x, x) && ef_equal(P.l, l) && ef_equal(P.z, z);
 	assert_true(correct, ctr, "ec: ec_create_point_lproj_test_example FAILED");
 }
 
