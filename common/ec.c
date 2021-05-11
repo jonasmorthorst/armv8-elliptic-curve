@@ -137,16 +137,6 @@ ec_point_laffine ec_rand_point_laffine() {
 	return ec_lproj_to_laffine(P);
 }
 
-ec_point_lproj ec_neg(ec_point_lproj P) {
-	P.l = ef_add(P.l, P.z);
-	return P;
-}
-
-ec_point_laffine ec_neg_laffine(ec_point_laffine P) {
-	P.l.val[0] = bf_add(P.l.val[0], (poly64x2_t) {1,0});
-	return P;
-}
-
 // Non constant implementation atm.
 ec_point_lproj ec_add(ec_point_lproj P, ec_point_lproj Q) {
 	if(ec_equal_point_lproj(P, (ec_point_lproj) INFTY)) {
@@ -255,14 +245,6 @@ ec_point_lproj ec_double_then_addtwo(ec_point_laffine P1, ec_point_laffine P2, e
 	R.z = ef_mull(ef_mull(I, J), L);
 	R.l = ef_add(ef_square(ef_add(L, M)), ef_mull(R.z, ef_add(P2.l, one)));
 	return R;
-}
-
-//We will only need this endomorphism for lambda affine coords for scalar mul GLV trick
-ec_point_laffine ec_endo_laffine(ec_point_laffine P) {
-	P.x.val[0] = bf_add(P.x.val[0], P.x.val[1]);
-	P.l.val[0] = bf_add(P.l.val[0], P.l.val[1]);
-	P.l.val[1] = bf_add(P.l.val[1], (poly64x2_t) {1,0});
-	return P;
 }
 
 ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {

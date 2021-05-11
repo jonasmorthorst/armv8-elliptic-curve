@@ -119,6 +119,21 @@ ec_point_laffine ec_scalarmull_single_endo(ec_point_laffine P, uint64x2x2_t k) {
 	return ec_lproj_to_laffine(R);
 }
 
+void linear_pass(ec_point_laffine *P1, ec_point_laffine *P2, ec_point_laffine* table, uint64_t index1, uint64_t index2, uint64_t l) {
+	uint64x1_t old_ptr, new_ptr, tmp, digitval;
+	ec_point_laffine item, P1_tmp, P2_tmp;
+
+	for (uint64_t i = 0; i < l; i++) {
+		digitval[0]=i;
+		item = table[i];
+		CMOV(tmp, index1, digitval, P1_tmp, item, old_ptr, new_ptr, typeof(ec_point_laffine));
+		CMOV(tmp, index2, digitval, P2_tmp, item, old_ptr, new_ptr, typeof(ec_point_laffine));
+	}
+
+	*P1 = P1_tmp;
+	*P2 = ec_endo_laffine(P2_tmp);
+}
+
 ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint64x2x2_t k) {
 	// printf("%s\n", "P IN");
 	// ec_print_hex_laffine(P);
@@ -156,14 +171,14 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 	// printf("k2_1 %lu\n", decomp.k2[1]);
 
 	// Compute recodings
-	ec_naf naf_k1 = ec_to_naf(decomp.k1);
-	ec_naf naf_k2 = ec_to_naf(decomp.k2);
+	ec_naf naf_k1 = ec_to_naf(decomp.k1, 5);
+	ec_naf naf_k2 = ec_to_naf(decomp.k2, 5);
 
-	//ec_print_naf(naf_k1);
-	//ec_print_naf(naf_k2);
+	// ec_print_naf(naf_k1, l);
+	// ec_print_naf(naf_k2, l);
 
 	// Precomputation
-	ec_point_laffine table[16];
+	ec_point_laffine table[8];
 	precompute(P, table);
 
 	// print_table(table);
@@ -186,8 +201,13 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 	//
 	// printf("k1 digit: %hhd | k2 digit: %hhd \n\n", k1_digit, k2_digit);
 
-	ec_point_laffine P1 = table[k1_val];
-	ec_point_laffine P2 = ec_endo_laffine(table[k2_val]);
+	ec_point_laffine P1;
+	ec_point_laffine P2;
+
+	linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
+
+	// ec_point_laffine P1 = table[k2_val/2];
+	// ec_point_laffine P2 = ec_endo_laffine(table[k2_val/2]);
 
 	ec_point_laffine P1_neg = ec_neg_laffine(P1);
 	CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
@@ -223,8 +243,7 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 		// printf("k1 sign: %lu | k2 sign: %lu \n", k2_sign, k2_sign);
 		// printf("k1 val: %hhd | k2 val: %hhd \n\n", k1_val, k2_digit);
 
-		P1 = table[k1_val];
-		P2 = ec_endo_laffine(table[k2_val]);
+		linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
 
 		// printf("P1 On curve: %lu\n", ec_is_on_curve(ec_laffine_to_lproj(P1)));
 		// printf("P2 On curve: %lu\n", ec_is_on_curve(ec_laffine_to_lproj(P2)));
@@ -254,27 +273,172 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 	}
 
 	// Fix if c1 > 0
-	uint64x2x2_t c1_full = (uint64x2x2_t) {{{c1, 0}, {0, 0}}};
-	ec_point_lproj c1P = ec_scalarmull_single(P, c1_full);
-
-	ec_point_lproj P1_neg_l = ec_neg(c1P);
-	CMOV(tmp, decomp.k1_sign, cond, c1P, P1_neg_l, old_ptr, new_ptr, typeof(ec_point_lproj));
-
-	uint64x1_t c1_x1 = { c1 };
-	ec_point_lproj Q_add_neg = ec_add(Q, ec_neg(c1P));
-	CMOV(tmp, c1_x1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
-
+	P1 = P;
+	P1.l.val[0][0] ^= 1-decomp.k1_sign;
+	ec_point_lproj Q_add_neg = ec_add_mixed(P1, Q);
+	CMOV(tmp, c1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
 	// Fix if c2 > 0
-	uint64x2x2_t c2_full = (uint64x2x2_t) {{{c2, 0}, {0, 0}}};
-	ec_point_lproj c2P = ec_scalarmull_single(P, c2_full);
+	P2 = P;
+	P2.l.val[0][0] ^= 1-decomp.k2_sign;
+	Q_add_neg = ec_add_mixed(ec_endo_laffine(P2), Q);
+	CMOV(tmp, c2, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
-	ec_point_lproj P2_neg_l = ec_neg(c2P);
-	CMOV(tmp, decomp.k2_sign, cond, c2P, P2_neg_l, old_ptr, new_ptr, typeof(ec_point_lproj));
+	// printf("Q On curve: %lu\n", ec_is_on_curve(Q));
 
-	uint64x1_t c2_x1 = { c2 };
-	Q_add_neg = ec_add_mixed(ec_neg_laffine(ec_endo_laffine(ec_lproj_to_laffine(c2P))), Q);
-	CMOV(tmp, c2_x1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
+	// printf("Returning Q \n");
+	// ec_print_hex(Q);
+
+	return Q;
+}
+
+ec_point_lproj ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uint64x2x2_t k) {
+	// printf("%s\n", "P IN");
+	// ec_print_hex_laffine(P);
+
+	uint64x1_t old_ptr, new_ptr, tmp, cond;
+	cond[0]=1;
+	// int l = 65;
+	int l = 52;
+	//l=52
+	//86
+
+	ec_split_scalar decomp = ec_scalar_decomp(k);
+
+	// decomp.k1_sign = 1;
+	uint64_t zero = 0;
+
+	// printf("k1_0: %lu\n", decomp.k1[0]);
+	// printf("k1_1: %lu\n", decomp.k1[1]);
+	// printf("k2_0 %lu\n", decomp.k2[0]);
+	// printf("k2_1 %lu\n", decomp.k2[1]);
+	// printf("k1 sign %lu\n", decomp.k1_sign);
+	// printf("k2 sign %lu\n", decomp.k2_sign);
+
+	uint64_t c1 = 1-(decomp.k1[0]&1);
+	decomp.k1[0] = decomp.k1[0]+c1;
+
+	uint64_t c2 = 1-(decomp.k2[0]&1);
+	decomp.k2[0] = decomp.k2[0]+c2;
+
+	// printf("c1: %lu\n", c1);
+	// printf("c2: %lu\n", c2);
+	//
+	// printf("k1_0: %lu\n", decomp.k1[0]);
+	// printf("k1_1: %lu\n", decomp.k1[1]);
+	// printf("k2_0 %lu\n", decomp.k2[0]);
+	// printf("k2_1 %lu\n", decomp.k2[1]);
+
+	// Compute recodings
+	ec_naf naf_k1 = ec_to_naf(decomp.k1, 6);
+	ec_naf naf_k2 = ec_to_naf(decomp.k2, 6);
+
+	// ec_print_naf(naf_k1, l);
+	// ec_print_naf(naf_k2, l);
+
+	// Precomputation
+	ec_point_laffine table[16];
+	precompute_w6(P, table);
+
+	// print_table(table);
+
+	signed char k1_digit = naf_k1.val[l-1];
+	uint64_t k1_digit_sign = ((unsigned char)k1_digit >> 7);
+	signed char k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
+	uint64_t k1_sign = k1_digit_sign^decomp.k1_sign;
+
+	signed char k2_digit = naf_k2.val[l-1];
+	uint64_t k2_digit_sign = (unsigned char)k2_digit >> 7;
+	signed char k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
+	uint64_t k2_sign = k2_digit_sign^decomp.k2_sign;
+
+
+	// printf("k1_digit_sign %lu\n", k1_digit_sign);
+	// printf("k2_digit_sign %lu\n", k2_digit_sign);
+	// printf("k1_sign %lu\n", k1_sign);
+	// printf("k2_sign %lu\n", k2_sign);
+	//
+	// printf("k1 digit: %hhd | k2 digit: %hhd \n\n", k1_digit, k2_digit);
+
+	ec_point_laffine P1;
+	ec_point_laffine P2;
+
+	linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 16);
+
+	ec_point_laffine P1_neg = ec_neg_laffine(P1);
+	CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+	ec_point_laffine P2_neg = ec_neg_laffine(P2);
+	CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+
+	// printf("P1 negated: %lu\n", ec_equal_point_laffine(P1, P1_neg));
+	// printf("P2 negated: %lu\n", ec_equal_point_laffine(P2, P2_neg));
+
+	// ec_print_hex_laffine(P1);
+
+	ec_point_lproj Q = ec_add_mixed(P1, ec_laffine_to_lproj(P2));
+
+	for(int i=l-2; i>=0; i--) {
+
+		// printf("Q On curve: %lu\n", ec_is_on_curve(Q));
+
+		// printf("i: %d\n", i);
+
+		Q = ec_double(ec_double(ec_double(Q)));
+
+		k1_digit = naf_k1.val[i];
+		k1_digit_sign = ((unsigned char)k1_digit >> 7);
+		k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
+		k1_sign = k1_digit_sign^decomp.k1_sign;
+
+		k2_digit = naf_k2.val[i];
+		k2_digit_sign = ((unsigned char)k2_digit >> 7);
+		k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
+		k2_sign = k2_digit_sign^decomp.k2_sign;
+
+		// printf("k1 digit: %hhd | k2 digit: %hhd \n", k1_digit, k2_digit);
+		// printf("k1 sign: %lu | k2 sign: %lu \n", k2_sign, k2_sign);
+		// printf("k1 val: %hhd | k2 val: %hhd \n\n", k1_val, k2_digit);
+
+		linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 16);
+
+		// printf("P1 On curve: %lu\n", ec_is_on_curve(ec_laffine_to_lproj(P1)));
+		// printf("P2 On curve: %lu\n", ec_is_on_curve(ec_laffine_to_lproj(P2)));
+
+		// printf("%s\n", "P1 NEG");
+
+		// ec_print_hex_laffine(P1_neg);
+
+		//First XOR scalar signs
+
+		//Negate p1 by k1_sign
+		P1_neg = ec_neg_laffine(P1);
+		CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+		P2_neg = ec_neg_laffine(P2);
+		CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+
+		// printf("%s\n", "P1");
+		// ec_print_hex_laffine(P1);
+
+		// printf("P1 negated: %lu\n", ec_equal_point_laffine(P1, P1_neg));
+		// printf("P2 negated: %lu\n", ec_equal_point_laffine(P2, P2_neg));
+
+		Q = ec_double_then_addtwo(P1, P2, Q);
+		//
+		// printf("Q after iteration i=%d\n", i);
+		// ec_print_hex(Q);
+	}
+
+	// Fix if c1 > 0
+	P1 = P;
+	P1.l.val[0][0] ^= 1-decomp.k1_sign;
+	ec_point_lproj Q_add_neg = ec_add_mixed(P1, Q);
+	CMOV(tmp, c1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
+
+	// Fix if c2 > 0
+	P2 = P;
+	P2.l.val[0][0] ^= 1-decomp.k2_sign;
+	Q_add_neg = ec_add_mixed(ec_endo_laffine(P2), Q);
+	CMOV(tmp, c2, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
 	// printf("Q On curve: %lu\n", ec_is_on_curve(Q));
 
@@ -286,14 +450,14 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 
 void precompute_first(ec_point_laffine P, ec_point_laffine* table) {
 	ec_point_lproj P2 = ec_double(ec_laffine_to_lproj(P));
-	table[1] = P;
-	table[3] = ec_lproj_to_laffine(ec_add_mixed(table[1], P2));
-	table[5] = ec_lproj_to_laffine(ec_add_mixed(table[3], P2));
-	table[7] = ec_lproj_to_laffine(ec_add_mixed(table[5], P2));
-	table[9] = ec_lproj_to_laffine(ec_add_mixed(table[7], P2));
-	table[11] = ec_lproj_to_laffine(ec_add_mixed(table[9], P2));
-	table[13] = ec_lproj_to_laffine(ec_add_mixed(table[11], P2));
-	table[15] = ec_lproj_to_laffine(ec_add_mixed(table[13], P2));
+	table[0] = P;
+	table[1] = ec_lproj_to_laffine(ec_add_mixed(table[1], P2));
+	table[2] = ec_lproj_to_laffine(ec_add_mixed(table[3], P2));
+	table[3] = ec_lproj_to_laffine(ec_add_mixed(table[5], P2));
+	table[4] = ec_lproj_to_laffine(ec_add_mixed(table[7], P2));
+	table[5] = ec_lproj_to_laffine(ec_add_mixed(table[9], P2));
+	table[6] = ec_lproj_to_laffine(ec_add_mixed(table[11], P2));
+	table[7] = ec_lproj_to_laffine(ec_add_mixed(table[13], P2));
 }
 
 void precompute(ec_point_laffine P, ec_point_laffine table[]) {
@@ -301,26 +465,72 @@ void precompute(ec_point_laffine P, ec_point_laffine table[]) {
 	ec_point_lproj P3 = ec_add_mixed(P, P2);
 	ec_point_lproj P4 = ec_double(P2);
 	ec_point_lproj P5 = ec_add_mixed(P, P4);
-	ec_point_lproj P6 = ec_double(P3); 
+	ec_point_lproj P6 = ec_double(P3);
 	ec_point_lproj P7 = ec_add_mixed(P, P6);
 	ec_point_lproj P8 = ec_double(P4);
 	ec_point_lproj P9 = ec_add_mixed(P, P8);
 	ec_point_lproj P11 = ec_double_then_add(P, P5);
 	ec_point_lproj P13 = ec_double_then_add(P, P6);
 	ec_point_lproj P15 = ec_double_then_add(P, P7);
-	
+
 	ef_elem inv_inputs[7] = {P3.z, P5.z, P7.z, P9.z, P11.z, P13.z, P15.z};
 	ef_elem inv_outputs[7];
 	ef_sim_inv(inv_inputs, inv_outputs, 7);
-	
-	table[1] = P;
-	table[3] = (ec_point_laffine) {ef_mull(P3.x, inv_outputs[0]), ef_mull(P3.l, inv_outputs[0])}; 
-	table[5] = (ec_point_laffine) {ef_mull(P5.x, inv_outputs[1]), ef_mull(P5.l, inv_outputs[1])}; 
-	table[7] = (ec_point_laffine) {ef_mull(P7.x, inv_outputs[2]), ef_mull(P7.l, inv_outputs[2])}; 
-	table[9] = (ec_point_laffine) {ef_mull(P9.x, inv_outputs[3]), ef_mull(P9.l, inv_outputs[3])}; 
-	table[11] = (ec_point_laffine) {ef_mull(P11.x, inv_outputs[4]), ef_mull(P11.l, inv_outputs[4])}; 
-	table[13] = (ec_point_laffine) {ef_mull(P13.x, inv_outputs[5]), ef_mull(P13.l, inv_outputs[5])}; 
-	table[15] = (ec_point_laffine) {ef_mull(P15.x, inv_outputs[6]), ef_mull(P15.l, inv_outputs[6])}; 
+
+	table[0] = P;
+	table[1] = (ec_point_laffine) {ef_mull(P3.x, inv_outputs[0]), ef_mull(P3.l, inv_outputs[0])};
+	table[2] = (ec_point_laffine) {ef_mull(P5.x, inv_outputs[1]), ef_mull(P5.l, inv_outputs[1])};
+	table[3] = (ec_point_laffine) {ef_mull(P7.x, inv_outputs[2]), ef_mull(P7.l, inv_outputs[2])};
+	table[4] = (ec_point_laffine) {ef_mull(P9.x, inv_outputs[3]), ef_mull(P9.l, inv_outputs[3])};
+	table[5] = (ec_point_laffine) {ef_mull(P11.x, inv_outputs[4]), ef_mull(P11.l, inv_outputs[4])};
+	table[6] = (ec_point_laffine) {ef_mull(P13.x, inv_outputs[5]), ef_mull(P13.l, inv_outputs[5])};
+	table[7] = (ec_point_laffine) {ef_mull(P15.x, inv_outputs[6]), ef_mull(P15.l, inv_outputs[6])};
+}
+
+void precompute_w6(ec_point_laffine P, ec_point_laffine table[]) {
+	ec_point_lproj P2 = ec_double(ec_laffine_to_lproj(P));
+	ec_point_lproj P3 = ec_add_mixed(P, P2);
+	ec_point_lproj P4 = ec_double(P2);
+	ec_point_lproj P5 = ec_add_mixed(P, P4);
+	ec_point_lproj P6 = ec_double(P3);
+	ec_point_lproj P7 = ec_add_mixed(P, P6);
+	ec_point_lproj P8 = ec_double(P4);
+	ec_point_lproj P9 = ec_add_mixed(P, P8);
+	ec_point_lproj P10 = ec_double(P5);
+	ec_point_lproj P11 = ec_add_mixed(P, P10);
+	ec_point_lproj P12 = ec_double(P6);
+	ec_point_lproj P13 = ec_add_mixed(P, P12);
+	ec_point_lproj P14 = ec_double(P7);
+	ec_point_lproj P15 = ec_add_mixed(P, P14);
+	ec_point_lproj P17 = ec_double_then_add(P, P8);
+	ec_point_lproj P19 = ec_double_then_add(P, P9);
+	ec_point_lproj P21 = ec_double_then_add(P, P10);
+	ec_point_lproj P23 = ec_double_then_add(P, P11);
+	ec_point_lproj P25 = ec_double_then_add(P, P12);
+	ec_point_lproj P27 = ec_double_then_add(P, P13);
+	ec_point_lproj P29 = ec_double_then_add(P, P14);
+	ec_point_lproj P31 = ec_double_then_add(P, P15);
+
+	ef_elem inv_inputs[15] = {P3.z, P5.z, P7.z, P9.z, P11.z, P13.z, P15.z, P17.z, P19.z, P21.z, P23.z, P25.z, P27.z, P29.z, P31.z};
+	ef_elem inv_outputs[15];
+	ef_sim_inv(inv_inputs, inv_outputs, 15);
+
+	table[0] = P;
+	table[1] = (ec_point_laffine) {ef_mull(P3.x, inv_outputs[0]), ef_mull(P3.l, inv_outputs[0])};
+	table[2] = (ec_point_laffine) {ef_mull(P5.x, inv_outputs[1]), ef_mull(P5.l, inv_outputs[1])};
+	table[3] = (ec_point_laffine) {ef_mull(P7.x, inv_outputs[2]), ef_mull(P7.l, inv_outputs[2])};
+	table[4] = (ec_point_laffine) {ef_mull(P9.x, inv_outputs[3]), ef_mull(P9.l, inv_outputs[3])};
+	table[5] = (ec_point_laffine) {ef_mull(P11.x, inv_outputs[4]), ef_mull(P11.l, inv_outputs[4])};
+	table[6] = (ec_point_laffine) {ef_mull(P13.x, inv_outputs[5]), ef_mull(P13.l, inv_outputs[5])};
+	table[7] = (ec_point_laffine) {ef_mull(P15.x, inv_outputs[6]), ef_mull(P15.l, inv_outputs[6])};
+	table[8] = (ec_point_laffine) {ef_mull(P17.x, inv_outputs[7]), ef_mull(P17.l, inv_outputs[7])};
+	table[9] = (ec_point_laffine) {ef_mull(P19.x, inv_outputs[8]), ef_mull(P19.l, inv_outputs[8])};
+	table[10] = (ec_point_laffine) {ef_mull(P21.x, inv_outputs[9]), ef_mull(P21.l, inv_outputs[9])};
+	table[11] = (ec_point_laffine) {ef_mull(P23.x, inv_outputs[10]), ef_mull(P23.l, inv_outputs[10])};
+	table[12] = (ec_point_laffine) {ef_mull(P25.x, inv_outputs[11]), ef_mull(P25.l, inv_outputs[11])};
+	table[13] = (ec_point_laffine) {ef_mull(P27.x, inv_outputs[12]), ef_mull(P27.l, inv_outputs[12])};
+	table[14] = (ec_point_laffine) {ef_mull(P29.x, inv_outputs[13]), ef_mull(P29.l, inv_outputs[13])};
+	table[15] = (ec_point_laffine) {ef_mull(P31.x, inv_outputs[14]), ef_mull(P31.l, inv_outputs[14])};
 }
 
 void print_table(ec_point_laffine* table) {
@@ -336,8 +546,7 @@ void print_table(ec_point_laffine* table) {
 #define CEIL(A, B)                      (((A) - 1) / (B) + 1)
 #define MASK(B)                         (((uint64_t)1 << (B)) - 1)
 
-ec_naf ec_to_naf(uint64x2_t k) {
-	uint64_t w = 5;
+ec_naf ec_to_naf(uint64x2_t k, uint64_t w) {
   //uint64_t m = 15; //2^(w-1);
 
 	uint64_t order_len = 253;
@@ -369,13 +578,13 @@ ec_naf ec_to_naf(uint64x2_t k) {
     k[0] = k[0] >> (w-1);
 
     // Then higher bits with 4 bits carry
-    uint64_t carries = k[1] & 15;
+    uint64_t carries = k[1] & mask;
 
     // Can we use both output input MOV R0,R0,ROR 4
     uint64_t shift_res;
-    asm ("ROR %[res], %[input], #4;"
+    asm ("ROR %[res], %[input], %[w];"
       : [res] "=r" (shift_res)
-      : [input] "r" (carries)
+      : [input] "r" (carries), [w] "r" (w-1)
       );
 
     k[0] = k[0] | shift_res;
@@ -391,16 +600,16 @@ ec_naf ec_to_naf(uint64x2_t k) {
   return naf;
 }
 
-void ec_print_naf(ec_naf k) {
-  for(int i = 64; i >= 0; i--) {
+void ec_print_naf(ec_naf k, uint64_t l) {
+  for(int i = l-1; i >= 0; i--) {
     printf(" %hhd ", k.val[i]);
   }
 
   printf("\n");
 }
 
-void ec_print_naf_arr(signed char *naf) {
-  for(int i = 64; i >= 0; i--) {
+void ec_print_naf_arr(signed char *naf, uint64_t l) {
+  for(int i = l-1; i >= 0; i--) {
     printf(" %hhd ", naf[i]);
   }
 

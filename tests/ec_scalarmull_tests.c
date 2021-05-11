@@ -24,7 +24,7 @@ void ec_scalarmull_single_test_example(test_ctr *ctr) {
 	uint64_t on_curve = ec_is_on_curve(actual);
 	assert_true(equal && on_curve, ctr, "ec: ec_scalar_mull_test_example FAILED");
 
-	uint64_t num_runs = 2000;
+	uint64_t num_runs = 100;
 
 	for(int i = 0; i < num_runs; i++) {
     uint64x2x2_t k = ec_rand_scalar();
