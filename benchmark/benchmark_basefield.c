@@ -121,7 +121,7 @@ void benchmark_bf_red_psquare_neonv2() {
 		poly64x2_t a = bf_rand_elem();
 		poly64x2x2_t c = bf_psquare(a); //To get more avrg input
 		uint64_t start = read_pmccntr();
-		bf_red_psquare_neonv2(c);
+		bf_red_psquare(c);
 		uint64_t end = read_pmccntr();
 		insert_sorted(end-start, times, i);
 	}

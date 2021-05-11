@@ -77,15 +77,30 @@ static inline poly64x2_t bf_red(poly64x2x2_t c) {
 }
 
 static inline poly64x2_t bf_red_psquare(poly64x2x2_t c) {
-  poly64x2_t t;
-  t[0] = 0;
-  t = vextq_p64(c.val[1], t, 1);
-  c.val[1] = (poly64x2_t) veorq_u64((uint64x2_t) c.val[1], (uint64x2_t) t);
-  t = vextq_p64(t, c.val[1], 1);
-  c.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) c.val[0], (uint64x2_t) t);
-  c.val[1] = (poly64x2_t) vshlq_n_u64((uint64x2_t) c.val[1], 1);
-  return (poly64x2_t) veorq_u64((uint64x2_t) c.val[0], (uint64x2_t) c.val[1]);
+	poly64x2_t t;
+	t[0] = 0;
+	t = vextq_p64(c.val[1], t, 1);
+	c.val[1][0] ^= t[0];
+	t = vextq_p64(t, c.val[1], 1);
+	c.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) c.val[0], (uint64x2_t) t);
+	c.val[1] = (poly64x2_t) vshlq_n_u64((uint64x2_t) c.val[1], 1);
+	return (poly64x2_t) veorq_u64((uint64x2_t) c.val[0], (uint64x2_t) c.val[1]);
 }
+
+static inline poly64x2_t bf_red_lazy(poly64x2x2_t c) {
+	poly64x2_t t1, t2;
+	t1[0] = 0;
+	t2[0] = c.val[1][0] >> 63;
+	t1 = vextq_p64(c.val[1], t1, 1);
+	c.val[1][0] ^= t1[0];
+	t2[0] ^= c.val[1][0];
+	t1 = vextq_p64(t1, t2, 1);
+	c.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) c.val[0], (uint64x2_t) t1);
+	c.val[1] = (poly64x2_t) vshlq_n_u64((uint64x2_t) c.val[1], 1);
+	return (poly64x2_t) veorq_u64((uint64x2_t) c.val[0], (uint64x2_t) c.val[1]);
+}
+
+poly64x2_t bf_red_from_lazy(poly64x2_t a);
 
 static inline poly64x2_t bf_multisquare_loop(poly64x2_t a, uint64_t n) {
 	for(int i = 0; i < n; i++) {
@@ -113,6 +128,8 @@ poly64x2_t bf_red_psquare_formula(poly64x2x2_t c);
 poly64x2_t bf_red_psquare_neon(poly64x2x2_t c);
 
 poly64x2_t bf_red_psquare_neonv2(poly64x2x2_t c);
+
+poly64x2_t bf_red_lazy_formula(poly64x2x2_t c);
 
 poly64x2_t bf_fermat_inv(poly64x2_t a);
 

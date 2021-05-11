@@ -219,6 +219,29 @@ poly64x2_t bf_red_psquare_formula(poly64x2x2_t c) {
 	return result;
 }
 
+poly64x2_t bf_red_lazy_formula(poly64x2x2_t c) {
+	poly64x2_t result = {0,0};
+	
+	result = bf_add(c.val[0], result);
+
+	poly64x2_t term255to128_rshift127 = {c.val[1][0] << 1, c.val[1][1] << 1};
+	result = bf_add(term255to128_rshift127, result);
+	
+	poly64x2_t bit191 = {0, c.val[1][0] >> 63};
+	result = bf_add(bit191, result);
+
+	poly64x2_t term191to128_rshift64 = {0, c.val[1][0]};
+	result = bf_add(term191to128_rshift64, result);
+
+	poly64x2_t term255to192_rshift128 = {0, c.val[1][1]};
+	result = bf_add(term255to192_rshift128, result);
+
+	poly64x2_t term255to192_rshift191 = {c.val[1][1] << 1, 0};
+	result = bf_add(term255to192_rshift191, result);
+
+	return result;
+}
+
 poly64x2_t bf_inv(poly64x2_t a) {
   poly64x2_t x_10 = bf_red_psquare(bf_psquare(a)); // 2
 	poly64x2_t x_11 = bf_red(bf_pmull(a, x_10)); //1 + 2 = 3
@@ -281,6 +304,14 @@ poly64x2_t bf_red_psquare_neonv2(poly64x2x2_t c) {
 	return (poly64x2_t) veorq_u64((uint64x2_t) c.val[0], (uint64x2_t) c.val[1]);
 }
 
+poly64x2_t bf_red_from_lazy(poly64x2_t a) {
+	uint64_t t = a[1] & 0x8000000000000000;
+	a[1] ^= t;
+	t ^= (t >> 63);
+	a[0] ^= t;
+	return a;
+} 
+
 //Simple and slow, compute a^(-1) as a^((2^127)-2).
 //Exploits the fact that 2^127 - 1 = 2^126 + 2^125 + ... + 2^1 + 1,
 //hence a^-1 = a^(2^126)*...*a^(2^3)*a^(2^2)*a^2:
@@ -301,23 +332,23 @@ poly64x2_t bf_fermat_inv(poly64x2_t a) {
 //In the end return (a^(2^126 -1))^2 = a^(2^127 -2) = a^-1 per Fermat
 poly64x2_t bf_addchain_inv(poly64x2_t a) {
 	poly64x2_t x_10 = bf_red_psquare(bf_psquare(a)); // 2
-	poly64x2_t x_11 = bf_red(bf_pmull(a, x_10)); //1 + 2 = 3
+	poly64x2_t x_11 = bf_red_lazy(bf_pmull(a, x_10)); //1 + 2 = 3
 	poly64x2_t x_110 = bf_red_psquare(bf_psquare(x_11)); //3*2 = 6
-	poly64x2_t x_111 = bf_red(bf_pmull(a, x_110)); //1 + 6 = 7
+	poly64x2_t x_111 = bf_red_lazy(bf_pmull(a, x_110)); //1 + 6 = 7
 	poly64x2_t x_111000 = bf_red_psquare(bf_psquare(bf_red_psquare(bf_psquare(bf_red_psquare(bf_psquare(x_111))))));
 	//7*2^3 = 56
-	poly64x2_t x_111111 = bf_red(bf_pmull(x_111, x_111000)); //56 + 7 = 2^6 - 1
-	poly64x2_t x_x12 = bf_red(bf_pmull(bf_multisquare_loop(x_111111, 6), x_111111));
+	poly64x2_t x_111111 = bf_red_lazy(bf_pmull(x_111, x_111000)); //56 + 7 = 2^6 - 1
+	poly64x2_t x_x12 = bf_red_lazy(bf_pmull(bf_multisquare_loop(x_111111, 6), x_111111));
 	//(2^6 -1)*2^6 + 2^6 - 1 = 2^12 - 1
-	poly64x2_t x_x24 = bf_red(bf_pmull(bf_multisquare_loop(x_x12, 12), x_x12));
+	poly64x2_t x_x24 = bf_red_lazy(bf_pmull(bf_multisquare_loop(x_x12, 12), x_x12));
 	//(2^12-1)*2^12 + 2^12 - 1 = 2^24 - 1
 	poly64x2_t x_i34 = bf_multisquare_loop(x_x24, 6); //(2^24-1)*2^6 = 2^30 -2^6
-	poly64x2_t x_x30 = bf_red(bf_pmull(x_111111, x_i34)); //(2^30-2^6) + 2^6 - 1 = 2^30 - 1
-	poly64x2_t x_x48 = bf_red(bf_pmull(bf_multisquare_loop(x_i34, 18), x_x24));
+	poly64x2_t x_x30 = bf_red_lazy(bf_pmull(x_111111, x_i34)); //(2^30-2^6) + 2^6 - 1 = 2^30 - 1
+	poly64x2_t x_x48 = bf_red_lazy(bf_pmull(bf_multisquare_loop(x_i34, 18), x_x24));
 	//(2^30 - 2^6)*2^18 + 2^24 - 1 = 2^48 - 1
-	poly64x2_t x_x96 = bf_red(bf_pmull(bf_multisquare_loop(x_x48, 48), x_x48));
+	poly64x2_t x_x96 = bf_red_lazy(bf_pmull(bf_multisquare_loop(x_x48, 48), x_x48));
 	//(2^48-1)*2^48 +2^48 - 1 = 2^96 -1
-	poly64x2_t x_end = bf_red(bf_pmull(bf_multisquare_loop(x_x96, 30), x_x30));
+	poly64x2_t x_end = bf_red_lazy(bf_pmull(bf_multisquare_loop(x_x96, 30), x_x30));
 	//(2^96-1)*2^30 + 2^30 - 1 = 2^126 - 1
 	return bf_red_psquare(bf_psquare(x_end));
 }

@@ -10,6 +10,16 @@
 
 int main() {
 	init_components();
+	
+	poly64x2x2_t a = (poly64x2x2_t) {{{0, 0}, {9223372036854775808U, 0}}};
+	poly64x2_t ared = bf_red(a);
+	poly64x2_t aredpsquare = bf_red_psquare_formula(a);
+	poly64x2_t aredlazyformula = bf_red_lazy_formula(a);
+	poly64x2_t aredlazy = bf_red_lazy(a);
+	bf_print_expr_nl(ared);
+	bf_print_expr_nl(aredpsquare);
+	bf_print_expr_nl(aredlazyformula);
+	bf_print_expr_nl(aredlazy);
 
 	// signed char k1_digit = -15;
 	// uint64_t k1_sign = ((unsigned char)k1_digit >> 7);
@@ -31,7 +41,7 @@ int main() {
 //  l: p0: 284c3c7af24c119f||02352b17f9da5d0a p1: 1cb1c6318570bd4a||7e49abaf1ffd8b9f
 
 	// c1=1 k1sign=1
-	uint64x2x2_t k = (uint64x2x2_t) {{{431572255129370311, 5384670855758030008}, {4353603234575721204, 773725909533223690}}};
+	//uint64x2x2_t k = (uint64x2x2_t) {{{431572255129370311, 5384670855758030008}, {4353603234575721204, 773725909533223690}}};
 
 	// c1,2=1 k1sign=1
 	// uint64x2x2_t k = (uint64x2x2_t) {{{23523616, 436346236}, {239852385867236, 4262357238457}}};
@@ -39,6 +49,7 @@ int main() {
 	// uint64x2x2_t k = (uint64x2x2_t) {{{253256326376, 457436346236}, {22385867236, 427238457}}};
 	// uint64x2x2_t k = (uint64x2x2_t) {{{1, 1}, {1, 1}}};
 
+	/*
 	ec_point_laffine P = ec_rand_point_laffine();
 
 	ec_point_lproj expected = ec_scalarmull_single(P, k);
@@ -51,7 +62,7 @@ int main() {
 
 	printf("Equal: %lu\n", equal);
 	printf("On curve: %lu\n", on_curve);
-
+	*/
 
 	// uint64x2x2_t k = ec_rand_scalar();
 	// ec_point_laffine P = ec_rand_point_laffine();
