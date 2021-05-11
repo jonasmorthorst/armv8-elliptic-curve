@@ -159,8 +159,8 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 	ec_naf naf_k1 = ec_to_naf(decomp.k1);
 	ec_naf naf_k2 = ec_to_naf(decomp.k2);
 
-	ec_print_naf(naf_k1);
-	ec_print_naf(naf_k2);
+	// ec_print_naf(naf_k1);
+	// ec_print_naf(naf_k2);
 
 	// Precomputation
 	ec_point_laffine table[16];
@@ -254,26 +254,20 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 	}
 
 	// Fix if c1 > 0
-	uint64x2x2_t c1_full = (uint64x2x2_t) {{{c1, 0}, {0, 0}}};
-	ec_point_lproj c1P = ec_scalarmull_single(P, c1_full);
-
-	ec_point_lproj P1_neg_l = ec_neg(c1P);
-	CMOV(tmp, decomp.k1_sign, cond, c1P, P1_neg_l, old_ptr, new_ptr, typeof(ec_point_lproj));
+	// ec_point_laffine P_neg_l = ec_neg_laffine(P);
+	// CMOV(tmp, decomp.k1_sign, cond, c1P, P1_neg_l, old_ptr, new_ptr, typeof(ec_point_laffine));
 
 	uint64x1_t c1_x1 = { c1 };
-	ec_point_lproj Q_add_neg = ec_add(Q, ec_neg(c1P));
+	ec_point_lproj Q_add_neg = ec_add_mixed(ec_neg_laffine(P), Q);
 	CMOV(tmp, c1_x1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
 
 	// Fix if c2 > 0
-	uint64x2x2_t c2_full = (uint64x2x2_t) {{{c2, 0}, {0, 0}}};
-	ec_point_lproj c2P = ec_scalarmull_single(P, c2_full);
-
-	ec_point_lproj P2_neg_l = ec_neg(c2P);
-	CMOV(tmp, decomp.k2_sign, cond, c2P, P2_neg_l, old_ptr, new_ptr, typeof(ec_point_lproj));
+	// ec_point_laffine P2_neg_l = ec_neg_laffine(c2P);
+	// CMOV(tmp, decomp.k2_sign, cond, c2P, P2_neg_l, old_ptr, new_ptr, typeof(ec_point_laffine));
 
 	uint64x1_t c2_x1 = { c2 };
-	Q_add_neg = ec_add_mixed(ec_neg_laffine(ec_endo_laffine(ec_lproj_to_laffine(c2P))), Q);
+	Q_add_neg = ec_add_mixed(ec_neg_laffine(ec_endo_laffine(P)), Q);
 	CMOV(tmp, c2_x1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
 	// printf("Q On curve: %lu\n", ec_is_on_curve(Q));
