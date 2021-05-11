@@ -27,6 +27,7 @@ ec_point_lproj ec_laffine_to_lproj(ec_point_laffine P) {
 	return R;
 }
 
+//Leads to undefined behavior for P == INFTY
 ec_point_laffine ec_lproj_to_laffine(ec_point_lproj P) {
 	ef_elem Z_inv = ef_inv(P.z);
 	ec_point_laffine R;
@@ -74,12 +75,20 @@ uint64_t ec_is_on_curve(ec_point_lproj P) {
 }
 
 uint64_t ec_equal_point_lproj(ec_point_lproj P, ec_point_lproj Q) {
+	ef_elem zero = (ef_elem) {{{0,0}, {0,0}}};
+	if(ec_is_on_curve(P) && ec_is_on_curve(Q) && ef_equal(P.z, zero) && ef_equal(Q.z, zero)) {
+		return 1;
+	}
 	ec_point_laffine P_affine = ec_lproj_to_laffine(P);
 	ec_point_laffine Q_affine = ec_lproj_to_laffine(Q);
 	return ef_equal(P_affine.x, Q_affine.x) && ef_equal(P_affine.l, Q_affine.l);
 }
 
 uint64_t ec_equal_point_mixed(ec_point_laffine P, ec_point_lproj Q) {
+	ef_elem zero = (ef_elem) {{{0,0}, {0,0}}};
+	if(ef_equal(Q.z, zero)) {
+		return 0;
+	}
 	ec_point_laffine Q_affine = ec_lproj_to_laffine(Q);
 	return ef_equal(P.x, Q_affine.x) && ef_equal(P.l, Q_affine.l);
 }
