@@ -55,9 +55,15 @@ ec_point_lproj ec_rand_point_lproj();
 
 ec_point_laffine ec_rand_point_laffine();
 
-ec_point_lproj ec_neg(ec_point_lproj P);
+static inline ec_point_lproj ec_neg(ec_point_lproj P) {
+	P.l = ef_add(P.l, P.z);
+	return P;
+}
 
-ec_point_laffine ec_neg_laffine(ec_point_laffine P);
+static inline ec_point_laffine ec_neg_laffine(ec_point_laffine P) {
+	P.l.val[0] = bf_add(P.l.val[0], (poly64x2_t) {1,0});
+	return P;
+}
 
 ec_point_lproj ec_add(ec_point_lproj P1, ec_point_lproj P2);
 
@@ -69,7 +75,12 @@ ec_point_lproj ec_double_then_add(ec_point_laffine P, ec_point_lproj Q);
 
 ec_point_lproj ec_double_then_addtwo(ec_point_laffine P1, ec_point_laffine P2, ec_point_lproj Q);
 
-ec_point_laffine ec_endo_laffine(ec_point_laffine P);
+static inline ec_point_laffine ec_endo_laffine(ec_point_laffine P) {
+	P.x.val[0] = bf_add(P.x.val[0], P.x.val[1]);
+	P.l.val[0] = bf_add(P.l.val[0], P.l.val[1]);
+	P.l.val[1] = bf_add(P.l.val[1], (poly64x2_t) {1,0});
+	return P;
+}
 
 ec_split_scalar ec_scalar_decomp(uint64x2x2_t k);
 

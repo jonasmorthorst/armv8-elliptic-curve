@@ -30,11 +30,16 @@ int main() {
 // x: p0: 1fc34c09780b0839||0dbe04483b1838ea p1: 4be7046f6821989b||dbfe7553e9fd2369
 //  l: p0: 284c3c7af24c119f||02352b17f9da5d0a p1: 1cb1c6318570bd4a||7e49abaf1ffd8b9f
 
-	// uint64x2x2_t k = (uint64x2x2_t) {{{431572255129370311, 5384670855758030008}, {4353603234575721204, 773725909533223690}}};
-	uint64x2x2_t k = (uint64x2x2_t) {{{1, 0}, {0, 0}}};
+	// c1=1 k1sign=1
+	uint64x2x2_t k = (uint64x2x2_t) {{{431572255129370311, 5384670855758030008}, {4353603234575721204, 773725909533223690}}};
+
+	// c1,2=1 k1sign=1
+	// uint64x2x2_t k = (uint64x2x2_t) {{{23523616, 436346236}, {239852385867236, 4262357238457}}};
+	//k1 sign 0 k2 sign 1 c1: 0 c2: 0
+	// uint64x2x2_t k = (uint64x2x2_t) {{{253256326376, 457436346236}, {22385867236, 427238457}}};
+	// uint64x2x2_t k = (uint64x2x2_t) {{{1, 1}, {1, 1}}};
 
 	ec_point_laffine P = ec_rand_point_laffine();
-
 
 	ec_point_lproj expected = ec_scalarmull_single(P, k);
 	//Act
@@ -60,25 +65,25 @@ int main() {
 	// uint64_t on_curve = ec_is_on_curve(actual);
 
 
-
-
-
+	// ec_split_scalar decomp = ec_scalar_decomp(k);
 	//
-	// ec_naf result = ec_to_naf(k);
+	//
+	// //
+	// ec_naf result = ec_to_naf(decomp.k1, 6);
 	// printf("%s\n", "Our naf");
-	// ec_print_naf(result);
+	// ec_print_naf(result, 6);
 	//
-	// elt k1_naf = {k[0], k[1]};
+	// elt k1_naf = {decomp.k1[0], decomp.k1[1]};
 	// signed char naf[65];
 	// int len = 0;
 	// int order_len = 253;
-	// int w = 4;
+	// int w = 6;
 	//
 	// scmul_wreg(naf, &len, k1_naf, order_len, w);
 	// printf("\n\n\n%s\n", "Diego's naf");
 	// printf("Len %d\n", len);
 	//
-	// ec_print_naf_arr(naf);
+	// ec_print_naf_arr(naf, 52);
 
 	// uint64x2x2_t k = (uint64x2x2_t) {{{1, 1}, {1, 1}}};
 	//
