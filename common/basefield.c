@@ -46,12 +46,57 @@ void bf_print_expr_nl(poly64x2_t p) {
 	printf("\n");
 }
 
+void bf_print_unred_expr(poly64x2x2_t p) {
+	poly64_t c;
+	int wasFirst = 1;
+	for(int i=1; i>=0; i--) {
+		for(int j=1; j>=0; j--) {
+			// 2^63 = the value of the leftmost bit in a word
+			c = pow2to63;
+			for(int k = 63; k>=0; k--) {
+				poly64_t polybitcopy = c & p.val[i][j];
+				if(polybitcopy == c) {
+					if(!wasFirst) {
+						printf("+");
+					}
+					wasFirst = 0;
+
+					if(i == 0 && j == 0 && k== 0) {
+						printf("1");
+					} else {
+						printf("z^%d", i*128 +j*64 + k);
+					}
+				}
+				c /= 2;
+			}
+		}
+	}
+
+	if(wasFirst) {
+		printf("0");
+	}
+}
+
+void bf_print_unred_expr_nl(poly64x2x2_t p) {
+	bf_print_unred_expr(p);
+	printf("\n");
+}
+
 void bf_print_hex(poly64x2_t p) {
 	printf("%016lx||%016lx", p[1], p[0]);
 }
 
 void bf_print_hex_nl(poly64x2_t p) {
 	bf_print_hex(p);
+	printf("\n");
+}
+
+void bf_print_unred_hex(poly64x2x2_t p) {
+	printf("%016lx||%016lx||%016lx||%016lx", p.val[1][1], p.val[1][0], p.val[0][1], p.val[0][0]);
+}
+
+void bf_print_unred_hex_nl(poly64x2x2_t p) {
+	bf_print_unred_hex(p);
 	printf("\n");
 }
 

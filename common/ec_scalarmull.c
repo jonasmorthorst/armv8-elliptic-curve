@@ -134,7 +134,7 @@ void linear_pass(ec_point_laffine *P1, ec_point_laffine *P2, ec_point_laffine* t
 	*P2 = ec_endo_laffine(P2_tmp);
 }
 
-ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint64x2x2_t k) {
+ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint64x2x2_t k) {
 	// printf("%s\n", "P IN");
 	// ec_print_hex_laffine(P);
 
@@ -289,10 +289,10 @@ ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint6
 	// printf("Returning Q \n");
 	// ec_print_hex(Q);
 
-	return Q;
+	return ec_lproj_to_laffine(Q);
 }
 
-ec_point_lproj ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uint64x2x2_t k) {
+ec_point_laffine ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uint64x2x2_t k) {
 	// printf("%s\n", "P IN");
 	// ec_print_hex_laffine(P);
 
@@ -445,7 +445,7 @@ ec_point_lproj ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uint6
 	// printf("Returning Q \n");
 	// ec_print_hex(Q);
 
-	return Q;
+	return ec_lproj_to_laffine(Q);
 }
 
 void precompute_first(ec_point_laffine P, ec_point_laffine* table) {

@@ -12,9 +12,17 @@ void bf_print_expr(poly64x2_t p);
 
 void bf_print_expr_nl(poly64x2_t p);
 
+void bf_print_unred_expr(poly64x2x2_t p);
+
+void bf_print_unred_expr_nl(poly64x2x2_t p);
+
 void bf_print_hex(poly64x2_t p);
 
 void bf_print_hex_nl(poly64x2_t p);
+
+void bf_print_unred_hex(poly64x2x2_t p);
+
+void bf_print_unred_hex_nl(poly64x2x2_t p);
 
 static inline poly64x2_t bf_create_elem(uint64_t l, uint64_t h) {
 	poly64x2_t a = {l, h};
@@ -48,7 +56,7 @@ static inline poly64x2x2_t bf_pmull(poly64x2_t a, poly64x2_t b) {
 }
 
 static inline poly64x2x2_t bf_psquare(poly64x2_t a) {
-  poly64x2x2_t r;
+	poly64x2x2_t r;
 	r.val[0] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[0], a[0]));
 	r.val[1] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a[1], a[1]));
 	return r;

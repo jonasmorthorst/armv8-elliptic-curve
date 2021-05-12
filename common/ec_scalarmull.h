@@ -20,9 +20,9 @@ ec_point_laffine ec_scalarmull_single_endo(ec_point_laffine P, uint64x2x2_t k);
 
 void linear_pass(ec_point_laffine *P1, ec_point_laffine *P2, ec_point_laffine* table, uint64_t index1, uint64_t index2, uint64_t l);
 
-ec_point_lproj ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint64x2x2_t k);
+ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint64x2x2_t k);
 
-ec_point_lproj ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uint64x2x2_t k);
+ec_point_laffine ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uint64x2x2_t k);
 
 void scmul_wreg(signed char *naf, int *len, elt k, int n, int w);
 

@@ -17,11 +17,11 @@ void ec_scalarmull_single_test_example(test_ctr *ctr) {
 	ec_point_lproj expected = ec_create_point_lproj(EX, EL, EZ); // expected = 1984 * GEN
 
 	//Act
-	ec_point_lproj actual = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine((ec_point_lproj)GEN), k);
+	ec_point_laffine actual = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine((ec_point_lproj)GEN), k);
 
 	//Assert
-	uint64_t equal = ec_equal_point_lproj(expected, actual);
-	uint64_t on_curve = ec_is_on_curve(actual);
+	uint64_t equal = ec_equal_point_mixed(actual, expected);
+	uint64_t on_curve = ec_is_on_curve_laffine(actual);
 	assert_true(equal && on_curve, ctr, "ec: ec_scalar_mull_test_example FAILED");
 
 	uint64_t num_runs = 100;
@@ -32,11 +32,11 @@ void ec_scalarmull_single_test_example(test_ctr *ctr) {
 
 		ec_point_lproj expected = ec_scalarmull_single(P, k);
 		//Act
-		ec_point_lproj actual = ec_scalarmull_single_endo_w5_randaccess(P, k);
+		ec_point_laffine actual = ec_scalarmull_single_endo_w5_randaccess(P, k);
 
 		//Assert
-		uint64_t equal = ec_equal_point_lproj(expected, actual);
-		uint64_t on_curve = ec_is_on_curve(actual);
+		uint64_t equal = ec_equal_point_mixed(actual, expected);
+		uint64_t on_curve = ec_is_on_curve_laffine(actual);
 
 		assert_true(equal && on_curve, ctr, "ec: ec_scalar_mull_test_example FAILED");
 	}
@@ -57,11 +57,11 @@ void ec_scalarmull_single_test_linearity(test_ctr *ctr) {
 	ec_point_lproj Q = ec_create_point_lproj(QX, QL, QZ); //14329 * GEN
 
 	//Act
-	ec_point_lproj add_first = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(ec_add(P, Q)), k);
-	ec_point_lproj add_after = ec_add(ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), k), ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(Q), k));
+	ec_point_laffine add_first = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(ec_add(P, Q)), k);
+	ec_point_lproj add_after = ec_add_mixed(ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), k), ec_laffine_to_lproj(ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(Q), k)));
 
 	//Assert
-	uint64_t correct = ec_equal_point_lproj(add_first, add_after) && ec_is_on_curve(add_first);
+	uint64_t correct = ec_equal_point_mixed(add_first, add_after) && ec_is_on_curve_laffine(add_first);
 	assert_true(correct, ctr, "ec: ec_scalarmull_single_test_linearity FAILED");
 }
 
@@ -74,11 +74,11 @@ void ec_scalarmull_single_test_negation_order_indifference(test_ctr *ctr) {
 	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //2243156791409331652485 * P
 
 	//Act
-	ec_point_lproj neg_first = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(ec_neg(P)), k);
-	ec_point_lproj neg_last = ec_neg(ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), k));
+	ec_point_laffine neg_first = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(ec_neg(P)), k);
+	ec_point_laffine neg_last = ec_neg_laffine(ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), k));
 
 	//Assert
-	uint64_t correct = ec_equal_point_lproj(neg_first, neg_last);
+	uint64_t correct = ec_equal_point_laffine(neg_first, neg_last);
 	assert_true(correct, ctr, "ec: ec_scalarmull_single_test_negation_order_indifference FAILED");
 }
 
@@ -120,12 +120,12 @@ void ec_scalarmull_single_test_final_k_at_once_same_as_factor_one_at_a_time(test
 	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //99921481365893197563 * GEN
 
 	//Act
-	ec_point_lproj k1P = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), k1);
-	ec_point_lproj k1k2P = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(k1P), k2);
-	ec_point_lproj kP = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), k);
+	ec_point_laffine k1P = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), k1);
+	ec_point_laffine k1k2P = ec_scalarmull_single_endo_w5_randaccess(k1P, k2);
+	ec_point_laffine kP = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), k);
 
 	//Assert
-	uint64_t correct = ec_equal_point_lproj(kP, k1k2P) && ec_is_on_curve(k1P) && ec_is_on_curve(k1k2P);
+	uint64_t correct = ec_equal_point_laffine(kP, k1k2P) && ec_is_on_curve_laffine(k1P) && ec_is_on_curve_laffine(k1k2P);
 	assert_true(correct, ctr, "ec: ec_scalarmull_single_test_final_k_at_once_same_as_factor_one_at_a_time FAILED");
 }
 
@@ -139,10 +139,10 @@ void ec_scalarmull_single_test_k_one_is_identity(test_ctr *ctr) {
 	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //P = 78632917462800214 * GEN
 
 	//Act
-	ec_point_lproj result = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), k);
+	ec_point_laffine result = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), k);
 
 	//Assert
-	uint64_t correct = ec_equal_point_lproj(result, P) && ec_is_on_curve(result);
+	uint64_t correct = ec_equal_point_mixed(result, P) && ec_is_on_curve_laffine(result);
 	assert_true(correct, ctr, "ec: ec_scalarmull_single_test_k_one_is_identity FAILED");
 }
 
@@ -359,7 +359,7 @@ void ec_scalarmull_single_endo_test_crosscheck_rnd(test_ctr *ctr) {
 	ec_point_laffine P = ec_rand_point_laffine();
 
 	//Act
-	ec_point_laffine kP = ec_lproj_to_laffine(ec_scalarmull_single_endo_w5_randaccess(P, k));
+	ec_point_laffine kP = ec_scalarmull_single_endo_w5_randaccess(P, k);
 	ec_point_laffine crosscheck = ec_scalarmull_single_endo(P, k);
 
 	//Assert
@@ -380,14 +380,14 @@ void ec_scalarmull_test_precomputation(test_ctr *ctr) {
 	ec_point_laffine table[16];
 	precompute(ec_lproj_to_laffine(P), table);
 
-	uint64_t equal1 = ec_equal_point_lproj(ec_laffine_to_lproj(table[1]), ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{1, 0}, {0, 0}}}));
-	uint64_t equal3 = ec_equal_point_lproj(ec_laffine_to_lproj(table[3]), ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{3, 0}, {0, 0}}}));
-	uint64_t equal5 = ec_equal_point_lproj(ec_laffine_to_lproj(table[5]), ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{5, 0}, {0, 0}}}));
-	uint64_t equal7 = ec_equal_point_lproj(ec_laffine_to_lproj(table[7]), ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{7, 0}, {0, 0}}}));
-	uint64_t equal9 = ec_equal_point_lproj(ec_laffine_to_lproj(table[9]), ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{9, 0}, {0, 0}}}));
-	uint64_t equal11 = ec_equal_point_lproj(ec_laffine_to_lproj(table[11]), ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{11, 0}, {0, 0}}}));
-	uint64_t equal13 = ec_equal_point_lproj(ec_laffine_to_lproj(table[13]), ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{13, 0}, {0, 0}}}));
-	uint64_t equal15 = ec_equal_point_lproj(ec_laffine_to_lproj(table[15]), ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{15, 0}, {0, 0}}}));
+	uint64_t equal1 = ec_equal_point_laffine(table[1], ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{1, 0}, {0, 0}}}));
+	uint64_t equal3 = ec_equal_point_laffine(table[3], ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{3, 0}, {0, 0}}}));
+	uint64_t equal5 = ec_equal_point_laffine(table[5], ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{5, 0}, {0, 0}}}));
+	uint64_t equal7 = ec_equal_point_laffine(table[7], ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{7, 0}, {0, 0}}}));
+	uint64_t equal9 = ec_equal_point_laffine(table[9], ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{9, 0}, {0, 0}}}));
+	uint64_t equal11 = ec_equal_point_laffine(table[11], ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{11, 0}, {0, 0}}}));
+	uint64_t equal13 = ec_equal_point_laffine(table[13], ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{13, 0}, {0, 0}}}));
+	uint64_t equal15 = ec_equal_point_laffine(table[15], ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{15, 0}, {0, 0}}}));
 
 	assert_true(equal1 && equal3 && equal5 && equal7 && equal9 && equal11 && equal13 && equal15 , ctr, "ec_scalarmull_test_precomputation FAILED");
 }

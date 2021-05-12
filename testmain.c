@@ -8,6 +8,7 @@
 #include "tests/ec_tests.h"
 #include "tests/ec_scalarmull_tests.h"
 #include "tests/extensionfield_tests.h"
+#include "tests/extensionfield_interleaved_tests.h"
 #include "tests/util_tests.h"
 
 int main() {
@@ -19,6 +20,7 @@ int main() {
 	util_tests(ctr);
 	basefield_tests(ctr);
 	extensionfield_tests(ctr);
+	extensionfield_interleaved_tests(ctr);
 	ec_tests(ctr);
 	ec_scalarmull_tests(ctr);
 

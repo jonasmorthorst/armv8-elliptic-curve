@@ -74,6 +74,10 @@ uint64_t ec_is_on_curve(ec_point_lproj P) {
 	return ef_equal(lhs, rhs);
 }
 
+uint64_t ec_is_on_curve_laffine(ec_point_laffine P) {
+	return ec_is_on_curve(ec_laffine_to_lproj(P));
+}
+
 uint64_t ec_equal_point_lproj(ec_point_lproj P, ec_point_lproj Q) {
 	ef_elem zero = (ef_elem) {{{0,0}, {0,0}}};
 	if(ec_is_on_curve(P) && ec_is_on_curve(Q) && ef_equal(P.z, zero) && ef_equal(Q.z, zero)) {
