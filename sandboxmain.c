@@ -10,16 +10,16 @@
 
 int main() {
 	init_components();
-	
-	poly64x2x2_t a = (poly64x2x2_t) {{{0, 0}, {9223372036854775808U, 0}}};
-	poly64x2_t ared = bf_red(a);
-	poly64x2_t aredpsquare = bf_red_psquare_formula(a);
-	poly64x2_t aredlazyformula = bf_red_lazy_formula(a);
-	poly64x2_t aredlazy = bf_red_lazy(a);
-	bf_print_expr_nl(ared);
-	bf_print_expr_nl(aredpsquare);
-	bf_print_expr_nl(aredlazyformula);
-	bf_print_expr_nl(aredlazy);
+
+	// poly64x2x2_t a = (poly64x2x2_t) {{{0, 0}, {9223372036854775808U, 0}}};
+	// poly64x2_t ared = bf_red(a);
+	// poly64x2_t aredpsquare = bf_red_psquare_formula(a);
+	// poly64x2_t aredlazyformula = bf_red_lazy_formula(a);
+	// poly64x2_t aredlazy = bf_red_lazy(a);
+	// bf_print_expr_nl(ared);
+	// bf_print_expr_nl(aredpsquare);
+	// bf_print_expr_nl(aredlazyformula);
+	// bf_print_expr_nl(aredlazy);
 
 	// signed char k1_digit = -15;
 	// uint64_t k1_sign = ((unsigned char)k1_digit >> 7);
@@ -47,29 +47,29 @@ int main() {
 	// uint64x2x2_t k = (uint64x2x2_t) {{{23523616, 436346236}, {239852385867236, 4262357238457}}};
 	//k1 sign 0 k2 sign 1 c1: 0 c2: 0
 	// uint64x2x2_t k = (uint64x2x2_t) {{{253256326376, 457436346236}, {22385867236, 427238457}}};
-	// uint64x2x2_t k = (uint64x2x2_t) {{{1, 1}, {1, 1}}};
+	//
+	uint64x2x2_t k = (uint64x2x2_t) {{{253256326376, 457436346236}, {124525, 11352535}}};
 
-	/*
 	ec_point_laffine P = ec_rand_point_laffine();
-
+	
 	ec_point_lproj expected = ec_scalarmull_single(P, k);
 	//Act
-	ec_point_lproj actual = ec_scalarmull_single_endo_w5_randaccess(P, k);
+	ec_point_laffine actual = ec_scalarmull_single_endo_w3_randaccess(P, k);
 
 	//Assert
-	uint64_t equal = ec_equal_point_lproj(expected, actual);
-	uint64_t on_curve = ec_is_on_curve(actual);
+	uint64_t equal = ec_equal_point_lproj(expected, ec_laffine_to_lproj(actual));
+	uint64_t on_curve = ec_is_on_curve_laffine(actual);
 
 	printf("Equal: %lu\n", equal);
 	printf("On curve: %lu\n", on_curve);
-	*/
+
 
 	// uint64x2x2_t k = ec_rand_scalar();
 	// ec_point_laffine P = ec_rand_point_laffine();
 	//
 	// ec_point_lproj expected = ec_scalarmull_single(P, k);
 	// //Act
-	// ec_point_lproj actual = ec_scalarmull_single_endo_w5_randaccess(P, k);
+	// ec_point_lproj actual = ec_scalarmull_single_endo_w3_randaccess(P, k);
 	//
 	// //Assert
 	// uint64_t equal = ec_equal_point_lproj(expected, actual);
@@ -85,10 +85,10 @@ int main() {
 	// ec_print_naf(result, 6);
 	//
 	// elt k1_naf = {decomp.k1[0], decomp.k1[1]};
-	// signed char naf[65];
+	// signed char naf[200];
 	// int len = 0;
 	// int order_len = 253;
-	// int w = 6;
+	// int w = 2;
 	//
 	// scmul_wreg(naf, &len, k1_naf, order_len, w);
 	// printf("\n\n\n%s\n", "Diego's naf");

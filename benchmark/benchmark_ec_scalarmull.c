@@ -49,6 +49,48 @@ void benchmark_ec_scalarmull_single_endo() {
 	printf("Median: %lf\n\n", median(times, num_runs));
 }
 
+void benchmark_ec_scalarmull_single_endo_w3_randaccess() {
+	uint64_t num_runs = 2000;
+	uint64_t times[num_runs];
+	ec_point_lproj sum = ec_rand_point_lproj();
+
+	for(int i = 0; i < num_runs; i++) {
+		uint64x2x2_t k = ec_rand_scalar();
+		ec_point_laffine P = ec_rand_point_laffine();
+		uint64_t start = read_pmccntr();
+		ec_point_laffine R = ec_scalarmull_single_endo_w3_randaccess(P, k);
+		uint64_t end = read_pmccntr();
+		insert_sorted(end-start, times, i);
+		sum = ec_add_mixed(R, sum);
+	}
+	ec_print_hex(sum);
+	printf("BENCHMARK benchmark_ec_scalarmull_single_endo_w3_randaccess\n");
+	printf("Number of iterations: %lu\n", num_runs);
+	printf("Average: %lf\n", average(times, num_runs));
+	printf("Median: %lf\n\n", median(times, num_runs));
+}
+
+void benchmark_ec_scalarmull_single_endo_w4_randaccess() {
+	uint64_t num_runs = 2000;
+	uint64_t times[num_runs];
+	ec_point_lproj sum = ec_rand_point_lproj();
+
+	for(int i = 0; i < num_runs; i++) {
+		uint64x2x2_t k = ec_rand_scalar();
+		ec_point_laffine P = ec_rand_point_laffine();
+		uint64_t start = read_pmccntr();
+		ec_point_laffine R = ec_scalarmull_single_endo_w4_randaccess(P, k);
+		uint64_t end = read_pmccntr();
+		insert_sorted(end-start, times, i);
+		sum = ec_add_mixed(R, sum);
+	}
+	ec_print_hex(sum);
+	printf("BENCHMARK benchmark_ec_scalarmull_single_endo_w4_randaccess\n");
+	printf("Number of iterations: %lu\n", num_runs);
+	printf("Average: %lf\n", average(times, num_runs));
+	printf("Median: %lf\n\n", median(times, num_runs));
+}
+
 void benchmark_ec_scalarmull_single_endo_w5_randaccess() {
 	uint64_t num_runs = 2000;
 	uint64_t times[num_runs];
@@ -117,6 +159,8 @@ void benchmark_ec_scalarmull_double() {
 void benchmark_ec_scalarmull_all() {
 	benchmark_ec_scalarmull_single();
 	benchmark_ec_scalarmull_single_endo();
+	benchmark_ec_scalarmull_single_endo_w3_randaccess();
+	benchmark_ec_scalarmull_single_endo_w4_randaccess();
 	benchmark_ec_scalarmull_single_endo_w5_randaccess();
 	benchmark_ec_scalarmull_single_endo_w6_randaccess();
 	benchmark_ec_scalarmull_double();

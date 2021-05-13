@@ -24,7 +24,7 @@ void ec_scalarmull_single_test_example(test_ctr *ctr) {
 	uint64_t on_curve = ec_is_on_curve_laffine(actual);
 	assert_true(equal && on_curve, ctr, "ec: ec_scalar_mull_test_example FAILED");
 
-	uint64_t num_runs = 100;
+	uint64_t num_runs = 1;
 
 	for(int i = 0; i < num_runs; i++) {
     uint64x2x2_t k = ec_rand_scalar();
@@ -95,14 +95,14 @@ void ec_scalarmull_single_test_order_of_gen_is_order_of_subgroup(test_ctr *ctr) 
 	printf("%lu", ec_is_on_curve(ec_laffine_to_lproj(gen_inv2)));
 	ec_print_hex_laffine(gen_inv);
 	ec_print_hex_laffine(gen_inv2);
-	
+
 	ec_split_scalar decomp = ec_scalar_decomp(order_minus_1);
 	printf("k1 %lu, %lu sign %lu\n", decomp.k1[0], decomp.k1[1], decomp.k1_sign);
 	printf("k2 %lu, %lu sign %lu\n", decomp.k2[0], decomp.k2[1], decomp.k2_sign);
-	
+
 	ec_point_lproj gen_plus_gen_inv = ec_add_mixed(gen_inv, (ec_point_lproj) GEN);
 	//ec_print_expr(gen_plus_gen_inv);
-	
+
 	//Assert
 	uint64_t correct = ec_equal_point_lproj(gen_plus_gen_inv, (ec_point_lproj) INFTY);
 	assert_true(correct, ctr, "ec: ec_scalarmull_single_test_order_of_gen_is_order_of_subgroup FAILED");
@@ -393,9 +393,9 @@ void ec_scalarmull_test_precomputation(test_ctr *ctr) {
 }
 
 void ec_scalarmull_tests(test_ctr *ctr) {
-	/*ec_scalarmull_single_test_example(ctr);
+	ec_scalarmull_single_test_example(ctr);
 	ec_scalarmull_single_test_linearity(ctr);
-	ec_scalarmull_single_test_negation_order_indifference(ctr);*/
+	ec_scalarmull_single_test_negation_order_indifference(ctr);
 	ec_scalarmull_single_test_order_of_gen_is_order_of_subgroup(ctr);
 	ec_scalarmull_single_test_final_k_at_once_same_as_factor_one_at_a_time(ctr);
 	ec_scalarmull_single_test_k_one_is_identity(ctr);

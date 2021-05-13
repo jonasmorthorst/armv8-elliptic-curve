@@ -134,6 +134,181 @@ void linear_pass(ec_point_laffine *P1, ec_point_laffine *P2, ec_point_laffine* t
 	*P2 = ec_endo_laffine(P2_tmp);
 }
 
+ec_point_laffine ec_scalarmull_single_endo_w3_randaccess(ec_point_laffine P, uint64x2x2_t k) {
+	uint64x1_t old_ptr, new_ptr, tmp, cond;
+	cond[0]=1;
+	int l = 128;
+
+	ec_split_scalar decomp = ec_scalar_decomp(k);
+
+	uint64_t zero = 0;
+
+	uint64_t c1 = 1-(decomp.k1[0]&1);
+	decomp.k1[0] = decomp.k1[0]+c1;
+
+	uint64_t c2 = 1-(decomp.k2[0]&1);
+	decomp.k2[0] = decomp.k2[0]+c2;
+
+	// Compute recodings
+	signed char naf_k1[l];
+	signed char naf_k2[l];
+
+	ec_to_naf(decomp.k1, 3, naf_k1);
+	ec_to_naf(decomp.k2, 3, naf_k2);
+
+	// Precomputation
+	ec_point_laffine table[2];
+	precompute_w3(P, table);
+
+	signed char k1_digit = naf_k1[l-1];
+	uint64_t k1_digit_sign = ((unsigned char)k1_digit >> 7);
+	signed char k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
+	uint64_t k1_sign = k1_digit_sign^decomp.k1_sign;
+
+	signed char k2_digit = naf_k2[l-1];
+	uint64_t k2_digit_sign = (unsigned char)k2_digit >> 7;
+	signed char k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
+	uint64_t k2_sign = k2_digit_sign^decomp.k2_sign;
+
+	ec_point_laffine P1;
+	ec_point_laffine P2;
+
+	linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 2);
+
+	ec_point_laffine P1_neg = ec_neg_laffine(P1);
+	CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+	ec_point_laffine P2_neg = ec_neg_laffine(P2);
+	CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+
+	ec_point_lproj Q = ec_add_mixed(P1, ec_laffine_to_lproj(P2));
+
+	for(int i=l-2; i>=0; i--) {
+		Q = ec_double(Q);
+
+		k1_digit = naf_k1[i];
+		k1_digit_sign = ((unsigned char)k1_digit >> 7);
+		k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
+		k1_sign = k1_digit_sign^decomp.k1_sign;
+
+		k2_digit = naf_k2[i];
+		k2_digit_sign = ((unsigned char)k2_digit >> 7);
+		k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
+		k2_sign = k2_digit_sign^decomp.k2_sign;
+
+		linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 2);
+
+		P1_neg = ec_neg_laffine(P1);
+		CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+		P2_neg = ec_neg_laffine(P2);
+		CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+
+		Q = ec_double_then_addtwo(P1, P2, Q);
+	}
+
+	// Fix if c1 > 0
+	P1 = P;
+	P1.l.val[0][0] ^= 1-decomp.k1_sign;
+	ec_point_lproj Q_add_neg = ec_add_mixed(P1, Q);
+	CMOV(tmp, c1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
+
+	// Fix if c2 > 0
+	P2 = P;
+	P2.l.val[0][0] ^= 1-decomp.k2_sign;
+	Q_add_neg = ec_add_mixed(ec_endo_laffine(P2), Q);
+	CMOV(tmp, c2, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
+
+	return ec_lproj_to_laffine(Q);
+}
+
+ec_point_laffine ec_scalarmull_single_endo_w4_randaccess(ec_point_laffine P, uint64x2x2_t k) {
+	uint64x1_t old_ptr, new_ptr, tmp, cond;
+	cond[0]=1;
+	int l = 86;
+
+	//128
+	//254
+
+	ec_split_scalar decomp = ec_scalar_decomp(k);
+
+	uint64_t zero = 0;
+
+	uint64_t c1 = 1-(decomp.k1[0]&1);
+	decomp.k1[0] = decomp.k1[0]+c1;
+
+	uint64_t c2 = 1-(decomp.k2[0]&1);
+	decomp.k2[0] = decomp.k2[0]+c2;
+
+	// Compute recodings
+	signed char naf_k1[l];
+	signed char naf_k2[l];
+
+	ec_to_naf(decomp.k1, 4, naf_k1);
+	ec_to_naf(decomp.k2, 4, naf_k2);
+
+	// Precomputation
+	ec_point_laffine table[4];
+	precompute_w4(P, table);
+
+	signed char k1_digit = naf_k1[l-1];
+	uint64_t k1_digit_sign = ((unsigned char)k1_digit >> 7);
+	signed char k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
+	uint64_t k1_sign = k1_digit_sign^decomp.k1_sign;
+
+	signed char k2_digit = naf_k2[l-1];
+	uint64_t k2_digit_sign = (unsigned char)k2_digit >> 7;
+	signed char k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
+	uint64_t k2_sign = k2_digit_sign^decomp.k2_sign;
+
+	ec_point_laffine P1;
+	ec_point_laffine P2;
+
+	linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 4);
+
+	ec_point_laffine P1_neg = ec_neg_laffine(P1);
+	CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+	ec_point_laffine P2_neg = ec_neg_laffine(P2);
+	CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+
+	ec_point_lproj Q = ec_add_mixed(P1, ec_laffine_to_lproj(P2));
+
+	for(int i=l-2; i>=0; i--) {
+		Q = ec_double(ec_double(Q));
+
+		k1_digit = naf_k1[i];
+		k1_digit_sign = ((unsigned char)k1_digit >> 7);
+		k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
+		k1_sign = k1_digit_sign^decomp.k1_sign;
+
+		k2_digit = naf_k2[i];
+		k2_digit_sign = ((unsigned char)k2_digit >> 7);
+		k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
+		k2_sign = k2_digit_sign^decomp.k2_sign;
+
+		linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 4);
+
+		P1_neg = ec_neg_laffine(P1);
+		CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+		P2_neg = ec_neg_laffine(P2);
+		CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+
+		Q = ec_double_then_addtwo(P1, P2, Q);
+	}
+
+	// Fix if c1 > 0
+	P1 = P;
+	P1.l.val[0][0] ^= 1-decomp.k1_sign;
+	ec_point_lproj Q_add_neg = ec_add_mixed(P1, Q);
+	CMOV(tmp, c1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
+
+	// Fix if c2 > 0
+	P2 = P;
+	P2.l.val[0][0] ^= 1-decomp.k2_sign;
+	Q_add_neg = ec_add_mixed(ec_endo_laffine(P2), Q);
+	CMOV(tmp, c2, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
+
+	return ec_lproj_to_laffine(Q);
+}
+
 ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint64x2x2_t k) {
 	// printf("%s\n", "P IN");
 	// ec_print_hex_laffine(P);
@@ -141,6 +316,7 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	uint64x1_t old_ptr, new_ptr, tmp, cond;
 	cond[0]=1;
 	int l = 65;
+	// int l = 86;
 	//l=52
 	//86
 
@@ -171,24 +347,27 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	// printf("k2_1 %lu\n", decomp.k2[1]);
 
 	// Compute recodings
-	ec_naf naf_k1 = ec_to_naf(decomp.k1, 5);
-	ec_naf naf_k2 = ec_to_naf(decomp.k2, 5);
+	signed char naf_k1[l];
+	signed char naf_k2[l];
+
+	ec_to_naf(decomp.k1, 5, naf_k1);
+	ec_to_naf(decomp.k2, 5, naf_k2);
 
 	// ec_print_naf(naf_k1, l);
 	// ec_print_naf(naf_k2, l);
 
 	// Precomputation
-	ec_point_laffine table[8];
+	ec_point_laffine table[16];
 	precompute(P, table);
 
 	// print_table(table);
 
-	signed char k1_digit = naf_k1.val[l-1];
+	signed char k1_digit = naf_k1[l-1];
 	uint64_t k1_digit_sign = ((unsigned char)k1_digit >> 7);
 	signed char k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
 	uint64_t k1_sign = k1_digit_sign^decomp.k1_sign;
 
-	signed char k2_digit = naf_k2.val[l-1];
+	signed char k2_digit = naf_k2[l-1];
 	uint64_t k2_digit_sign = (unsigned char)k2_digit >> 7;
 	signed char k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
 	uint64_t k2_sign = k2_digit_sign^decomp.k2_sign;
@@ -229,12 +408,12 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 
 		Q = ec_double(ec_double(ec_double(Q)));
 
-		k1_digit = naf_k1.val[i];
+		k1_digit = naf_k1[i];
 		k1_digit_sign = ((unsigned char)k1_digit >> 7);
 		k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
 		k1_sign = k1_digit_sign^decomp.k1_sign;
 
-		k2_digit = naf_k2.val[i];
+		k2_digit = naf_k2[i];
 		k2_digit_sign = ((unsigned char)k2_digit >> 7);
 		k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
 		k2_sign = k2_digit_sign^decomp.k2_sign;
@@ -293,27 +472,13 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 }
 
 ec_point_laffine ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uint64x2x2_t k) {
-	// printf("%s\n", "P IN");
-	// ec_print_hex_laffine(P);
-
 	uint64x1_t old_ptr, new_ptr, tmp, cond;
 	cond[0]=1;
-	// int l = 65;
 	int l = 52;
-	//l=52
-	//86
 
 	ec_split_scalar decomp = ec_scalar_decomp(k);
 
-	// decomp.k1_sign = 1;
 	uint64_t zero = 0;
-
-	// printf("k1_0: %lu\n", decomp.k1[0]);
-	// printf("k1_1: %lu\n", decomp.k1[1]);
-	// printf("k2_0 %lu\n", decomp.k2[0]);
-	// printf("k2_1 %lu\n", decomp.k2[1]);
-	// printf("k1 sign %lu\n", decomp.k1_sign);
-	// printf("k2 sign %lu\n", decomp.k2_sign);
 
 	uint64_t c1 = 1-(decomp.k1[0]&1);
 	decomp.k1[0] = decomp.k1[0]+c1;
@@ -321,44 +486,26 @@ ec_point_laffine ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uin
 	uint64_t c2 = 1-(decomp.k2[0]&1);
 	decomp.k2[0] = decomp.k2[0]+c2;
 
-	// printf("c1: %lu\n", c1);
-	// printf("c2: %lu\n", c2);
-	//
-	// printf("k1_0: %lu\n", decomp.k1[0]);
-	// printf("k1_1: %lu\n", decomp.k1[1]);
-	// printf("k2_0 %lu\n", decomp.k2[0]);
-	// printf("k2_1 %lu\n", decomp.k2[1]);
-
 	// Compute recodings
-	ec_naf naf_k1 = ec_to_naf(decomp.k1, 6);
-	ec_naf naf_k2 = ec_to_naf(decomp.k2, 6);
+	signed char naf_k1[l];
+	signed char naf_k2[l];
 
-	// ec_print_naf(naf_k1, l);
-	// ec_print_naf(naf_k2, l);
+	ec_to_naf(decomp.k1, 6, naf_k1);
+	ec_to_naf(decomp.k2, 6, naf_k2);
 
 	// Precomputation
 	ec_point_laffine table[16];
 	precompute_w6(P, table);
 
-	// print_table(table);
-
-	signed char k1_digit = naf_k1.val[l-1];
+	signed char k1_digit = naf_k1[l-1];
 	uint64_t k1_digit_sign = ((unsigned char)k1_digit >> 7);
 	signed char k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
 	uint64_t k1_sign = k1_digit_sign^decomp.k1_sign;
 
-	signed char k2_digit = naf_k2.val[l-1];
+	signed char k2_digit = naf_k2[l-1];
 	uint64_t k2_digit_sign = (unsigned char)k2_digit >> 7;
 	signed char k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
 	uint64_t k2_sign = k2_digit_sign^decomp.k2_sign;
-
-
-	// printf("k1_digit_sign %lu\n", k1_digit_sign);
-	// printf("k2_digit_sign %lu\n", k2_digit_sign);
-	// printf("k1_sign %lu\n", k1_sign);
-	// printf("k2_sign %lu\n", k2_sign);
-	//
-	// printf("k1 digit: %hhd | k2 digit: %hhd \n\n", k1_digit, k2_digit);
 
 	ec_point_laffine P1;
 	ec_point_laffine P2;
@@ -370,45 +517,22 @@ ec_point_laffine ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uin
 	ec_point_laffine P2_neg = ec_neg_laffine(P2);
 	CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
 
-	// printf("P1 negated: %lu\n", ec_equal_point_laffine(P1, P1_neg));
-	// printf("P2 negated: %lu\n", ec_equal_point_laffine(P2, P2_neg));
-
-	// ec_print_hex_laffine(P1);
-
 	ec_point_lproj Q = ec_add_mixed(P1, ec_laffine_to_lproj(P2));
 
 	for(int i=l-2; i>=0; i--) {
+		Q = ec_double(ec_double(ec_double(ec_double(Q))));
 
-		// printf("Q On curve: %lu\n", ec_is_on_curve(Q));
-
-		// printf("i: %d\n", i);
-
-		Q = ec_double(ec_double(ec_double(Q)));
-
-		k1_digit = naf_k1.val[i];
+		k1_digit = naf_k1[i];
 		k1_digit_sign = ((unsigned char)k1_digit >> 7);
 		k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
 		k1_sign = k1_digit_sign^decomp.k1_sign;
 
-		k2_digit = naf_k2.val[i];
+		k2_digit = naf_k2[i];
 		k2_digit_sign = ((unsigned char)k2_digit >> 7);
 		k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
 		k2_sign = k2_digit_sign^decomp.k2_sign;
 
-		// printf("k1 digit: %hhd | k2 digit: %hhd \n", k1_digit, k2_digit);
-		// printf("k1 sign: %lu | k2 sign: %lu \n", k2_sign, k2_sign);
-		// printf("k1 val: %hhd | k2 val: %hhd \n\n", k1_val, k2_digit);
-
 		linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 16);
-
-		// printf("P1 On curve: %lu\n", ec_is_on_curve(ec_laffine_to_lproj(P1)));
-		// printf("P2 On curve: %lu\n", ec_is_on_curve(ec_laffine_to_lproj(P2)));
-
-		// printf("%s\n", "P1 NEG");
-
-		// ec_print_hex_laffine(P1_neg);
-
-		//First XOR scalar signs
 
 		//Negate p1 by k1_sign
 		P1_neg = ec_neg_laffine(P1);
@@ -416,34 +540,18 @@ ec_point_laffine ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uin
 		P2_neg = ec_neg_laffine(P2);
 		CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
 
-		// printf("%s\n", "P1");
-		// ec_print_hex_laffine(P1);
-
-		// printf("P1 negated: %lu\n", ec_equal_point_laffine(P1, P1_neg));
-		// printf("P2 negated: %lu\n", ec_equal_point_laffine(P2, P2_neg));
-
 		Q = ec_double_then_addtwo(P1, P2, Q);
-		//
-		// printf("Q after iteration i=%d\n", i);
-		// ec_print_hex(Q);
 	}
 
-	// Fix if c1 > 0
 	P1 = P;
 	P1.l.val[0][0] ^= 1-decomp.k1_sign;
 	ec_point_lproj Q_add_neg = ec_add_mixed(P1, Q);
 	CMOV(tmp, c1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
-	// Fix if c2 > 0
 	P2 = P;
 	P2.l.val[0][0] ^= 1-decomp.k2_sign;
 	Q_add_neg = ec_add_mixed(ec_endo_laffine(P2), Q);
 	CMOV(tmp, c2, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
-
-	// printf("Q On curve: %lu\n", ec_is_on_curve(Q));
-
-	// printf("Returning Q \n");
-	// ec_print_hex(Q);
 
 	return ec_lproj_to_laffine(Q);
 }
@@ -458,6 +566,35 @@ void precompute_first(ec_point_laffine P, ec_point_laffine* table) {
 	table[5] = ec_lproj_to_laffine(ec_add_mixed(table[9], P2));
 	table[6] = ec_lproj_to_laffine(ec_add_mixed(table[11], P2));
 	table[7] = ec_lproj_to_laffine(ec_add_mixed(table[13], P2));
+}
+
+void precompute_w3(ec_point_laffine P, ec_point_laffine table[]) {
+	ec_point_lproj Pl = ec_laffine_to_lproj(P);
+	ec_point_lproj P3 = ec_double_then_add(P, Pl);
+
+	ef_elem inv_inputs[1] = {P3.z};
+	ef_elem inv_outputs[1];
+	ef_sim_inv(inv_inputs, inv_outputs, 1);
+
+	table[0] = P;
+	table[1] = (ec_point_laffine) {ef_mull(P3.x, inv_outputs[0]), ef_mull(P3.l, inv_outputs[0])};
+}
+
+void precompute_w4(ec_point_laffine P, ec_point_laffine table[]) {
+	ec_point_lproj P2 = ec_double(ec_laffine_to_lproj(P));
+	ec_point_lproj P3 = ec_add_mixed(P, P2);
+	ec_point_lproj P4 = ec_double(P2);
+	ec_point_lproj P5 = ec_double_then_add(P, P2);
+	ec_point_lproj P7 = ec_double_then_add(P, P3);
+
+	ef_elem inv_inputs[3] = {P3.z, P5.z, P7.z};
+	ef_elem inv_outputs[3];
+	ef_sim_inv(inv_inputs, inv_outputs, 3);
+
+	table[0] = P;
+	table[1] = (ec_point_laffine) {ef_mull(P3.x, inv_outputs[0]), ef_mull(P3.l, inv_outputs[0])};
+	table[2] = (ec_point_laffine) {ef_mull(P5.x, inv_outputs[1]), ef_mull(P5.l, inv_outputs[1])};
+	table[3] = (ec_point_laffine) {ef_mull(P7.x, inv_outputs[2]), ef_mull(P7.l, inv_outputs[2])};
 }
 
 void precompute(ec_point_laffine P, ec_point_laffine table[]) {
@@ -546,7 +683,7 @@ void print_table(ec_point_laffine* table) {
 #define CEIL(A, B)                      (((A) - 1) / (B) + 1)
 #define MASK(B)                         (((uint64_t)1 << (B)) - 1)
 
-ec_naf ec_to_naf(uint64x2_t k, uint64_t w) {
+void ec_to_naf(uint64x2_t k, uint64_t w, signed char naf[]) {
   //uint64_t m = 15; //2^(w-1);
 
 	uint64_t order_len = 253;
@@ -555,7 +692,6 @@ ec_naf ec_to_naf(uint64x2_t k, uint64_t w) {
 	//0000 0001 1111
 	uint64_t mask = MASK(w);
 
-  ec_naf naf = { 0 };
   int i = 0;
   while (k[1] > 0 || i < l) {
 		//int64_t k_i_temp = k[0]%(2*m)-m; // (k mod 16 only needs lower word)
@@ -566,7 +702,7 @@ ec_naf ec_to_naf(uint64x2_t k, uint64_t w) {
 
     // If i is odd - store in higher bits
     //digit = digit << 4*(i&1);
-    naf.val[i] = k_i_temp;
+    naf[i] = k_i_temp;
 
 		// Subtraction
 		k[0] -=k_i_temp;
@@ -595,20 +731,10 @@ ec_naf ec_to_naf(uint64x2_t k, uint64_t w) {
     i++;
   }
 
-	naf.val[i] = k[0] & mask;
-
-  return naf;
+	naf[i] = k[0] & mask;
 }
 
-void ec_print_naf(ec_naf k, uint64_t l) {
-  for(int i = l-1; i >= 0; i--) {
-    printf(" %hhd ", k.val[i]);
-  }
-
-  printf("\n");
-}
-
-void ec_print_naf_arr(signed char *naf, uint64_t l) {
+void ec_print_naf(signed char *naf, uint64_t l) {
   for(int i = l-1; i >= 0; i--) {
     printf(" %hhd ", naf[i]);
   }
