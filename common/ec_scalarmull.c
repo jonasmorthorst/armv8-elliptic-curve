@@ -1,6 +1,5 @@
 #include "ec_scalarmull.h"
 #include <stdio.h>
-#include "utils.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -109,21 +108,6 @@ ec_point_laffine ec_scalarmull_single_endo(ec_point_laffine P, uint64x2x2_t k) {
 		}
 	}
 	return ec_lproj_to_laffine(R);
-}
-
-void linear_pass(ec_point_laffine *P1, ec_point_laffine *P2, ec_point_laffine* table, uint64_t index1, uint64_t index2, uint64_t l) {
-	uint64x1_t old_ptr, new_ptr, tmp, digitval;
-	ec_point_laffine item, P1_tmp, P2_tmp;
-
-	for (uint64_t i = 0; i < l; i++) {
-		digitval[0]=i;
-		item = table[i];
-		CMOV(tmp, index1, digitval, P1_tmp, item, old_ptr, new_ptr, typeof(ec_point_laffine));
-		CMOV(tmp, index2, digitval, P2_tmp, item, old_ptr, new_ptr, typeof(ec_point_laffine));
-	}
-
-	*P1 = P1_tmp;
-	*P2 = ec_endo_laffine(P2_tmp);
 }
 
 ec_point_laffine ec_scalarmull_single_endo_w3_randaccess(ec_point_laffine P, uint64x2x2_t k) {
@@ -304,9 +288,7 @@ ec_point_laffine ec_scalarmull_single_endo_w4_randaccess(ec_point_laffine P, uin
 ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint64x2x2_t k) {
 	// printf("%s\n", "P IN");
 	// ec_print_hex_laffine(P);
-
-	uint64x1_t old_ptr, new_ptr, tmp, cond;
-	cond[0]=1;
+	uint64_t val, new_ptr, con = 1;
 	int l = 65;
 	// int l = 86;
 	//l=52
@@ -375,15 +357,25 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	ec_point_laffine P1;
 	ec_point_laffine P2;
 
-	linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
+	// linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
 
 	// ec_point_laffine P1 = table[k2_val/2];
 	// ec_point_laffine P2 = ec_endo_laffine(table[k2_val/2]);
 
+	// uint64_t val, new_ptr;
+	// ec_point_laffine item, P1_tmp, P2_tmp;
+	//
+	// for (uint64_t i = 0; i < l; i++) {
+	// 	CSEL(val, index1, i, P1_tmp, table[i], new_ptr, typeof(ec_point_laffine));
+	// 	CSEL(val, index2, i, P2_tmp, table[i], new_ptr, typeof(ec_point_laffine));
+	// }
+
 	ec_point_laffine P1_neg = ec_neg_laffine(P1);
-	CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+	CSEL(val, k1_sign, con, P1, P1_neg, new_ptr, typeof(ec_point_laffine));
+
+	// CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
 	ec_point_laffine P2_neg = ec_neg_laffine(P2);
-	CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+	CSEL(val, k2_sign, con, P2, P2_neg, new_ptr, typeof(ec_point_laffine));
 
 	// printf("P1 negated: %lu\n", ec_equal_point_laffine(P1, P1_neg));
 	// printf("P2 negated: %lu\n", ec_equal_point_laffine(P2, P2_neg));
@@ -397,7 +389,7 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 		// printf("Q On curve: %lu\n", ec_is_on_curve(Q));
 
 		// printf("i: %d\n", i);
-                                   
+
 		Q = ec_double(ec_double(ec_double(Q)));
 
 		k1_digit = naf_k1[i];
@@ -427,9 +419,12 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 
 		//Negate p1 by k1_sign
 		P1_neg = ec_neg_laffine(P1);
-		CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+		// CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+		CSEL(val, k1_sign, con, P1, P1_neg, new_ptr, typeof(ec_point_laffine));
+
 		P2_neg = ec_neg_laffine(P2);
-		CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+		// CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
+		CSEL(val, k2_sign, con, P2, P2_neg, new_ptr, typeof(ec_point_laffine));
 
 		// printf("%s\n", "P1");
 		// ec_print_hex_laffine(P1);
@@ -447,13 +442,13 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	P1 = P;
 	P1.l.val[0][0] ^= 1-decomp.k1_sign;
 	ec_point_lproj Q_add_neg = ec_add_mixed_unchecked(P1, Q);
-	CMOV(tmp, c1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
+	CSEL(val, c1, con, Q, Q_add_neg, new_ptr, typeof(ec_point_lproj));
 
 	// Fix if c2 > 0
 	P2 = P;
 	P2.l.val[0][0] ^= 1-decomp.k2_sign;
 	Q_add_neg = ec_add_mixed_unchecked(ec_endo_laffine(P2), Q);
-	CMOV(tmp, c2, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
+	CSEL(val, c2, con, Q, Q_add_neg, new_ptr, typeof(ec_point_lproj));
 
 	// printf("Q On curve: %lu\n", ec_is_on_curve(Q));
 
@@ -577,7 +572,7 @@ void precompute_w4(ec_point_laffine P, ec_point_laffine table[]) {
 	ec_point_lproj P3 = ec_add_mixed_unchecked(P, P2);
 	ec_point_lproj P5 = ec_double_then_add(P, P2);
 	ec_point_lproj P7 = ec_double_then_add(P, P3);
-	
+
 	ef_elem inv_inputs[3] = {P3.z, P5.z, P7.z};
 	ef_elem inv_outputs[3];
 	ef_sim_inv(inv_inputs, inv_outputs, 3);

@@ -4,6 +4,8 @@
 #ifndef EC_SCALARMULL_H
 #define EC_SCALARMULL_H
 
+#include "utils.h"
+
 typedef uint64_t elt[2];
 
 ec_point_lproj ec_scalarmull_single(ec_point_laffine P, uint64x2x2_t k);
@@ -14,8 +16,18 @@ ec_point_lproj ec_scalarmull_double(ec_point_lproj P, uint64x2x2_t k, ec_point_l
 
 ec_point_laffine ec_scalarmull_single_endo(ec_point_laffine P, uint64x2x2_t k);
 
-void linear_pass(ec_point_laffine *P1, ec_point_laffine *P2, ec_point_laffine* table, uint64_t index1, uint64_t index2, uint64_t l);
+static inline void linear_pass(ec_point_laffine *P1, ec_point_laffine *P2, ec_point_laffine* table, uint64_t index1, uint64_t index2, uint64_t l) {
+	uint64_t val, new_ptr;
+	ec_point_laffine item, P1_tmp, P2_tmp;
 
+	for (uint64_t i = 0; i < l; i++) {
+		CSEL(val, index1, i, P1_tmp, table[i], new_ptr, typeof(ec_point_laffine));
+		CSEL(val, index2, i, P2_tmp, table[i], new_ptr, typeof(ec_point_laffine));
+	}
+
+	*P1 = P1_tmp;
+	*P2 = ec_endo_laffine(P2_tmp);
+}
 ec_point_laffine ec_scalarmull_single_endo_w3_randaccess(ec_point_laffine P, uint64x2x2_t k);
 
 ec_point_laffine ec_scalarmull_single_endo_w4_randaccess(ec_point_laffine P, uint64x2x2_t k);
