@@ -292,6 +292,23 @@ void ef_mull_test_zero_is_zero(test_ctr *ctr) {
 	uint64_t correct = ef_equal(zero, result);
 	assert_true(correct, ctr, "extensionfield: ef_mull_test_zero_is_zero FAILED");
 }
+
+void ef_mull_B_test_example(test_ctr *ctr) {
+	//Arrange
+	poly64x2_t a0 = {137438953472, 68719476736}; //x^100 + x^37
+	poly64x2_t a1 = {274877906944, 13835058192721117184U}; //x^127 + x^126 + x^101 + x^38
+	ef_elem a = ef_create_elem(a0, a1);
+	poly64x2_t e0 = {137438953472, 9223372105574252545U}; //x^127 + x^100 + x^64 + x^37
+	poly64x2_t e1 = {275079233538, 13835058192821780483U}; // x^127 + x^126 + x^101 + x^90 + x^89 + x^65 + x^64 + x^38 + x^27 + x^26 + x
+	ef_elem expected = ef_create_elem(e0, e1);
+	
+	//Act
+	ef_elem actual = ef_mull_B(a);
+	
+	//Assert
+	uint64_t correct = ef_equal(expected, actual);
+	assert_true(correct, ctr, "ef_mull_B_test_example FAILED");
+}
 	
 void ef_square_test_example(test_ctr *ctr) {
 	//Arrange
@@ -639,4 +656,6 @@ void extensionfield_tests(test_ctr *ctr) {
 	ef_inv_test_prod_with_inv_is_one_rnd(ctr);
 	
 	ef_sim_inv_test_crosscheck_inv_rnd(ctr);
+	
+	ef_mull_B_test_example(ctr);
 }

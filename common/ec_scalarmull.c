@@ -79,14 +79,6 @@ ec_point_lproj ec_scalarmull_double(ec_point_lproj P, uint64x2x2_t k, ec_point_l
   return R;
 }
 
-#define CMOV(tmpx1, cmpval, eqcondx1, old, new, old_ptrx1, new_ptrx1, point_type) \
-	tmpx1[0] = cmpval & eqcondx1[0]; \
-	tmpx1 = vceq_u64(tmpx1, eqcondx1); \
-	old_ptrx1[0] = (uint64_t) &old; \
-	new_ptrx1[0] = (uint64_t) &new; \
-	tmpx1 = vbsl_u64(tmpx1, new_ptrx1, old_ptrx1); \
-	old = *((point_type*) tmpx1[0]); \
-
 ec_point_laffine ec_scalarmull_single_endo(ec_point_laffine P, uint64x2x2_t k) {
 	ec_point_lproj new;
 	uint64x1_t old_ptr, new_ptr, tmp, digitval;
@@ -269,7 +261,7 @@ ec_point_laffine ec_scalarmull_single_endo_w4_randaccess(ec_point_laffine P, uin
 	ec_point_laffine P2_neg = ec_neg_laffine(P2);
 	CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
 
-	ec_point_lproj Q = ec_add_mixed(P1, ec_laffine_to_lproj(P2));
+	ec_point_lproj Q = ec_add_laffine_unchecked(P1, P2);
 
 	for(int i=l-2; i>=0; i--) {
 		Q = ec_double(ec_double(Q));
@@ -297,13 +289,13 @@ ec_point_laffine ec_scalarmull_single_endo_w4_randaccess(ec_point_laffine P, uin
 	// Fix if c1 > 0
 	P1 = P;
 	P1.l.val[0][0] ^= 1-decomp.k1_sign;
-	ec_point_lproj Q_add_neg = ec_add_mixed(P1, Q);
+	ec_point_lproj Q_add_neg = ec_add_mixed_unchecked(P1, Q);
 	CMOV(tmp, c1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
 	// Fix if c2 > 0
 	P2 = P;
 	P2.l.val[0][0] ^= 1-decomp.k2_sign;
-	Q_add_neg = ec_add_mixed(ec_endo_laffine(P2), Q);
+	Q_add_neg = ec_add_mixed_unchecked(ec_endo_laffine(P2), Q);
 	CMOV(tmp, c2, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
 	return ec_lproj_to_laffine(Q);
@@ -398,14 +390,14 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 
 	// ec_print_hex_laffine(P1);
 
-	ec_point_lproj Q = ec_add_mixed(P1, ec_laffine_to_lproj(P2));
+	ec_point_lproj Q = ec_add_laffine_unchecked(P1, P2);
 
 	for(int i=l-2; i>=0; i--) {
 
 		// printf("Q On curve: %lu\n", ec_is_on_curve(Q));
 
 		// printf("i: %d\n", i);
-
+                                   
 		Q = ec_double(ec_double(ec_double(Q)));
 
 		k1_digit = naf_k1[i];
@@ -454,13 +446,13 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	// Fix if c1 > 0
 	P1 = P;
 	P1.l.val[0][0] ^= 1-decomp.k1_sign;
-	ec_point_lproj Q_add_neg = ec_add_mixed(P1, Q);
+	ec_point_lproj Q_add_neg = ec_add_mixed_unchecked(P1, Q);
 	CMOV(tmp, c1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
 	// Fix if c2 > 0
 	P2 = P;
 	P2.l.val[0][0] ^= 1-decomp.k2_sign;
-	Q_add_neg = ec_add_mixed(ec_endo_laffine(P2), Q);
+	Q_add_neg = ec_add_mixed_unchecked(ec_endo_laffine(P2), Q);
 	CMOV(tmp, c2, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
 	// printf("Q On curve: %lu\n", ec_is_on_curve(Q));
@@ -517,7 +509,7 @@ ec_point_laffine ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uin
 	ec_point_laffine P2_neg = ec_neg_laffine(P2);
 	CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
 
-	ec_point_lproj Q = ec_add_mixed(P1, ec_laffine_to_lproj(P2));
+	ec_point_lproj Q = ec_add_laffine_unchecked(P1, P2);
 
 	for(int i=l-2; i>=0; i--) {
 		Q = ec_double(ec_double(ec_double(ec_double(Q))));
@@ -545,12 +537,12 @@ ec_point_laffine ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uin
 
 	P1 = P;
 	P1.l.val[0][0] ^= 1-decomp.k1_sign;
-	ec_point_lproj Q_add_neg = ec_add_mixed(P1, Q);
+	ec_point_lproj Q_add_neg = ec_add_mixed_unchecked(P1, Q);
 	CMOV(tmp, c1, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
 	P2 = P;
 	P2.l.val[0][0] ^= 1-decomp.k2_sign;
-	Q_add_neg = ec_add_mixed(ec_endo_laffine(P2), Q);
+	Q_add_neg = ec_add_mixed_unchecked(ec_endo_laffine(P2), Q);
 	CMOV(tmp, c2, cond, Q, Q_add_neg, old_ptr, new_ptr, typeof(ec_point_lproj));
 
 	return ec_lproj_to_laffine(Q);
@@ -581,12 +573,11 @@ void precompute_w3(ec_point_laffine P, ec_point_laffine table[]) {
 }
 
 void precompute_w4(ec_point_laffine P, ec_point_laffine table[]) {
-	ec_point_lproj P2 = ec_double(ec_laffine_to_lproj(P));
-	ec_point_lproj P3 = ec_add_mixed(P, P2);
-	ec_point_lproj P4 = ec_double(P2);
+	ec_point_lproj P2 = ec_double_mixed(P);
+	ec_point_lproj P3 = ec_add_mixed_unchecked(P, P2);
 	ec_point_lproj P5 = ec_double_then_add(P, P2);
 	ec_point_lproj P7 = ec_double_then_add(P, P3);
-
+	
 	ef_elem inv_inputs[3] = {P3.z, P5.z, P7.z};
 	ef_elem inv_outputs[3];
 	ef_sim_inv(inv_inputs, inv_outputs, 3);
@@ -598,14 +589,13 @@ void precompute_w4(ec_point_laffine P, ec_point_laffine table[]) {
 }
 
 void precompute(ec_point_laffine P, ec_point_laffine table[]) {
-	ec_point_lproj P2 = ec_double(ec_laffine_to_lproj(P));
-	ec_point_lproj P3 = ec_add_mixed(P, P2);
+	ec_point_lproj P2 = ec_double_mixed(P);
+	ec_point_lproj P3 = ec_add_mixed_unchecked(P, P2);
 	ec_point_lproj P4 = ec_double(P2);
-	ec_point_lproj P5 = ec_add_mixed(P, P4);
+	ec_point_lproj P5 = ec_add_mixed_unchecked(P, P4);
 	ec_point_lproj P6 = ec_double(P3);
-	ec_point_lproj P7 = ec_add_mixed(P, P6);
-	ec_point_lproj P8 = ec_double(P4);
-	ec_point_lproj P9 = ec_add_mixed(P, P8);
+	ec_point_lproj P7 = ec_add_mixed_unchecked(P, P6);
+	ec_point_lproj P9 = ec_double_then_add(P, P4);
 	ec_point_lproj P11 = ec_double_then_add(P, P5);
 	ec_point_lproj P13 = ec_double_then_add(P, P6);
 	ec_point_lproj P15 = ec_double_then_add(P, P7);
@@ -625,20 +615,20 @@ void precompute(ec_point_laffine P, ec_point_laffine table[]) {
 }
 
 void precompute_w6(ec_point_laffine P, ec_point_laffine table[]) {
-	ec_point_lproj P2 = ec_double(ec_laffine_to_lproj(P));
-	ec_point_lproj P3 = ec_add_mixed(P, P2);
+	ec_point_lproj P2 = ec_double_mixed(P);
+	ec_point_lproj P3 = ec_add_mixed_unchecked(P, P2);
 	ec_point_lproj P4 = ec_double(P2);
-	ec_point_lproj P5 = ec_add_mixed(P, P4);
+	ec_point_lproj P5 = ec_add_mixed_unchecked(P, P4);
 	ec_point_lproj P6 = ec_double(P3);
-	ec_point_lproj P7 = ec_add_mixed(P, P6);
+	ec_point_lproj P7 = ec_add_mixed_unchecked(P, P6);
 	ec_point_lproj P8 = ec_double(P4);
-	ec_point_lproj P9 = ec_add_mixed(P, P8);
+	ec_point_lproj P9 = ec_add_mixed_unchecked(P, P8);
 	ec_point_lproj P10 = ec_double(P5);
-	ec_point_lproj P11 = ec_add_mixed(P, P10);
+	ec_point_lproj P11 = ec_add_mixed_unchecked(P, P10);
 	ec_point_lproj P12 = ec_double(P6);
-	ec_point_lproj P13 = ec_add_mixed(P, P12);
+	ec_point_lproj P13 = ec_add_mixed_unchecked(P, P12);
 	ec_point_lproj P14 = ec_double(P7);
-	ec_point_lproj P15 = ec_add_mixed(P, P14);
+	ec_point_lproj P15 = ec_add_mixed_unchecked(P, P14);
 	ec_point_lproj P17 = ec_double_then_add(P, P8);
 	ec_point_lproj P19 = ec_double_then_add(P, P9);
 	ec_point_lproj P21 = ec_double_then_add(P, P10);

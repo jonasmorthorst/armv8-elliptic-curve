@@ -71,7 +71,15 @@ ec_point_lproj ec_add(ec_point_lproj P1, ec_point_lproj P2);
 
 ec_point_lproj ec_add_mixed(ec_point_laffine P, ec_point_lproj Q);
 
+ec_point_lproj ec_add_mixed_unchecked(ec_point_laffine P, ec_point_lproj Q);
+
+ec_point_lproj ec_add_laffine_unchecked(ec_point_laffine P, ec_point_laffine Q);
+
 ec_point_lproj ec_double(ec_point_lproj P);
+
+ec_point_lproj ec_double_mixed(ec_point_laffine P);
+
+ec_point_lproj ec_double_alt(ec_point_lproj P);
 
 ec_point_lproj ec_double_then_add(ec_point_laffine P, ec_point_lproj Q);
 

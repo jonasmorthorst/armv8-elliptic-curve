@@ -63,8 +63,31 @@ ef_elem ef_mull(ef_elem a, ef_elem b) {
 	return ef_create_elem(bf_add(a0b0, a1b1), bf_add(a0b0, bigprod)); //(a0*b0+a1*b1)+(a0*b0 + (a0+a1)*(b0+b1))u
 }
 
-//Multiplies a with the curve parameter A=u
-//(a1*u+a0)*u = a1*u^2 + a0*u = a1*(u+1) + a0*u = (a0 + a1)*u + a1
+ef_elem ef_mull_Apow2plusB(ef_elem a) {
+	poly64x2_t t1, t2;
+	ef_elem r;
+	//a.val[0] * x^27 + a.val[1]
+	t1 = (poly64x2_t) vshrq_n_u64((uint64x2_t) a.val[0], 37);
+	t2 = vextq_p64(t1, t1, 1);
+	t2[0] <<= 1;
+	t1[0] = 0;
+	t1 = (poly64x2_t) veorq_u64((uint64x2_t) t1, (uint64x2_t) t2);
+	t2 = (poly64x2_t) vshlq_n_u64((uint64x2_t) a.val[0], 27);
+	t1 = (poly64x2_t) veorq_u64((uint64x2_t) t1, (uint64x2_t) t2);
+	r.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) a.val[1], (uint64x2_t) t1);
+	
+	//a.val[1] * (x^27 + 1) + a.val[0]
+	t1 = (poly64x2_t) vshrq_n_u64((uint64x2_t) a.val[1], 37);
+	t2 = vextq_p64(t1, t1, 1);
+	t2[0] <<= 1;
+	t1[0] = 0;
+	t1 = (poly64x2_t) veorq_u64((uint64x2_t) t1, (uint64x2_t) t2);
+	t2 = (poly64x2_t) vshlq_n_u64((uint64x2_t) a.val[1], 27);
+	t1 = (poly64x2_t) veorq_u64((uint64x2_t) t1, (uint64x2_t) t2);
+	t1 = (poly64x2_t) veorq_u64((uint64x2_t) a.val[1], (uint64x2_t) t1);
+	r.val[1] = (poly64x2_t) veorq_u64((uint64x2_t) a.val[0], (uint64x2_t) t1);
+	return r;
+}
 
 ef_elem ef_inv(ef_elem a) {
 	poly64x2_t a0a1 = bf_red_lazy(bf_pmull(a.val[0], a.val[1])); //a0*a1

@@ -57,6 +57,14 @@
 		: "+r" (c0), "+r" (c1), "+r" (c2), "+r" (c3)\
 		: "r" (a0), "r" (a1), "r" (a2), "r" (a3)\
 		);
+		
+#define CMOV(tmpx1, cmpval, eqcondx1, old, new, old_ptrx1, new_ptrx1, type) \
+	tmpx1[0] = cmpval & eqcondx1[0]; \
+	tmpx1 = vceq_u64(tmpx1, eqcondx1); \
+	old_ptrx1[0] = (uint64_t) &old; \
+	new_ptrx1[0] = (uint64_t) &new; \
+	tmpx1 = vbsl_u64(tmpx1, new_ptrx1, old_ptrx1); \
+	old = *((type*) tmpx1[0]); \
 
 void utils_init();
 
