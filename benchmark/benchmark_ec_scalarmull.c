@@ -157,11 +157,11 @@ void benchmark_ec_scalarmull_double() {
 }
 
 void benchmark_ec_scalarmull_all() {
-	/*benchmark_ec_scalarmull_single();
-	benchmark_ec_scalarmull_single_endo();*/
+	benchmark_ec_scalarmull_single();
+	benchmark_ec_scalarmull_single_endo();
 	benchmark_ec_scalarmull_single_endo_w3_randaccess();
 	benchmark_ec_scalarmull_single_endo_w4_randaccess();
 	benchmark_ec_scalarmull_single_endo_w5_randaccess();
 	benchmark_ec_scalarmull_single_endo_w6_randaccess();
-	//benchmark_ec_scalarmull_double();
+	benchmark_ec_scalarmull_double();
 }

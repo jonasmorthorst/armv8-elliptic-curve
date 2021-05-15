@@ -288,7 +288,7 @@ poly64x2_t bf_red_lazy_formula(poly64x2x2_t c) {
 }
 
 poly64x2_t bf_inv(poly64x2_t a) {
-  poly64x2_t x_10 = bf_red_psquare(bf_psquare(a)); // 2
+	poly64x2_t x_10 = bf_red_psquare(bf_psquare(a)); // 2
 	poly64x2_t x_11 = bf_red(bf_pmull(a, x_10)); //1 + 2 = 3
 	poly64x2_t x_110 = bf_red_psquare(bf_psquare(x_11)); //3*2 = 6
 	poly64x2_t x_111 = bf_red(bf_pmull(a, x_110)); //1 + 6 = 7

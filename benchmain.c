@@ -12,9 +12,9 @@ int main() {
 	init_components();
 
 	nice(-30);
-	/*benchmark_bf_all();
+	benchmark_bf_all();
 	benchmark_ef_all();
-	benchmark_ef_intrl_all();*/
+	benchmark_ef_intrl_all();
 	benchmark_ec_all();
 	benchmark_ec_scalarmull_all();
 
