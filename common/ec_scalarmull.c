@@ -357,7 +357,7 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	ec_point_laffine P1;
 	ec_point_laffine P2;
 
-	// linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
+	linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
 
 	// ec_point_laffine P1 = table[k2_val/2];
 	// ec_point_laffine P2 = ec_endo_laffine(table[k2_val/2]);
