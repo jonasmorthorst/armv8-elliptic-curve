@@ -11,9 +11,9 @@ void ec_scalarmull_single_test_example(test_ctr *ctr) {
 	//Arrange
 	uint64x2x2_t k = (uint64x2x2_t) {{{1984, 0}, {0, 0}}};
 
-	ef_elem EX = ef_create_elem(bf_create_elem(0X2CFAFD7ACC5AFCFF, 0X2D234D04135BB6AC), bf_create_elem(0XB061B3D61FBCA71D, 0X6EE833ECBA9D25));
-	ef_elem EL = ef_create_elem(bf_create_elem(0XEB821D89C63B9871, 0X6E5C83A975E6B141), bf_create_elem(0XB2CC95280AEB5B47, 0X73EE26ACBE0918AB));
-	ef_elem EZ = ef_create_elem(bf_create_elem(2, 0), bf_create_elem(1, 0));
+	ef_intrl_elem EX = ef_intrl_interleave(ef_create_elem(bf_create_elem(0X2CFAFD7ACC5AFCFF, 0X2D234D04135BB6AC), bf_create_elem(0XB061B3D61FBCA71D, 0X6EE833ECBA9D25)));
+	ef_intrl_elem EL = ef_intrl_interleave(ef_create_elem(bf_create_elem(0XEB821D89C63B9871, 0X6E5C83A975E6B141), bf_create_elem(0XB2CC95280AEB5B47, 0X73EE26ACBE0918AB)));
+	ef_intrl_elem EZ = ef_intrl_interleave(ef_create_elem(bf_create_elem(2, 0), bf_create_elem(1, 0)));
 	ec_point_lproj expected = ec_create_point_lproj(EX, EL, EZ); // expected = 1984 * GEN
 
 	//Act
@@ -27,8 +27,8 @@ void ec_scalarmull_single_test_example(test_ctr *ctr) {
 	uint64_t num_runs = 1;
 
 	for(int i = 0; i < num_runs; i++) {
-    uint64x2x2_t k = ec_rand_scalar();
-    ec_point_laffine P = ec_rand_point_laffine();
+		uint64x2x2_t k = ec_rand_scalar();
+		ec_point_laffine P = ec_rand_point_laffine();
 
 		ec_point_lproj expected = ec_scalarmull_single(P, k);
 		//Act
@@ -46,14 +46,14 @@ void ec_scalarmull_single_test_linearity(test_ctr *ctr) {
 	//Arrange
 	uint64x2x2_t k = (uint64x2x2_t) {{{7876556743120, 65714569742132121}, {11, 0}}};
 
-	ef_elem PX = ef_create_elem(bf_create_elem(0X51441C4EE272FE55, 0X2DB9775DAEDDE550), bf_create_elem(0X12DD1A65F1D5B480, 0X6CB9034E20AD0EEB));
-	ef_elem PL = ef_create_elem(bf_create_elem(0X7AA01DC08C73455A, 0X51F2DF8B2F5FA18C), bf_create_elem(0X6730BC49B9A98F41, 0X57DEBE6DBCE321DE));
-	ef_elem PZ = ef_create_elem(bf_create_elem(0X80, 0), bf_create_elem(0X0000000200000000, 0X2000000000));
+	ef_intrl_elem PX = ef_intrl_interleave(ef_create_elem(bf_create_elem(0X51441C4EE272FE55, 0X2DB9775DAEDDE550), bf_create_elem(0X12DD1A65F1D5B480, 0X6CB9034E20AD0EEB)));
+	ef_intrl_elem PL = ef_intrl_interleave(ef_create_elem(bf_create_elem(0X7AA01DC08C73455A, 0X51F2DF8B2F5FA18C), bf_create_elem(0X6730BC49B9A98F41, 0X57DEBE6DBCE321DE)));
+	ef_intrl_elem PZ = ef_intrl_interleave(ef_create_elem(bf_create_elem(0X80, 0), bf_create_elem(0X0000000200000000, 0X2000000000)));
 	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //(order-1) * GEN
 
-	ef_elem QX = ef_create_elem(bf_create_elem(0XB17380115E6C4F69, 0XE1DA273142A52B3), bf_create_elem(0X529D0294EB09720D, 0X26690AF5D1CC9E78));
-	ef_elem QL = ef_create_elem(bf_create_elem(0XA75AABA91400402C, 0X2EB5E7A7EE3E6DEA), bf_create_elem(0X82C9609FFC5E6794, 0X19B8A04EA04D0DF));
-	ef_elem QZ = ef_create_elem(bf_create_elem(0X8150BD7B681CEB67, 0X1773D8F08AD460A5), bf_create_elem(0X64E2D12FB4409DDD, 0X391936225DE0A796));
+	ef_intrl_elem QX = ef_intrl_interleave(ef_create_elem(bf_create_elem(0XB17380115E6C4F69, 0XE1DA273142A52B3), bf_create_elem(0X529D0294EB09720D, 0X26690AF5D1CC9E78)));
+	ef_intrl_elem QL = ef_intrl_interleave(ef_create_elem(bf_create_elem(0XA75AABA91400402C, 0X2EB5E7A7EE3E6DEA), bf_create_elem(0X82C9609FFC5E6794, 0X19B8A04EA04D0DF)));
+	ef_intrl_elem QZ = ef_intrl_interleave(ef_create_elem(bf_create_elem(0X8150BD7B681CEB67, 0X1773D8F08AD460A5), bf_create_elem(0X64E2D12FB4409DDD, 0X391936225DE0A796)));
 	ec_point_lproj Q = ec_create_point_lproj(QX, QL, QZ); //14329 * GEN
 
 	//Act
@@ -68,9 +68,9 @@ void ec_scalarmull_single_test_linearity(test_ctr *ctr) {
 void ec_scalarmull_single_test_negation_order_indifference(test_ctr *ctr) {
 	//Arrange
 	uint64x2x2_t k = (uint64x2x2_t) {{{76591954, 7695159674259757}, {95124743611111, 56214}}};
-	ef_elem PX = ef_create_elem(bf_create_elem(0X2A955F2AB87B63BD, 0X7B5F4418CA97D542), bf_create_elem(0XDD55878DFFE87C62, 0X1CE397B5452EAAD4));
-	ef_elem PL = ef_create_elem(bf_create_elem(0XB55AF6853BAA916A, 0X368B1A5434DF7331), bf_create_elem(0X4B3628231E3A83C2, 0XCA5DED000C90027));
-	ef_elem PZ = ef_create_elem(bf_create_elem(0X90, 0), bf_create_elem(0X0000800000000000, 0X400));
+	ef_intrl_elem PX = ef_intrl_interleave(ef_create_elem(bf_create_elem(0X2A955F2AB87B63BD, 0X7B5F4418CA97D542), bf_create_elem(0XDD55878DFFE87C62, 0X1CE397B5452EAAD4)));
+	ef_intrl_elem PL = ef_intrl_interleave(ef_create_elem(bf_create_elem(0XB55AF6853BAA916A, 0X368B1A5434DF7331), bf_create_elem(0X4B3628231E3A83C2, 0XCA5DED000C90027)));
+	ef_intrl_elem PZ = ef_intrl_interleave(ef_create_elem(bf_create_elem(0X90, 0), bf_create_elem(0X0000800000000000, 0X400)));
 	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //2243156791409331652485 * P
 
 	//Act
@@ -114,9 +114,9 @@ void ec_scalarmull_single_test_final_k_at_once_same_as_factor_one_at_a_time(test
 	uint64x2x2_t k2 = (uint64x2x2_t) {{{0XEEFFEE6752A38174, 0X7544}, {0, 0}}};
 	uint64x2x2_t k = (uint64x2x2_t) {{{0XD6D3C77A003A139C, 0XACF7CBD9DC139043}, {0X99A09D4FE2DACA55, 0X85}}}; //k=k1*k2
 
-	ef_elem PX = ef_create_elem(bf_create_elem(0XD2C27333EFC0AE61, 0X4306673487679D76), bf_create_elem(0X909BEC5477E860BB, 0X480D39C8A1B98266));
-	ef_elem PL = ef_create_elem(bf_create_elem(0XF84FB0B45D95FC31, 0X24C3FF4B68C78BE3), bf_create_elem(0X963FE2DA0544E1A4, 0X17B6B0A1380A490));
-	ef_elem PZ = ef_create_elem(bf_create_elem(0X100, 0), bf_create_elem(0X8000000000000000, 0X4000000000000001));
+	ef_intrl_elem PX = ef_intrl_interleave(ef_create_elem(bf_create_elem(0XD2C27333EFC0AE61, 0X4306673487679D76), bf_create_elem(0X909BEC5477E860BB, 0X480D39C8A1B98266)));
+	ef_intrl_elem PL = ef_intrl_interleave(ef_create_elem(bf_create_elem(0XF84FB0B45D95FC31, 0X24C3FF4B68C78BE3), bf_create_elem(0X963FE2DA0544E1A4, 0X17B6B0A1380A490)));
+	ef_intrl_elem PZ = ef_intrl_interleave(ef_create_elem(bf_create_elem(0X100, 0), bf_create_elem(0X8000000000000000, 0X4000000000000001)));
 	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //99921481365893197563 * GEN
 
 	//Act
@@ -133,9 +133,9 @@ void ec_scalarmull_single_test_k_one_is_identity(test_ctr *ctr) {
 	//Arrange
 	uint64x2x2_t k = (uint64x2x2_t) {{{1, 0}, {0, 0}}};
 
-	ef_elem PX = ef_create_elem(bf_create_elem(0X7674C426F68A7C0D, 0X26C3E68569307393), bf_create_elem(0X9BFA0D5F1CB2BB3F, 0X53889FE5B08254D3));
-	ef_elem PL = ef_create_elem(bf_create_elem(0X4F88EF9F49D18A5E, 0X5C7C38B577B3EAF4), bf_create_elem(0XCDD4DCBE486CC880, 0X18FEF6543ECA3ABC));
-	ef_elem PZ = ef_create_elem(bf_create_elem(0X20000000000004, 0), bf_create_elem(0X8000000000000000, 0X80000));
+	ef_intrl_elem PX = ef_intrl_interleave(ef_create_elem(bf_create_elem(0X7674C426F68A7C0D, 0X26C3E68569307393), bf_create_elem(0X9BFA0D5F1CB2BB3F, 0X53889FE5B08254D3)));
+	ef_intrl_elem PL = ef_intrl_interleave(ef_create_elem(bf_create_elem(0X4F88EF9F49D18A5E, 0X5C7C38B577B3EAF4), bf_create_elem(0XCDD4DCBE486CC880, 0X18FEF6543ECA3ABC)));
+	ef_intrl_elem PZ = ef_intrl_interleave(ef_create_elem(bf_create_elem(0X20000000000004, 0), bf_create_elem(0X8000000000000000, 0X80000)));
 	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //P = 78632917462800214 * GEN
 
 	//Act
@@ -341,8 +341,8 @@ void ec_scalarmull_single_endo_test_example(test_ctr *ctr) {
 	ec_point_lproj P_lproj = (ec_point_lproj) GEN;
 	ec_point_laffine P_laffine = ec_lproj_to_laffine(P_lproj);
 
-	ef_elem EX = ef_create_elem(bf_create_elem(6574758758697437213U, 9029938885770167062U), bf_create_elem(2238988517843169761U, 2100850367268144132U));
-	ef_elem EL = ef_create_elem(bf_create_elem(6503207926092968936U, 3219845272070329794U), bf_create_elem(10930336994397273494U, 8947327516344479714U));
+	ef_intrl_elem EX = ef_intrl_interleave(ef_create_elem(bf_create_elem(6574758758697437213U, 9029938885770167062U), bf_create_elem(2238988517843169761U, 2100850367268144132U)));
+	ef_intrl_elem EL = ef_intrl_interleave(ef_create_elem(bf_create_elem(6503207926092968936U, 3219845272070329794U), bf_create_elem(10930336994397273494U, 8947327516344479714U)));
 	ec_point_laffine E = ec_create_point_laffine(EX, EL); //E = 12345 * GEN
 
 	//Act
@@ -372,9 +372,9 @@ void ec_scalarmull_single_endo_test_crosscheck_rnd(test_ctr *ctr) {
 }
 
 void ec_scalarmull_test_precomputation(test_ctr *ctr) {
-	ef_elem PX = ef_create_elem(bf_create_elem(0XD2C27333EFC0AE61, 0X4306673487679D76), bf_create_elem(0X909BEC5477E860BB, 0X480D39C8A1B98266));
-	ef_elem PL = ef_create_elem(bf_create_elem(0XF84FB0B45D95FC31, 0X24C3FF4B68C78BE3), bf_create_elem(0X963FE2DA0544E1A4, 0X17B6B0A1380A490));
-	ef_elem PZ = ef_create_elem(bf_create_elem(0X100, 0), bf_create_elem(0X8000000000000000, 0X4000000000000001));
+	ef_intrl_elem PX = ef_intrl_interleave(ef_create_elem(bf_create_elem(0XD2C27333EFC0AE61, 0X4306673487679D76), bf_create_elem(0X909BEC5477E860BB, 0X480D39C8A1B98266)));
+	ef_intrl_elem PL = ef_intrl_interleave(ef_create_elem(bf_create_elem(0XF84FB0B45D95FC31, 0X24C3FF4B68C78BE3), bf_create_elem(0X963FE2DA0544E1A4, 0X17B6B0A1380A490)));
+	ef_intrl_elem PZ = ef_intrl_interleave(ef_create_elem(bf_create_elem(0X100, 0), bf_create_elem(0X8000000000000000, 0X4000000000000001)));
 	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //99921481365893197563 * GEN
 
 	ec_point_laffine table[16];

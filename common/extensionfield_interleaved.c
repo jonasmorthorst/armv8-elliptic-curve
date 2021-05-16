@@ -148,10 +148,10 @@ ef_intrl_elem ef_intrl_inv(ef_intrl_elem a) {
 	r0.val[1] = (poly64x2_t) veorq_u64((uint64x2_t) r0.val[1], (uint64x2_t) t1);
 	
 	//Combining
-	c.val[0] = vzip1q_p64(r0.val[0], r1.val[0]);
-	c.val[1] = vzip2q_p64(r0.val[0], r1.val[0]);
-	c.val[2] = vzip1q_p64(r0.val[1], r1.val[1]);
-	c.val[3] = vzip2q_p64(r0.val[1], r1.val[1]);
+	c.val[0] = (poly64x2_t) vzip1q_u64((uint64x2_t) r0.val[0], (uint64x2_t) r1.val[0]);
+	c.val[1] = (poly64x2_t) vzip2q_u64((uint64x2_t) r0.val[0], (uint64x2_t) r1.val[0]);
+	c.val[2] = (poly64x2_t) vzip1q_u64((uint64x2_t) r0.val[1], (uint64x2_t) r1.val[1]);
+	c.val[3] = (poly64x2_t) vzip2q_u64((uint64x2_t) r0.val[1], (uint64x2_t) r1.val[1]);
 	
 	return ef_intrl_red(c);
 }

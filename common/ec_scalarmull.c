@@ -548,28 +548,14 @@ ec_point_laffine ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uin
 	return ec_lproj_to_laffine(Q);
 }
 
-void precompute_first(ec_point_laffine P, ec_point_laffine* table) {
-	ec_point_lproj P2 = ec_double(ec_laffine_to_lproj(P));
-	table[0] = P;
-	table[1] = ec_lproj_to_laffine(ec_add_mixed(table[1], P2));
-	table[2] = ec_lproj_to_laffine(ec_add_mixed(table[3], P2));
-	table[3] = ec_lproj_to_laffine(ec_add_mixed(table[5], P2));
-	table[4] = ec_lproj_to_laffine(ec_add_mixed(table[7], P2));
-	table[5] = ec_lproj_to_laffine(ec_add_mixed(table[9], P2));
-	table[6] = ec_lproj_to_laffine(ec_add_mixed(table[11], P2));
-	table[7] = ec_lproj_to_laffine(ec_add_mixed(table[13], P2));
-}
-
 void precompute_w3(ec_point_laffine P, ec_point_laffine table[]) {
 	ec_point_lproj Pl = ec_laffine_to_lproj(P);
 	ec_point_lproj P3 = ec_double_then_add(P, Pl);
 
-	ef_elem inv_inputs[1] = {P3.z};
-	ef_elem inv_outputs[1];
-	ef_sim_inv(inv_inputs, inv_outputs, 1);
+	ef_intrl_elem P3Z_inv = ef_intrl_inv(P3.z);
 
 	table[0] = P;
-	table[1] = (ec_point_laffine) {ef_mull(P3.x, inv_outputs[0]), ef_mull(P3.l, inv_outputs[0])};
+	table[1] = (ec_point_laffine) {ef_intrl_mull(P3.x, P3Z_inv), ef_intrl_mull(P3.l, P3Z_inv)};
 }
 
 void precompute_w4(ec_point_laffine P, ec_point_laffine table[]) {
@@ -578,14 +564,14 @@ void precompute_w4(ec_point_laffine P, ec_point_laffine table[]) {
 	ec_point_lproj P5 = ec_double_then_add(P, P2);
 	ec_point_lproj P7 = ec_double_then_add(P, P3);
 	
-	ef_elem inv_inputs[3] = {P3.z, P5.z, P7.z};
-	ef_elem inv_outputs[3];
-	ef_sim_inv(inv_inputs, inv_outputs, 3);
+	ef_intrl_elem inv_inputs[3] = {P3.z, P5.z, P7.z};
+	ef_intrl_elem inv_outputs[3];
+	ef_intrl_sim_inv(inv_inputs, inv_outputs, 3);
 
 	table[0] = P;
-	table[1] = (ec_point_laffine) {ef_mull(P3.x, inv_outputs[0]), ef_mull(P3.l, inv_outputs[0])};
-	table[2] = (ec_point_laffine) {ef_mull(P5.x, inv_outputs[1]), ef_mull(P5.l, inv_outputs[1])};
-	table[3] = (ec_point_laffine) {ef_mull(P7.x, inv_outputs[2]), ef_mull(P7.l, inv_outputs[2])};
+	table[1] = (ec_point_laffine) {ef_intrl_mull(P3.x, inv_outputs[0]), ef_intrl_mull(P3.l, inv_outputs[0])};
+	table[2] = (ec_point_laffine) {ef_intrl_mull(P5.x, inv_outputs[1]), ef_intrl_mull(P5.l, inv_outputs[1])};
+	table[3] = (ec_point_laffine) {ef_intrl_mull(P7.x, inv_outputs[2]), ef_intrl_mull(P7.l, inv_outputs[2])};
 }
 
 void precompute(ec_point_laffine P, ec_point_laffine table[]) {
@@ -600,18 +586,18 @@ void precompute(ec_point_laffine P, ec_point_laffine table[]) {
 	ec_point_lproj P13 = ec_double_then_add(P, P6);
 	ec_point_lproj P15 = ec_double_then_add(P, P7);
 
-	ef_elem inv_inputs[7] = {P3.z, P5.z, P7.z, P9.z, P11.z, P13.z, P15.z};
-	ef_elem inv_outputs[7];
-	ef_sim_inv(inv_inputs, inv_outputs, 7);
+	ef_intrl_elem inv_inputs[7] = {P3.z, P5.z, P7.z, P9.z, P11.z, P13.z, P15.z};
+	ef_intrl_elem inv_outputs[7];
+	ef_intrl_sim_inv(inv_inputs, inv_outputs, 7);
 
 	table[0] = P;
-	table[1] = (ec_point_laffine) {ef_mull(P3.x, inv_outputs[0]), ef_mull(P3.l, inv_outputs[0])};
-	table[2] = (ec_point_laffine) {ef_mull(P5.x, inv_outputs[1]), ef_mull(P5.l, inv_outputs[1])};
-	table[3] = (ec_point_laffine) {ef_mull(P7.x, inv_outputs[2]), ef_mull(P7.l, inv_outputs[2])};
-	table[4] = (ec_point_laffine) {ef_mull(P9.x, inv_outputs[3]), ef_mull(P9.l, inv_outputs[3])};
-	table[5] = (ec_point_laffine) {ef_mull(P11.x, inv_outputs[4]), ef_mull(P11.l, inv_outputs[4])};
-	table[6] = (ec_point_laffine) {ef_mull(P13.x, inv_outputs[5]), ef_mull(P13.l, inv_outputs[5])};
-	table[7] = (ec_point_laffine) {ef_mull(P15.x, inv_outputs[6]), ef_mull(P15.l, inv_outputs[6])};
+	table[1] = (ec_point_laffine) {ef_intrl_mull(P3.x, inv_outputs[0]), ef_intrl_mull(P3.l, inv_outputs[0])};
+	table[2] = (ec_point_laffine) {ef_intrl_mull(P5.x, inv_outputs[1]), ef_intrl_mull(P5.l, inv_outputs[1])};
+	table[3] = (ec_point_laffine) {ef_intrl_mull(P7.x, inv_outputs[2]), ef_intrl_mull(P7.l, inv_outputs[2])};
+	table[4] = (ec_point_laffine) {ef_intrl_mull(P9.x, inv_outputs[3]), ef_intrl_mull(P9.l, inv_outputs[3])};
+	table[5] = (ec_point_laffine) {ef_intrl_mull(P11.x, inv_outputs[4]), ef_intrl_mull(P11.l, inv_outputs[4])};
+	table[6] = (ec_point_laffine) {ef_intrl_mull(P13.x, inv_outputs[5]), ef_intrl_mull(P13.l, inv_outputs[5])};
+	table[7] = (ec_point_laffine) {ef_intrl_mull(P15.x, inv_outputs[6]), ef_intrl_mull(P15.l, inv_outputs[6])};
 }
 
 void precompute_w6(ec_point_laffine P, ec_point_laffine table[]) {
@@ -638,26 +624,26 @@ void precompute_w6(ec_point_laffine P, ec_point_laffine table[]) {
 	ec_point_lproj P29 = ec_double_then_add(P, P14);
 	ec_point_lproj P31 = ec_double_then_add(P, P15);
 
-	ef_elem inv_inputs[15] = {P3.z, P5.z, P7.z, P9.z, P11.z, P13.z, P15.z, P17.z, P19.z, P21.z, P23.z, P25.z, P27.z, P29.z, P31.z};
-	ef_elem inv_outputs[15];
-	ef_sim_inv(inv_inputs, inv_outputs, 15);
+	ef_intrl_elem inv_inputs[15] = {P3.z, P5.z, P7.z, P9.z, P11.z, P13.z, P15.z, P17.z, P19.z, P21.z, P23.z, P25.z, P27.z, P29.z, P31.z};
+	ef_intrl_elem inv_outputs[15];
+	ef_intrl_sim_inv(inv_inputs, inv_outputs, 15);
 
 	table[0] = P;
-	table[1] = (ec_point_laffine) {ef_mull(P3.x, inv_outputs[0]), ef_mull(P3.l, inv_outputs[0])};
-	table[2] = (ec_point_laffine) {ef_mull(P5.x, inv_outputs[1]), ef_mull(P5.l, inv_outputs[1])};
-	table[3] = (ec_point_laffine) {ef_mull(P7.x, inv_outputs[2]), ef_mull(P7.l, inv_outputs[2])};
-	table[4] = (ec_point_laffine) {ef_mull(P9.x, inv_outputs[3]), ef_mull(P9.l, inv_outputs[3])};
-	table[5] = (ec_point_laffine) {ef_mull(P11.x, inv_outputs[4]), ef_mull(P11.l, inv_outputs[4])};
-	table[6] = (ec_point_laffine) {ef_mull(P13.x, inv_outputs[5]), ef_mull(P13.l, inv_outputs[5])};
-	table[7] = (ec_point_laffine) {ef_mull(P15.x, inv_outputs[6]), ef_mull(P15.l, inv_outputs[6])};
-	table[8] = (ec_point_laffine) {ef_mull(P17.x, inv_outputs[7]), ef_mull(P17.l, inv_outputs[7])};
-	table[9] = (ec_point_laffine) {ef_mull(P19.x, inv_outputs[8]), ef_mull(P19.l, inv_outputs[8])};
-	table[10] = (ec_point_laffine) {ef_mull(P21.x, inv_outputs[9]), ef_mull(P21.l, inv_outputs[9])};
-	table[11] = (ec_point_laffine) {ef_mull(P23.x, inv_outputs[10]), ef_mull(P23.l, inv_outputs[10])};
-	table[12] = (ec_point_laffine) {ef_mull(P25.x, inv_outputs[11]), ef_mull(P25.l, inv_outputs[11])};
-	table[13] = (ec_point_laffine) {ef_mull(P27.x, inv_outputs[12]), ef_mull(P27.l, inv_outputs[12])};
-	table[14] = (ec_point_laffine) {ef_mull(P29.x, inv_outputs[13]), ef_mull(P29.l, inv_outputs[13])};
-	table[15] = (ec_point_laffine) {ef_mull(P31.x, inv_outputs[14]), ef_mull(P31.l, inv_outputs[14])};
+	table[1] = (ec_point_laffine) {ef_intrl_mull(P3.x, inv_outputs[0]), ef_intrl_mull(P3.l, inv_outputs[0])};
+	table[2] = (ec_point_laffine) {ef_intrl_mull(P5.x, inv_outputs[1]), ef_intrl_mull(P5.l, inv_outputs[1])};
+	table[3] = (ec_point_laffine) {ef_intrl_mull(P7.x, inv_outputs[2]), ef_intrl_mull(P7.l, inv_outputs[2])};
+	table[4] = (ec_point_laffine) {ef_intrl_mull(P9.x, inv_outputs[3]), ef_intrl_mull(P9.l, inv_outputs[3])};
+	table[5] = (ec_point_laffine) {ef_intrl_mull(P11.x, inv_outputs[4]), ef_intrl_mull(P11.l, inv_outputs[4])};
+	table[6] = (ec_point_laffine) {ef_intrl_mull(P13.x, inv_outputs[5]), ef_intrl_mull(P13.l, inv_outputs[5])};
+	table[7] = (ec_point_laffine) {ef_intrl_mull(P15.x, inv_outputs[6]), ef_intrl_mull(P15.l, inv_outputs[6])};
+	table[8] = (ec_point_laffine) {ef_intrl_mull(P17.x, inv_outputs[7]), ef_intrl_mull(P17.l, inv_outputs[7])};
+	table[9] = (ec_point_laffine) {ef_intrl_mull(P19.x, inv_outputs[8]), ef_intrl_mull(P19.l, inv_outputs[8])};
+	table[10] = (ec_point_laffine) {ef_intrl_mull(P21.x, inv_outputs[9]), ef_intrl_mull(P21.l, inv_outputs[9])};
+	table[11] = (ec_point_laffine) {ef_intrl_mull(P23.x, inv_outputs[10]), ef_intrl_mull(P23.l, inv_outputs[10])};
+	table[12] = (ec_point_laffine) {ef_intrl_mull(P25.x, inv_outputs[11]), ef_intrl_mull(P25.l, inv_outputs[11])};
+	table[13] = (ec_point_laffine) {ef_intrl_mull(P27.x, inv_outputs[12]), ef_intrl_mull(P27.l, inv_outputs[12])};
+	table[14] = (ec_point_laffine) {ef_intrl_mull(P29.x, inv_outputs[13]), ef_intrl_mull(P29.l, inv_outputs[13])};
+	table[15] = (ec_point_laffine) {ef_intrl_mull(P31.x, inv_outputs[14]), ef_intrl_mull(P31.l, inv_outputs[14])};
 }
 
 void print_table(ec_point_laffine* table) {

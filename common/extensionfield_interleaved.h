@@ -74,10 +74,10 @@ static inline ef_intrl_elem ef_intrl_square(ef_intrl_elem a) {
 	t3 = (poly64x2_t) veorq_u64((uint64x2_t) t3, (uint64x2_t) t1);
 	
 	//Combine
-	c.val[0] = vzip1q_p64(t2, t0);
-	c.val[1] = vzip2q_p64(t2, t0);
-	c.val[2] = vzip1q_p64(t3, t1);
-	c.val[3] = vzip2q_p64(t3, t1);
+	c.val[0] = (poly64x2_t) vzip1q_u64((uint64x2_t) t2, (uint64x2_t) t0);
+	c.val[1] = (poly64x2_t) vzip2q_u64((uint64x2_t) t2, (uint64x2_t) t0);
+	c.val[2] = (poly64x2_t) vzip1q_u64((uint64x2_t) t3, (uint64x2_t) t1);
+	c.val[3] = (poly64x2_t) vzip2q_u64((uint64x2_t) t3, (uint64x2_t) t1);
 	
 	return ef_intrl_red(c);
 }
@@ -94,12 +94,11 @@ static inline ef_intrl_elem ef_intrl_mull_A(ef_intrl_elem a) {
 
 static inline ef_intrl_elem ef_intrl_mull(ef_intrl_elem a, ef_intrl_elem b) {
 	ef_intrl_elem_unred c;
-	
-	//a0 * b0
 	poly64x2_t t0, t1;
 	poly64x2_t z = vdupq_n_p64(0);
 	poly64x2x2_t a0b0, a1b1, bigprod;
-
+	
+	//a0 * b0
 	a0b0.val[0] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a.val[0][0], b.val[0][0]));
 	a0b0.val[1] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a.val[1][0], b.val[1][0]));
 	t1 = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a.val[0][0], b.val[1][0]));
@@ -150,10 +149,10 @@ static inline ef_intrl_elem ef_intrl_mull(ef_intrl_elem a, ef_intrl_elem b) {
 	bigprod.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) a0b0.val[0], (uint64x2_t) bigprod.val[0]);
 	bigprod.val[1] = (poly64x2_t) veorq_u64((uint64x2_t) a0b0.val[1], (uint64x2_t) bigprod.val[1]);
 	
-	c.val[0] = vzip1q_p64(a1b1.val[0], bigprod.val[0]);
-	c.val[1] = vzip2q_p64(a1b1.val[0], bigprod.val[0]);
-	c.val[2] = vzip1q_p64(a1b1.val[1], bigprod.val[1]);
-	c.val[3] = vzip2q_p64(a1b1.val[1], bigprod.val[1]);
+	c.val[0] = (poly64x2_t) vzip1q_u64((uint64x2_t) a1b1.val[0], (uint64x2_t) bigprod.val[0]);
+	c.val[1] = (poly64x2_t) vzip2q_u64((uint64x2_t) a1b1.val[0], (uint64x2_t) bigprod.val[0]);
+	c.val[2] = (poly64x2_t) vzip1q_u64((uint64x2_t) a1b1.val[1], (uint64x2_t) bigprod.val[1]);
+	c.val[3] = (poly64x2_t) vzip2q_u64((uint64x2_t) a1b1.val[1], (uint64x2_t) bigprod.val[1]);
 	
 	return ef_intrl_red(c);
 }
