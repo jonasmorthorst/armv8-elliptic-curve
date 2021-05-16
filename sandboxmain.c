@@ -51,10 +51,10 @@ int main() {
 	uint64x2x2_t k = (uint64x2x2_t) {{{253256326376, 457436346236}, {124525, 11352535}}};
 
 	ec_point_laffine P = ec_rand_point_laffine();
-	
+
 	ec_point_lproj expected = ec_scalarmull_single(P, k);
 	//Act
-	ec_point_laffine actual = ec_scalarmull_single_endo_w3_randaccess(P, k);
+	ec_point_laffine actual = ec_scalarmull_single_endo_w5_randaccess(P, k);
 
 	//Assert
 	uint64_t equal = ec_equal_point_lproj(expected, ec_laffine_to_lproj(actual));

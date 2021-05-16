@@ -57,7 +57,7 @@
 		: "+r" (c0), "+r" (c1), "+r" (c2), "+r" (c3)\
 		: "r" (a0), "r" (a1), "r" (a2), "r" (a3)\
 		);
-		
+
 #define CMOV(tmpx1, cmpval, eqcondx1, old, new, old_ptrx1, new_ptrx1, type) \
 	tmpx1[0] = cmpval & eqcondx1[0]; \
 	tmpx1 = vceq_u64(tmpx1, eqcondx1); \
@@ -65,6 +65,14 @@
 	new_ptrx1[0] = (uint64_t) &new; \
 	tmpx1 = vbsl_u64(tmpx1, new_ptrx1, old_ptrx1); \
 	old = *((type*) tmpx1[0]); \
+
+#define CSEL(tmp1, cmpval, eqcond, old, new, new_ptr, type) \
+	asm volatile ("SUBS %0, %2, %3;" \
+	"CSEL %1, %4, %5, EQ;" \
+	: "+r" ( tmp1 ), "+r" ( new_ptr ) \
+	: "r" (cmpval), "r" (eqcond), "r" (&new), "r" (&old) \
+	); \
+	old = *((type*)new_ptr); \
 
 void utils_init();
 
