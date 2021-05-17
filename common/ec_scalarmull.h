@@ -36,7 +36,36 @@ static inline void linear_pass(ec_point_laffine *P1, ec_point_laffine *P2, ec_po
 	*P2 = ec_endo_laffine(P2_tmp);
 }
 
-void linear_pass_inline_asm(ec_point_laffine *P, ec_point_laffine* table, uint64_t index, uint64_t l);
+static inline void linear_pass_inline_asm(ec_point_laffine *P, ec_point_laffine* table, uint64_t index, uint64_t l) {
+	uint64_t val, new_ptr;
+	asm volatile ("SUBS %0, %2, #0;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #1;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #2;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #3;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #4;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #5;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #6;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #7;" \
+								"CSEL %1, %3, %1, EQ;" \
+								: "=r" ( val ), "=r" ( new_ptr ), "+r" (index), "+r" (table)
+								);
+
+	*P = *((ec_point_laffine*)new_ptr);
+}
 
 ec_point_laffine ec_scalarmull_single_endo_w3_randaccess(ec_point_laffine P, uint64x2x2_t k);
 
