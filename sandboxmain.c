@@ -11,6 +11,7 @@
 int main() {
 	init_components();
 
+
 	uint64x2x2_t k = (uint64x2x2_t) {{{253256326376, 457436346236}, {124525, 11352535}}};
 
 	ec_point_laffine P = ec_rand_point_laffine();
@@ -32,7 +33,21 @@ int main() {
 	//
 	// ec_point_laffine P1;
 	//
-	// linear_pass_new1(&P1, table, 7, 8);
+	// // uint64_t r1 = (uint64_t) &table;
+	// // uint64_t r2 = (uint64_t) &table[1];
+	// //
+	// printf("%p\n", &P1);
+	// printf("%p\n", table);
+	//
+	// ec_print_hex_laffine(P1);
+	//
+	// lin_pass(&P1, &table, 7);
+	//
+	// ec_print_hex_laffine(P1);
+	// ec_print_hex_laffine(table[7]);
+	//
+	//
+	// // linear_pass_new1(&P1, table, 7, 8);
 	// ec_point_laffine expected1 = table[7];
 	//
 	// uint64_t equal1 = ec_equal_point_laffine(expected1, P1);

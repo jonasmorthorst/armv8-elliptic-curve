@@ -284,20 +284,10 @@ ec_point_laffine ec_scalarmull_single_endo_w4_randaccess(ec_point_laffine P, uin
 	return ec_lproj_to_laffine(Q);
 }
 
-void __attribute__ ((noinline)) linear_pass_new1(ec_point_laffine *P, ec_point_laffine* table, uint64_t index, uint64_t l) {
+void linear_pass_inline_asm(ec_point_laffine *P, ec_point_laffine* table, uint64_t index, uint64_t l) {
 	uint64_t val, new_ptr, new_ptr2, p = (uint64_t) &table;
 	ec_point_laffine P_tmp;
 
-	// "ADD %4, %4, #512;" \
-	// "SUBS %0, %2, #1;" \
-	// "CSEL %1, %3, %1, EQ;" \
-	// "ADD %4, %4, #1024;" \
-	// "SUBS %0, %2, #2;" \
-	// "CSEL %1, %3, %1, EQ;" \
-
-	// printf("%lu\n", (uint64_t) &table[0]);
-	// printf("%lu\n", (uint64_t) &table[1]);
-	// printf("%lu\n", (uint64_t) &table[2]);
 	asm volatile (
 								"SUBS %0, %2, #0;" \
 								"CSEL %1, %3, %1, EQ;" \
@@ -322,40 +312,14 @@ void __attribute__ ((noinline)) linear_pass_new1(ec_point_laffine *P, ec_point_l
 								"ADD %3, %3, #64;" \
 								"SUBS %0, %2, #7;" \
 								"CSEL %1, %3, %1, EQ;" \
-								: "r" ( val ), "+r" ( new_ptr )
+								: "+r" ( val ), "+r" ( new_ptr )
 								: "r" (index), "r" (&table[0])
 								);
 
-	// printf("%lu\n", new_ptr);
-
 	*P = *((ec_point_laffine*)new_ptr);
-	// asm volatile ("SUBS %0, %2, #0;" \
-	// 							"CSEL %1, %4, %1, EQ;" \
-	// 							"SUBS %0, %2, #1;" \
-	// 							"CSEL %1, %5, %1, EQ;" \
-	// 							"SUBS %0, %2, #2;" \
-	// 							"CSEL %1, %6, %1, EQ;" \
-	// 							"SUBS %0, %2, #3;" \
-	// 							"CSEL %1, %7, %1, EQ;" \
-	// 							"SUBS %0, %2, #4;" \
-	// 							"CSEL %1, %8, %1, EQ;" \
-	// 							"SUBS %0, %2, #5;" \
-	// 							"CSEL %1, %9, %1, EQ;" \
-	// 							"SUBS %0, %2, #6;" \
-	// 							"CSEL %1, %10, %1, EQ;" \
-	// 							"SUBS %0, %2, #7;" \
-	// 							"CSEL %1, %11, %1, EQ;" \
-	// 							: "+r" ( val ), "+r" ( new_ptr2 ) \
-	// 							: "r" (index2), "r" (&P2_tmp), "r" (&table[0]), "r" (&table[1]), "r" (&table[2]), "r" (&table[3]), "r" (&table[4]), "r" (&table[5]), "r" (&table[6]), "r" (&table[7]) \
-	// 							);
-	// P2_tmp = *((ec_point_laffine*)new_ptr2);
-
-	// *P2 = ec_endo_laffine(P2_tmp);
 }
 
 ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint64x2x2_t k) {
-	// printf("%s\n", "P IN");
-	// ec_print_hex_laffine(P);
 	uint64_t val, new_ptr, con = 1;
 	int l = 65;
 	// int l = 86;
@@ -426,18 +390,20 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	// ec_point_laffine P2;
 	//
 	// linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
+	// linear_pass_new1(&P1, table, k1_val/2, 8);
+	// linear_pass_new1(&P2, table, k2_val/2, 8);
 
 	ec_point_laffine P1;
 	ec_point_laffine P2;
-
-	linear_pass_new1(&P1, table, k1_val/2, 8);
-	linear_pass_new1(&P2, table, k2_val/2, 8);
+	lin_pass(&P1, &table, k1_val/2);
+	lin_pass(&P2, &table, k2_val/2);
 
 	P2 = ec_endo_laffine(P2);
 
-	ec_point_laffine expected1 = table[k1_val/2];
-	ec_point_laffine expected2 = ec_endo_laffine(table[k2_val/2]);
 
+	// ec_point_laffine expected1 = table[k1_val/2];
+	// ec_point_laffine expected2 = ec_endo_laffine(table[k2_val/2]);
+	//
 	// uint64_t equal1 = ec_equal_point_laffine(expected1, P1);
 	// printf("equal1: %lu\n", equal1);
 	// uint64_t equal2 = ec_equal_point_laffine(expected2, P2);
@@ -456,11 +422,14 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	// }
 
 	ec_point_laffine P1_neg = ec_neg_laffine(P1);
-	CSEL(val, k1_sign, con, P1, P1_neg, new_ptr, typeof(ec_point_laffine));
+	// CSEL(val, k1_sign, con, P1, P1_neg, new_ptr, typeof(ec_point_laffine));
+	c_sel(k1_sign, con, &P1, &P1_neg);
+	// CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr2, typeof(ec_point_laffine));
 
-	// CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
 	ec_point_laffine P2_neg = ec_neg_laffine(P2);
-	CSEL(val, k2_sign, con, P2, P2_neg, new_ptr, typeof(ec_point_laffine));
+	// CSEL(val, k2_sign, con, P2, P2_neg, new_ptr, typeof(ec_point_laffine));
+	// CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr2, typeof(ec_point_laffine));
+	c_sel(k2_sign, con, &P2, &P2_neg);
 
 	// printf("P1 negated: %lu\n", ec_equal_point_laffine(P1, P1_neg));
 	// printf("P2 negated: %lu\n", ec_equal_point_laffine(P2, P2_neg));
@@ -493,8 +462,11 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 
 		// linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
 
-		linear_pass_new1(&P1, table, k1_val/2, 8);
-		linear_pass_new1(&P2, table, k2_val/2, 8);
+		// linear_pass_new1(&P1, table, k1_val/2, 8);
+		// linear_pass_new1(&P2, table, k2_val/2, 8);
+
+		lin_pass(&P1, &table, k1_val/2);
+		lin_pass(&P2, &table, k2_val/2);
 
 		P2 = ec_endo_laffine(P2);
 
@@ -517,12 +489,16 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 
 		//Negate p1 by k1_sign
 		P1_neg = ec_neg_laffine(P1);
-		// CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
-		CSEL(val, k1_sign, con, P1, P1_neg, new_ptr, typeof(ec_point_laffine));
+		c_sel(k1_sign, con, &P1, &P1_neg);
+
+		// CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr2, typeof(ec_point_laffine));
+		// CSEL(val, k1_sign, con, P1, P1_neg, new_ptr, typeof(ec_point_laffine));
 
 		P2_neg = ec_neg_laffine(P2);
-		// CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr, typeof(ec_point_laffine));
-		CSEL(val, k2_sign, con, P2, P2_neg, new_ptr, typeof(ec_point_laffine));
+		c_sel(k2_sign, con, &P2, &P2_neg);
+
+		// CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr2, typeof(ec_point_laffine));
+		// CSEL(val, k2_sign, con, P2, P2_neg, new_ptr, typeof(ec_point_laffine));
 
 		// printf("%s\n", "P1");
 		// ec_print_hex_laffine(P1);

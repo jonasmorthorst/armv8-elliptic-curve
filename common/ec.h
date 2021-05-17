@@ -89,20 +89,20 @@ static inline ec_point_laffine ec_endo_laffine(ec_point_laffine P) {
 	/*P.x.val[0] = bf_add(P.x.val[0], P.x.val[1]);
 	P.l.val[0] = bf_add(P.l.val[0], P.l.val[1]);
 	P.l.val[1] = bf_add(P.l.val[1], (poly64x2_t) {1,0});*/
-	
+
 	//x_1u + (x0+x1)
 	poly64x2_t t = vextq_p64(P.x.val[0], P.x.val[0], 1);
 	P.x.val[0][0] ^= t[0];
 	t = vextq_p64(P.x.val[1], P.x.val[1], 1);
 	P.x.val[1][0] ^= t[0];
-	
+
 	//(l_1+1)u + (l0+l1)
 	t[0] = 1;
 	t = vextq_p64(P.l.val[0], t, 1);
 	P.l.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) P.l.val[0], (uint64x2_t) t);
 	t = vextq_p64(P.l.val[1], P.l.val[1], 1);
 	P.l.val[1][0] ^= t[0];
-	
+
 	return P;
 }
 
