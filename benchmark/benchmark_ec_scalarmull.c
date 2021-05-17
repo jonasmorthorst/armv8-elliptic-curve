@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "../common/ec_scalarmull.h"
 #include "../common/ec.h"
@@ -6,6 +7,36 @@
 #include "benchmark_ec_scalarmull.h"
 #include "benchmark_tool.h"
 
+
+void benchmark_ec_linaer_pass() {
+	uint64_t num_runs = 2000;
+	uint64_t times[num_runs];
+	ec_point_laffine sum = ec_rand_point_laffine();
+
+	for(int i = 0; i < num_runs; i++) {
+		ec_point_laffine P = ec_rand_point_laffine();
+
+		ec_point_laffine table[8];
+		precompute(P, table);
+
+		uint64_t index1 = rand() % (7 + 1);
+		uint64_t index2 = rand() % (7 + 1);
+		ec_point_laffine P1 = ec_rand_point_laffine();
+		ec_point_laffine P2 = ec_rand_point_laffine();
+		uint64_t start = read_pmccntr();
+		linear_pass_new1(&P1, table, index1, 8);
+		linear_pass_new1(&P2, table, index2, 8);
+		uint64_t end = read_pmccntr();
+		insert_sorted(end-start, times, i);
+		sum = ec_lproj_to_laffine(ec_add_laffine_unchecked(P1, sum));
+		sum = ec_lproj_to_laffine(ec_add_laffine_unchecked(P2, sum));
+	}
+	ec_print_hex_laffine(sum);
+	printf("BENCHMARK benchmark_ec_linaer_pass\n");
+	printf("Number of iterations: %lu\n", num_runs);
+	printf("Average: %lf\n", average(times, num_runs));
+	printf("Median: %lf\n\n", median(times, num_runs));
+}
 
 void benchmark_ec_scalarmull_single() {
 	uint64_t num_runs = 2000;
@@ -157,6 +188,7 @@ void benchmark_ec_scalarmull_double() {
 }
 
 void benchmark_ec_scalarmull_all() {
+	benchmark_ec_linaer_pass();
 	benchmark_ec_scalarmull_single();
 	benchmark_ec_scalarmull_single_endo();
 	benchmark_ec_scalarmull_single_endo_w3_randaccess();

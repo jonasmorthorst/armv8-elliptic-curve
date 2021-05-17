@@ -11,6 +11,61 @@
 int main() {
 	init_components();
 
+	uint64x2x2_t k = (uint64x2x2_t) {{{253256326376, 457436346236}, {124525, 11352535}}};
+
+	ec_point_laffine P = ec_rand_point_laffine();
+
+	ec_point_lproj expected = ec_scalarmull_single(P, k);
+	//Act
+	ec_point_laffine actual = ec_scalarmull_single_endo_w5_randaccess(P, k);
+
+	//Assert
+	uint64_t equal = ec_equal_point_lproj(expected, ec_laffine_to_lproj(actual));
+	uint64_t on_curve = ec_is_on_curve_laffine(actual);
+
+	printf("Equal: %lu\n", equal);
+	printf("On curve: %lu\n", on_curve);
+
+	// ec_point_laffine P = ec_rand_point_laffine();
+	// ec_point_laffine table[8];
+	// precompute(P, table);
+	//
+	// ec_point_laffine P1;
+	//
+	// linear_pass_new1(&P1, table, 7, 8);
+	// ec_point_laffine expected1 = table[7];
+	//
+	// uint64_t equal1 = ec_equal_point_laffine(expected1, P1);
+	// printf("equal1: %lu\n", equal1);
+	//
+	// uint64_t on_curve = ec_is_on_curve_laffine(table[7]);
+	// printf("On curve: %lu\n", on_curve);
+
+	//
+	// ec_point_laffine P1;
+	// ec_point_laffine P2;
+	//
+	// ec_print_hex_laffine(P1);
+	//
+	//
+	// linear_pass_new(&P1, table, 5, 8);
+	// linear_pass_new(&P2, table, 1, 8);
+	// ec_point_laffine expected1 = table[5];
+	// ec_point_laffine expected2 = table[1];
+	//
+	// uint64_t equal1 = ec_equal_point_laffine(expected1, P1);
+	// ec_print_hex_laffine(expected1);
+	// ec_print_hex_laffine(P1);
+	// printf("equal1: %lu\n", equal1);
+	// uint64_t equal2 = ec_equal_point_laffine(expected2, P2);
+	// printf("Equal2: %lu\n", equal2);
+
+
+
+
+
+
+
 	// poly64x2x2_t a = (poly64x2x2_t) {{{0, 0}, {9223372036854775808U, 0}}};
 	// poly64x2_t ared = bf_red(a);
 	// poly64x2_t aredpsquare = bf_red_psquare_formula(a);
@@ -48,20 +103,23 @@ int main() {
 	//k1 sign 0 k2 sign 1 c1: 0 c2: 0
 	// uint64x2x2_t k = (uint64x2x2_t) {{{253256326376, 457436346236}, {22385867236, 427238457}}};
 	//
-	uint64x2x2_t k = (uint64x2x2_t) {{{253256326376, 457436346236}, {124525, 11352535}}};
-
-	ec_point_laffine P = ec_rand_point_laffine();
-
-	ec_point_lproj expected = ec_scalarmull_single(P, k);
-	//Act
-	ec_point_laffine actual = ec_scalarmull_single_endo_w5_randaccess(P, k);
-
-	//Assert
-	uint64_t equal = ec_equal_point_lproj(expected, ec_laffine_to_lproj(actual));
-	uint64_t on_curve = ec_is_on_curve_laffine(actual);
-
-	printf("Equal: %lu\n", equal);
-	printf("On curve: %lu\n", on_curve);
+	// uint64x2x2_t k = (uint64x2x2_t) {{{1, 0}, {0, 0}}};
+	//
+	// ef_elem PX = ef_create_elem(bf_create_elem(0X7674C426F68A7C0D, 0X26C3E68569307393), bf_create_elem(0X9BFA0D5F1CB2BB3F, 0X53889FE5B08254D3));
+	// ef_elem PL = ef_create_elem(bf_create_elem(0X4F88EF9F49D18A5E, 0X5C7C38B577B3EAF4), bf_create_elem(0XCDD4DCBE486CC880, 0X18FEF6543ECA3ABC));
+	// ef_elem PZ = ef_create_elem(bf_create_elem(0X20000000000004, 0), bf_create_elem(0X8000000000000000, 0X80000));
+	// ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //P = 78632917462800214 * GEN
+	//
+	// ec_point_lproj expected = ec_scalarmull_single(ec_lproj_to_laffine(P), k);
+	// //Act
+	// ec_point_laffine actual = ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), k);
+	//
+	// //Assert
+	// uint64_t equal = ec_equal_point_lproj(expected, ec_laffine_to_lproj(actual));
+	// uint64_t on_curve = ec_is_on_curve_laffine(actual);
+	//
+	// printf("Equal: %lu\n", equal);
+	// printf("On curve: %lu\n", on_curve);
 
 
 	// uint64x2x2_t k = ec_rand_scalar();
@@ -74,6 +132,7 @@ int main() {
 	// //Assert
 	// uint64_t equal = ec_equal_point_lproj(expected, actual);
 	// uint64_t on_curve = ec_is_on_curve(actual);
+
 
 
 	// ec_split_scalar decomp = ec_scalar_decomp(k);

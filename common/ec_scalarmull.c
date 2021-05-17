@@ -1,5 +1,4 @@
 #include "ec_scalarmull.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -285,6 +284,75 @@ ec_point_laffine ec_scalarmull_single_endo_w4_randaccess(ec_point_laffine P, uin
 	return ec_lproj_to_laffine(Q);
 }
 
+void __attribute__ ((noinline)) linear_pass_new1(ec_point_laffine *P, ec_point_laffine* table, uint64_t index, uint64_t l) {
+	uint64_t val, new_ptr, new_ptr2, p = (uint64_t) &table;
+	ec_point_laffine P_tmp;
+
+	// "ADD %4, %4, #512;" \
+	// "SUBS %0, %2, #1;" \
+	// "CSEL %1, %3, %1, EQ;" \
+	// "ADD %4, %4, #1024;" \
+	// "SUBS %0, %2, #2;" \
+	// "CSEL %1, %3, %1, EQ;" \
+
+	// printf("%lu\n", (uint64_t) &table[0]);
+	// printf("%lu\n", (uint64_t) &table[1]);
+	// printf("%lu\n", (uint64_t) &table[2]);
+	asm volatile (
+								"SUBS %0, %2, #0;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #1;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #2;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #3;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #4;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #5;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #6;" \
+								"CSEL %1, %3, %1, EQ;" \
+								"ADD %3, %3, #64;" \
+								"SUBS %0, %2, #7;" \
+								"CSEL %1, %3, %1, EQ;" \
+								: "r" ( val ), "+r" ( new_ptr )
+								: "r" (index), "r" (&table[0])
+								);
+
+	// printf("%lu\n", new_ptr);
+
+	*P = *((ec_point_laffine*)new_ptr);
+	// asm volatile ("SUBS %0, %2, #0;" \
+	// 							"CSEL %1, %4, %1, EQ;" \
+	// 							"SUBS %0, %2, #1;" \
+	// 							"CSEL %1, %5, %1, EQ;" \
+	// 							"SUBS %0, %2, #2;" \
+	// 							"CSEL %1, %6, %1, EQ;" \
+	// 							"SUBS %0, %2, #3;" \
+	// 							"CSEL %1, %7, %1, EQ;" \
+	// 							"SUBS %0, %2, #4;" \
+	// 							"CSEL %1, %8, %1, EQ;" \
+	// 							"SUBS %0, %2, #5;" \
+	// 							"CSEL %1, %9, %1, EQ;" \
+	// 							"SUBS %0, %2, #6;" \
+	// 							"CSEL %1, %10, %1, EQ;" \
+	// 							"SUBS %0, %2, #7;" \
+	// 							"CSEL %1, %11, %1, EQ;" \
+	// 							: "+r" ( val ), "+r" ( new_ptr2 ) \
+	// 							: "r" (index2), "r" (&P2_tmp), "r" (&table[0]), "r" (&table[1]), "r" (&table[2]), "r" (&table[3]), "r" (&table[4]), "r" (&table[5]), "r" (&table[6]), "r" (&table[7]) \
+	// 							);
+	// P2_tmp = *((ec_point_laffine*)new_ptr2);
+
+	// *P2 = ec_endo_laffine(P2_tmp);
+}
+
 ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint64x2x2_t k) {
 	// printf("%s\n", "P IN");
 	// ec_print_hex_laffine(P);
@@ -331,7 +399,7 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	// ec_print_naf(naf_k2, l);
 
 	// Precomputation
-	ec_point_laffine table[16];
+	ec_point_laffine table[8];
 	precompute(P, table);
 
 	// print_table(table);
@@ -354,10 +422,27 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	//
 	// printf("k1 digit: %hhd | k2 digit: %hhd \n\n", k1_digit, k2_digit);
 
+	// ec_point_laffine P1;
+	// ec_point_laffine P2;
+	//
+	// linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
+
 	ec_point_laffine P1;
 	ec_point_laffine P2;
 
-	linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
+	linear_pass_new1(&P1, table, k1_val/2, 8);
+	linear_pass_new1(&P2, table, k2_val/2, 8);
+
+	P2 = ec_endo_laffine(P2);
+
+	ec_point_laffine expected1 = table[k1_val/2];
+	ec_point_laffine expected2 = ec_endo_laffine(table[k2_val/2]);
+
+	// uint64_t equal1 = ec_equal_point_laffine(expected1, P1);
+	// printf("equal1: %lu\n", equal1);
+	// uint64_t equal2 = ec_equal_point_laffine(expected2, P2);
+	// printf("Equal2: %lu\n", equal2);
+
 
 	// ec_point_laffine P1 = table[k2_val/2];
 	// ec_point_laffine P2 = ec_endo_laffine(table[k2_val/2]);
@@ -406,7 +491,20 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 		// printf("k1 sign: %lu | k2 sign: %lu \n", k2_sign, k2_sign);
 		// printf("k1 val: %hhd | k2 val: %hhd \n\n", k1_val, k2_digit);
 
-		linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
+		// linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
+
+		linear_pass_new1(&P1, table, k1_val/2, 8);
+		linear_pass_new1(&P2, table, k2_val/2, 8);
+
+		P2 = ec_endo_laffine(P2);
+
+		// expected1 = table[k1_val/2];
+		// expected2 = ec_endo_laffine(table[k2_val/2]);
+		//
+		// equal1 = ec_equal_point_laffine(expected1, P1);
+		// printf("equal1: %lu\n", equal1);
+		// equal2 = ec_equal_point_laffine(expected2, P2);
+		// printf("Equal2: %lu\n", equal2);
 
 		// printf("P1 On curve: %lu\n", ec_is_on_curve(ec_laffine_to_lproj(P1)));
 		// printf("P2 On curve: %lu\n", ec_is_on_curve(ec_laffine_to_lproj(P2)));
@@ -558,7 +656,7 @@ void precompute_w4(ec_point_laffine P, ec_point_laffine table[]) {
 	ec_point_lproj P3 = ec_add_mixed_unchecked(P, P2);
 	ec_point_lproj P5 = ec_double_then_add(P, P2);
 	ec_point_lproj P7 = ec_double_then_add(P, P3);
-	
+
 	ef_intrl_elem inv_inputs[3] = {P3.z, P5.z, P7.z};
 	ef_intrl_elem inv_outputs[3];
 	ef_intrl_sim_inv(inv_inputs, inv_outputs, 3);
