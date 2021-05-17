@@ -285,7 +285,7 @@ ec_point_laffine ec_scalarmull_single_endo_w4_randaccess(ec_point_laffine P, uin
 }
 
 void linear_pass_inline_asm(ec_point_laffine *P, ec_point_laffine* table, uint64_t index, uint64_t l) {
-	uint64_t val, new_ptr, new_ptr2, p = (uint64_t) &table;
+	uint64_t val, new_ptr;
 	ec_point_laffine P_tmp;
 
 	asm volatile (
@@ -390,13 +390,14 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	// ec_point_laffine P2;
 	//
 	// linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
-	// linear_pass_new1(&P1, table, k1_val/2, 8);
-	// linear_pass_new1(&P2, table, k2_val/2, 8);
 
 	ec_point_laffine P1;
 	ec_point_laffine P2;
 	lin_pass(&P1, &table, k1_val/2);
 	lin_pass(&P2, &table, k2_val/2);
+
+	// linear_pass_inline_asm(&P1, table, k1_val/2, 8);
+	// linear_pass_inline_asm(&P2, table, k2_val/2, 8);
 
 	P2 = ec_endo_laffine(P2);
 
@@ -462,11 +463,11 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 
 		// linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
 
-		// linear_pass_new1(&P1, table, k1_val/2, 8);
-		// linear_pass_new1(&P2, table, k2_val/2, 8);
-
 		lin_pass(&P1, &table, k1_val/2);
 		lin_pass(&P2, &table, k2_val/2);
+
+		// linear_pass_inline_asm(&P1, table, k1_val/2, 8);
+		// linear_pass_inline_asm(&P2, table, k2_val/2, 8);
 
 		P2 = ec_endo_laffine(P2);
 
