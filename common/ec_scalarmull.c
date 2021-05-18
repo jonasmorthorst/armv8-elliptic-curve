@@ -358,11 +358,11 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 
 	ec_point_laffine P1;
 	ec_point_laffine P2;
-	// lin_pass(&P1, &table, k1_val/2);
-	// lin_pass(&P2, &table, k2_val/2);
+	lin_pass(&P1, &table, k1_val/2);
+	lin_pass(&P2, &table, k2_val/2);
 
-	linear_pass_inline_asm(&P1, table, k1_val/2, 8);
-	linear_pass_inline_asm(&P2, table, k2_val/2, 8);
+	// linear_pass_inline_asm(&P1, table, k1_val/2, 8);
+	// linear_pass_inline_asm(&P2, table, k2_val/2, 8);
 
 	P2 = ec_endo_laffine(P2);
 
@@ -388,14 +388,14 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	// }
 
 	ec_point_laffine P1_neg = ec_neg_laffine(P1);
-	CSEL(val, k1_sign, con, P1, P1_neg, new_ptr, typeof(ec_point_laffine));
-	// c_sel(k1_sign, con, &P1, &P1_neg);
+	// CSEL(val, k1_sign, con, P1, P1_neg, new_ptr, typeof(ec_point_laffine));
+	c_sel(k1_sign, con, &P1, &P1_neg);
 	// CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr2, typeof(ec_point_laffine));
 
 	ec_point_laffine P2_neg = ec_neg_laffine(P2);
-	CSEL(val, k2_sign, con, P2, P2_neg, new_ptr, typeof(ec_point_laffine));
+	// CSEL(val, k2_sign, con, P2, P2_neg, new_ptr, typeof(ec_point_laffine));
 	// CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr2, typeof(ec_point_laffine));
-	// c_sel(k2_sign, con, &P2, &P2_neg);
+	c_sel(k2_sign, con, &P2, &P2_neg);
 
 	// printf("P1 negated: %lu\n", ec_equal_point_laffine(P1, P1_neg));
 	// printf("P2 negated: %lu\n", ec_equal_point_laffine(P2, P2_neg));
@@ -428,11 +428,11 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 
 		// linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
 
-		// lin_pass(&P1, &table, k1_val/2);
-		// lin_pass(&P2, &table, k2_val/2);
+		lin_pass(&P1, &table, k1_val/2);
+		lin_pass(&P2, &table, k2_val/2);
 
-		linear_pass_inline_asm(&P1, table, k1_val/2, 8);
-		linear_pass_inline_asm(&P2, table, k2_val/2, 8);
+		// linear_pass_inline_asm(&P1, table, k1_val/2, 8);
+		// linear_pass_inline_asm(&P2, table, k2_val/2, 8);
 
 		P2 = ec_endo_laffine(P2);
 
@@ -455,16 +455,16 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 
 		//Negate p1 by k1_sign
 		P1_neg = ec_neg_laffine(P1);
-		// c_sel(k1_sign, con, &P1, &P1_neg);
+		c_sel(k1_sign, con, &P1, &P1_neg);
 
 		// CMOV(tmp, k1_sign, cond, P1, P1_neg, old_ptr, new_ptr2, typeof(ec_point_laffine));
-		CSEL(val, k1_sign, con, P1, P1_neg, new_ptr, typeof(ec_point_laffine));
+		// CSEL(val, k1_sign, con, P1, P1_neg, new_ptr, typeof(ec_point_laffine));
 
 		P2_neg = ec_neg_laffine(P2);
-		// c_sel(k2_sign, con, &P2, &P2_neg);
+		c_sel(k2_sign, con, &P2, &P2_neg);
 
 		// CMOV(tmp, k2_sign, cond, P2, P2_neg, old_ptr, new_ptr2, typeof(ec_point_laffine));
-		CSEL(val, k2_sign, con, P2, P2_neg, new_ptr, typeof(ec_point_laffine));
+		// CSEL(val, k2_sign, con, P2, P2_neg, new_ptr, typeof(ec_point_laffine));
 
 		// printf("%s\n", "P1");
 		// ec_print_hex_laffine(P1);

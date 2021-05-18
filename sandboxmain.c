@@ -11,6 +11,26 @@
 int main() {
 	init_components();
 
+	// ec_point_laffine P = ec_rand_point_laffine();
+	// ec_point_laffine table[8];
+	// precompute(P, table);
+	//
+	// ec_point_laffine P1;
+	// ec_point_laffine P2;
+	// lin_pass(&P1, &table, 0);
+	// lin_pass(&P2, &table, 0);
+	//
+	// P2 = ec_endo_laffine(P2);
+	// ec_point_laffine expected1 = table[0];
+	// ec_point_laffine expected2 = ec_endo_laffine(table[0]);
+	//
+	// uint64_t equal1 = ec_equal_point_laffine(expected1, P1);
+	// printf("equal1: %lu\n", equal1);
+	// uint64_t equal2 = ec_equal_point_laffine(expected2, P2);
+	// printf("equal2: %lu\n", equal2);
+
+
+
 
 	uint64x2x2_t k = (uint64x2x2_t) {{{253256326376, 457436346236}, {124525, 11352535}}};
 
@@ -27,6 +47,8 @@ int main() {
 	printf("Equal: %lu\n", equal);
 	printf("On curve: %lu\n", on_curve);
 
+
+
 	// ec_point_laffine P = ec_rand_point_laffine();
 	// ec_point_laffine table[8];
 	// precompute(P, table);
@@ -38,19 +60,19 @@ int main() {
 	// //
 	// printf("%p\n", &P1);
 	// printf("%p\n", table);
-	//
+
 	// ec_print_hex_laffine(P1);
-	//
-	// lin_pass(&P1, &table, 7);
-	//
+
+
 	// ec_print_hex_laffine(P1);
 	// ec_print_hex_laffine(table[7]);
+
+
+	// linear_pass_new1(&P1, table, 7, 8);
+	// lin_pass(&P, &table, 0);
+	// ec_point_laffine expected1 = table[0];
 	//
-	//
-	// // linear_pass_new1(&P1, table, 7, 8);
-	// ec_point_laffine expected1 = table[7];
-	//
-	// uint64_t equal1 = ec_equal_point_laffine(expected1, P1);
+	// uint64_t equal1 = ec_equal_point_laffine(expected1, P);
 	// printf("equal1: %lu\n", equal1);
 	//
 	// uint64_t on_curve = ec_is_on_curve_laffine(table[7]);
