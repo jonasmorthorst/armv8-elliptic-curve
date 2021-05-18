@@ -17,12 +17,11 @@ int main() {
 	//
 	// ec_point_laffine P1;
 	// ec_point_laffine P2;
-	// lin_pass(&P1, &table, 0);
-	// lin_pass(&P2, &table, 0);
+	// lin_pass(&P1, &P2, &table, 4, 7);
 	//
 	// P2 = ec_endo_laffine(P2);
-	// ec_point_laffine expected1 = table[0];
-	// ec_point_laffine expected2 = ec_endo_laffine(table[0]);
+	// ec_point_laffine expected1 = table[4];
+	// ec_point_laffine expected2 = ec_endo_laffine(table[7]);
 	//
 	// uint64_t equal1 = ec_equal_point_laffine(expected1, P1);
 	// printf("equal1: %lu\n", equal1);

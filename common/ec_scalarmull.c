@@ -318,8 +318,7 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	// printf("k2_1 %lu\n", decomp.k2[1]);
 
 	// Compute recodings
-	signed char naf_k1[l];
-	signed char naf_k2[l];
+	signed char naf_k1[l], naf_k2[l];
 
 	ec_to_naf(decomp.k1, 5, naf_k1);
 	ec_to_naf(decomp.k2, 5, naf_k2);
@@ -356,10 +355,8 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	//
 	// linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
 
-	ec_point_laffine P1;
-	ec_point_laffine P2;
-	lin_pass(&P1, &table, k1_val/2);
-	lin_pass(&P2, &table, k2_val/2);
+	ec_point_laffine P1, P2;
+	lin_pass(&P1, &P2, &table, k1_val/2, k2_val/2);
 
 	// linear_pass_inline_asm(&P1, table, k1_val/2, 8);
 	// linear_pass_inline_asm(&P2, table, k2_val/2, 8);
@@ -428,8 +425,7 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 
 		// linear_pass(&P1, &P2, table, k1_val/2, k2_val/2, 8);
 
-		lin_pass(&P1, &table, k1_val/2);
-		lin_pass(&P2, &table, k2_val/2);
+		lin_pass(&P1, &P2, &table, k1_val/2, k2_val/2);
 
 		// linear_pass_inline_asm(&P1, table, k1_val/2, 8);
 		// linear_pass_inline_asm(&P2, table, k2_val/2, 8);

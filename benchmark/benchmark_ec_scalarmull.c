@@ -24,8 +24,7 @@ void benchmark_ec_linaer_pass() {
 		ec_point_laffine P1 = ec_rand_point_laffine();
 		ec_point_laffine P2 = ec_rand_point_laffine();
 		uint64_t start = read_pmccntr();
-		lin_pass(&P1, &table, index1);
-		lin_pass(&P2, &table, index2);
+		lin_pass(&P1, &P2, &table, index1, index2);
 		uint64_t end = read_pmccntr();
 		insert_sorted(end-start, times, i);
 		sum = ec_lproj_to_laffine(ec_add_laffine_unchecked(P1, sum));
