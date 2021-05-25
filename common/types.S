@@ -8,6 +8,7 @@ lin_pass:
 	stp x21, x22, [SP, #-16]!
 	stp x23, x24, [SP, #-16]!
 	stp x25, x26, [SP, #-16]!
+	stp x27, x28, [SP, #-16]!
 	stp x0, x1, [SP, #-16]!
 
 	// Iteration i=0
@@ -34,8 +35,8 @@ lin_pass:
 	csel x5, x9, x5, EQ
 	csel x6, x10, x6, EQ
 	csel x15, x11, x15, EQ
-	csel x16, x12, x16, EQ
-	csel x17, x13, x17, EQ
+	csel x27, x12, x27, EQ
+	csel x28, x13, x28, EQ
 	csel x18, x14, x18, EQ
 
 	add x2, x2, #64
@@ -64,8 +65,8 @@ lin_pass:
 	csel x5, x9, x5, EQ
 	csel x6, x10, x6, EQ
 	csel x15, x11, x15, EQ
-	csel x16, x12, x16, EQ
-	csel x17, x13, x17, EQ
+	csel x27, x12, x27, EQ
+	csel x28, x13, x28, EQ
 	csel x18, x14, x18, EQ
 
 	add x2, x2, #64
@@ -94,8 +95,8 @@ lin_pass:
 	csel x5, x9, x5, EQ
 	csel x6, x10, x6, EQ
 	csel x15, x11, x15, EQ
-	csel x16, x12, x16, EQ
-	csel x17, x13, x17, EQ
+	csel x27, x12, x27, EQ
+	csel x28, x13, x28, EQ
 	csel x18, x14, x18, EQ
 
 	add x2, x2, #64
@@ -124,8 +125,8 @@ lin_pass:
 	csel x5, x9, x5, EQ
 	csel x6, x10, x6, EQ
 	csel x15, x11, x15, EQ
-	csel x16, x12, x16, EQ
-	csel x17, x13, x17, EQ
+	csel x27, x12, x27, EQ
+	csel x28, x13, x28, EQ
 	csel x18, x14, x18, EQ
 
 	add x2, x2, #64
@@ -154,8 +155,8 @@ lin_pass:
 	csel x5, x9, x5, EQ
 	csel x6, x10, x6, EQ
 	csel x15, x11, x15, EQ
-	csel x16, x12, x16, EQ
-	csel x17, x13, x17, EQ
+	csel x27, x12, x27, EQ
+	csel x28, x13, x28, EQ
 	csel x18, x14, x18, EQ
 
 	add x2, x2, #64
@@ -184,8 +185,8 @@ lin_pass:
 	csel x5, x9, x5, EQ
 	csel x6, x10, x6, EQ
 	csel x15, x11, x15, EQ
-	csel x16, x12, x16, EQ
-	csel x17, x13, x17, EQ
+	csel x27, x12, x27, EQ
+	csel x28, x13, x28, EQ
 	csel x18, x14, x18, EQ
 
 	add x2, x2, #64
@@ -214,8 +215,8 @@ lin_pass:
 	csel x5, x9, x5, EQ
 	csel x6, x10, x6, EQ
 	csel x15, x11, x15, EQ
-	csel x16, x12, x16, EQ
-	csel x17, x13, x17, EQ
+	csel x27, x12, x27, EQ
+	csel x28, x13, x28, EQ
 	csel x18, x14, x18, EQ
 
 	add x2, x2, #64
@@ -244,8 +245,8 @@ lin_pass:
 	csel x5, x9, x5, EQ
 	csel x6, x10, x6, EQ
 	csel x15, x11, x15, EQ
-	csel x16, x12, x16, EQ
-	csel x17, x13, x17, EQ
+	csel x27, x12, x27, EQ
+	csel x28, x13, x28, EQ
 	csel x18, x14, x18, EQ
 
 	// Store in output register addresses
@@ -258,10 +259,11 @@ lin_pass:
 
 	stp x0, x1, [x3]
 	stp x5, x6, [x3, #16]
-	stp x15, x16, [x3, #32]
-	stp x17, x18, [x3, #48]
+	stp x15, x27, [x3, #32]
+	stp x28, x18, [x3, #48]
 
 	// Restore
+	ldp x27, x28, [SP], #16
 	ldp x25, x26, [SP], #16
 	ldp x23, x24, [SP], #16
 	ldp x21, x22, [SP], #16

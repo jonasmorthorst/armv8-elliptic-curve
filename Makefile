@@ -1,5 +1,5 @@
 #To compile with gcc: "make runtests gcc=1"
-CLANGFLAGS = -Ofast -g
+CLANGFLAGS = -Ofast
 GCCFLAGS = -march=armv8.4-a+crypto -O3
 
 runsandbox:
