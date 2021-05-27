@@ -169,6 +169,20 @@ ec_point_lproj ec_add(ec_point_lproj P, ec_point_lproj Q) {
 	return R;
 }
 
+ec_point_lproj ec_add_unchecked(ec_point_lproj P, ec_point_lproj Q) {
+	ef_intrl_elem u = ef_intrl_add(ef_intrl_mull(P.l, Q.z), ef_intrl_mull(Q.l, P.z)); // U = L_P * Z_Q + L_Q * Z_P
+	ef_intrl_elem w1 = ef_intrl_mull(P.x, Q.z); //W1 = X_P * Z_Q
+	ef_intrl_elem w2 = ef_intrl_mull(Q.x, P.z); //W2 = X_Q * Z_P
+	ef_intrl_elem v = ef_intrl_square(ef_intrl_add(w1, w2)); //V = (X_P * Z_Q + X_Q * Z_P)^2
+	ef_intrl_elem w3 = ef_intrl_mull(u, w2); //W3 = U * X_Q * Z_P
+	ef_intrl_elem w4 = ef_intrl_mull(u, ef_intrl_mull(v, Q.z)); //W4 = U * V * Z_Q
+	ec_point_lproj R;
+	R.x = ef_intrl_mull(u, ef_intrl_mull(w1, w3));
+	R.l = ef_intrl_add(ef_intrl_square(ef_intrl_add(w3, v)), ef_intrl_mull(w4, ef_intrl_add(P.l, P.z)));
+	R.z = ef_intrl_mull(w4, P.z);
+	return R;
+}
+
 ec_point_lproj ec_add_mixed(ec_point_laffine P, ec_point_lproj Q) {
 	if(ec_equal_point_lproj(Q, (ec_point_lproj) INFTY)) {
 		return ec_laffine_to_lproj(P);

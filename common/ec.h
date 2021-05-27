@@ -69,6 +69,8 @@ static inline ec_point_laffine ec_neg_laffine(ec_point_laffine P) {
 
 ec_point_lproj ec_add(ec_point_lproj P1, ec_point_lproj P2);
 
+ec_point_lproj ec_add_unchecked(ec_point_lproj P1, ec_point_lproj P2);
+
 ec_point_lproj ec_add_mixed(ec_point_laffine P, ec_point_lproj Q);
 
 ec_point_lproj ec_add_mixed_unchecked(ec_point_laffine P, ec_point_lproj Q);
