@@ -63,25 +63,23 @@ static inline poly64x2x2_t bf_psquare(poly64x2_t a) {
 }
 
 static inline poly64x2_t bf_red(poly64x2x2_t c) {
-	poly64x2_t t0, t1;
-	//t0={bit126to0, bit190to128}
-	//t1={(bit127 XOR bit191)*2^63, bit191*2^63)}
-	t0[0] = (poly64_t) veor_u64((uint64x1_t) c.val[0][1], (uint64x1_t) c.val[1][0]);
-	t1[0] = (poly64_t) vand_u64((uint64x1_t) t0[0], (uint64x1_t) pow2to63);
-	t1[1] = (poly64_t) vand_u64((uint64x1_t) c.val[1][0], (uint64x1_t) pow2to63);
-	t0[0] = (poly64_t) vand_u64((uint64x1_t) t0[0], (uint64x1_t) pow2to63-1);
-	t0[1] = (poly64_t) vand_u64((uint64x1_t) c.val[1][0], (uint64x1_t) pow2to63-1);
-
-	//Recognize almost bf_red_psquare
-	c.val[1][0] = (poly64_t) veor_u64((uint64x1_t) t0[1], (uint64x1_t) c.val[1][1]);
-	c.val[0][1] = (poly64_t) veor_u64((uint64x1_t) t0[0], (uint64x1_t) c.val[1][1]);
-	c.val[1] = (poly64x2_t) vshlq_n_u64((uint64x2_t) c.val[1], 1);
-
-	c.val[0][0] = (poly64_t) veor_u64((uint64x1_t) c.val[0][0], (uint64x1_t) t1[0]);
-	t1 = (poly64x2_t) vshrq_n_u64((uint64x2_t) t1, 63);
-	c.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) c.val[0], (uint64x2_t) t1);
-
-	return (poly64x2_t) veorq_u64((uint64x2_t) c.val[1], (uint64x2_t) c.val[0]);
+	poly64x2_t a, t0, t1;
+	
+	t0 = vextq_p64(c.val[0], c.val[1], 1);
+	t0[0] ^= c.val[1][0];
+	t1 = (poly64x2_t) vshlq_n_u64((uint64x2_t) c.val[1], 1);
+	a[0] = (t0[0] << 1);
+	a[0] >>= 1;
+	a = vextq_p64(t1, a, 1);
+	a = (poly64x2_t) veorq_u64((uint64x2_t) a, (uint64x2_t) t1);
+	a[0] ^= c.val[0][0];
+	t0 = (poly64x2_t) vshrq_n_u64((uint64x2_t) t0, 63);
+	a = (poly64x2_t) veorq_u64((uint64x2_t) a, (uint64x2_t) t0);
+	t0[0] <<= 63;
+	t0 = vextq_p64(t0, t0, 1);
+	t0 = vzip2q_p64(t0, c.val[1]);
+	a = (poly64x2_t) veorq_u64((uint64x2_t) a, (uint64x2_t) t0);
+	return a;
 }
 
 static inline poly64x2_t bf_red_psquare(poly64x2x2_t c) {
