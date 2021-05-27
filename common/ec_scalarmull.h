@@ -9,7 +9,13 @@
 
 typedef uint64_t elt[2];
 
-extern void lin_pass();
+extern void lin_pass_w5();
+
+extern void lin_pass_w6();
+
+extern void lin_pass_w4();
+
+extern void lin_pass_w3();
 
 extern void c_sel();
 
@@ -28,8 +34,8 @@ static inline void linear_pass(ec_point_laffine *P1, ec_point_laffine *P2, ec_po
 	for (uint64_t i = 0; i < l; i++) {
 		// c_sel(index1, i, &P1_tmp, &table[i]);
 		// c_sel(index2, i, &P2_tmp, &table[i]);
-		CSEL(val, index1, i, P1_tmp, table[i], new_ptr, typeof(ec_point_laffine));
-		CSEL(val, index2, i, P2_tmp, table[i], new_ptr, typeof(ec_point_laffine));
+		CSEL(index1, i, P1_tmp, table[i], new_ptr, typeof(ec_point_laffine));
+		CSEL(index2, i, P2_tmp, table[i], new_ptr, typeof(ec_point_laffine));
 	}
 
 	*P1 = P1_tmp;

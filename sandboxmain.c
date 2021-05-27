@@ -11,40 +11,40 @@
 int main() {
 	init_components();
 
-	// ec_point_laffine P = ec_rand_point_laffine();
-	// ec_point_laffine table[8];
-	// precompute(P, table);
-	//
-	// ec_point_laffine P1;
-	// ec_point_laffine P2;
-	// lin_pass(&P1, &P2, &table, 4, 7);
-	//
-	// P2 = ec_endo_laffine(P2);
-	// ec_point_laffine expected1 = table[4];
-	// ec_point_laffine expected2 = ec_endo_laffine(table[7]);
-	//
-	// uint64_t equal1 = ec_equal_point_laffine(expected1, P1);
-	// printf("equal1: %lu\n", equal1);
-	// uint64_t equal2 = ec_equal_point_laffine(expected2, P2);
-	// printf("equal2: %lu\n", equal2);
-
-
-
-
-	uint64x2x2_t k = (uint64x2x2_t) {{{253256326376, 457436346236}, {124525, 11352535}}};
-
 	ec_point_laffine P = ec_rand_point_laffine();
+	ec_point_laffine table[8];
+	precompute(P, table);
 
-	ec_point_lproj expected = ec_scalarmull_single(P, k);
-	//Act
-	ec_point_laffine actual = ec_scalarmull_single_endo_w5_randaccess(P, k);
+	ec_point_laffine P1;
+	ec_point_laffine P2;
+	lin_pass(&P1, &P2, &table, 4, 7);
 
-	//Assert
-	uint64_t equal = ec_equal_point_lproj(expected, ec_laffine_to_lproj(actual));
-	uint64_t on_curve = ec_is_on_curve_laffine(actual);
+	P2 = ec_endo_laffine(P2);
+	ec_point_laffine expected1 = table[4];
+	ec_point_laffine expected2 = ec_endo_laffine(table[7]);
 
-	printf("Equal: %lu\n", equal);
-	printf("On curve: %lu\n", on_curve);
+	uint64_t equal1 = ec_equal_point_laffine(expected1, P1);
+	printf("equal1: %lu\n", equal1);
+	uint64_t equal2 = ec_equal_point_laffine(expected2, P2);
+	printf("equal2: %lu\n", equal2);
+
+
+
+
+	// uint64x2x2_t k = (uint64x2x2_t) {{{253256326376, 457436346236}, {124525, 11352535}}};
+	//
+	// ec_point_laffine P = ec_rand_point_laffine();
+	//
+	// ec_point_lproj expected = ec_scalarmull_single(P, k);
+	// //Act
+	// ec_point_laffine actual = ec_scalarmull_single_endo_w5_randaccess(P, k);
+	//
+	// //Assert
+	// uint64_t equal = ec_equal_point_lproj(expected, ec_laffine_to_lproj(actual));
+	// uint64_t on_curve = ec_is_on_curve_laffine(actual);
+	//
+	// printf("Equal: %lu\n", equal);
+	// printf("On curve: %lu\n", on_curve);
 
 
 

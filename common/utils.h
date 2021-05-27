@@ -66,10 +66,10 @@
 	tmpx1 = vbsl_u64(tmpx1, new_ptrx1, old_ptrx1); \
 	old = *((type*) tmpx1[0]); \
 
-#define CSEL(tmp1, cmpval, eqcond, old, new, new_ptr, type) \
-	asm volatile ("SUBS %0, %2, %3;" \
-	"CSEL %1, %4, %5, EQ;" \
-	: "+r" ( tmp1 ), "+r" ( new_ptr ) \
+#define CSEL(cmpval, eqcond, old, new, new_ptr, type) \
+	asm volatile ("CMP %1, %2;" \
+	"CSEL %0, %3, %4, EQ;" \
+	: "+r" ( new_ptr ) \
 	: "r" (cmpval), "r" (eqcond), "r" (&new), "r" (&old) \
 	); \
 	old = *((type*)new_ptr); \
