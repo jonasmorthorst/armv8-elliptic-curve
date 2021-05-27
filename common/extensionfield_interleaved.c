@@ -41,7 +41,7 @@ void ef_intrl_print_unred_expr_nl(ef_intrl_elem_unred a) {
 	ef_intrl_print_unred_expr(a);
 	printf("\n");
 }
- 
+
 ef_elem ef_intrl_disentangle(ef_intrl_elem a) {
 	ef_elem res;
 	poly64x2_t t = vextq_p64(a.val[0], a.val[0], 1); //t = {a[1][0], a[0][0]}
@@ -73,6 +73,17 @@ ef_intrl_elem ef_intrl_rand_elem() {
 	return ef_intrl_interleave(ef_rand_elem());
 }
 
+ef_intrl_elem_unred ef_intrl_rand_unred_elem() {
+	ef_intrl_elem_unred c;
+
+	c.val[0] = bf_rand_elem();
+	c.val[1] = bf_rand_elem();
+	c.val[2] = bf_rand_elem();
+	c.val[3] = bf_rand_elem();
+
+	return c;
+}
+
 ef_intrl_elem ef_intrl_red_from_lazy(ef_intrl_elem c) {
 	ef_intrl_elem res;
 	poly64x2_t mask = vdupq_n_p64(pow2to63);
@@ -95,18 +106,18 @@ ef_intrl_elem ef_intrl_inv(ef_intrl_elem a) {
 	poly64x2x2_t r0, r1;
 	poly64x2_t t, t0, t1, t2, t3, t4, t5;
 	poly64x2_t z = vdupq_n_p64(0);
-	
+
 	t2 = vextq_p64(a.val[0], a.val[0], 1); //{a1[0], a0[0]}
 	t3 = vextq_p64(a.val[1], a.val[1], 1); //{a1[1], a0[1]}
-	
-	//a0 + a1 
+
+	//a0 + a1
 	t4 = (poly64x2_t) veorq_u64((uint64x2_t) t2, (uint64x2_t) a.val[0]); //{a0[0] ^ a1[0], a0[0] ^ a1[0]}
 	t5 = (poly64x2_t) veorq_u64((uint64x2_t) t3, (uint64x2_t) a.val[1]); //{a0[1] ^ a1[1], a0[1] ^ a1[1]}
-	
+
 	//a0^2 + a1^2
 	r0.val[0] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(t4[0], t4[0]));
 	r0.val[1] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(t5[0], t5[0]));
-	
+
 	//a0 * a1
 	r1.val[0] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a.val[0][0], t2[0]));
 	r1.val[1] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(a.val[1][0], t3[0]));
@@ -117,14 +128,14 @@ ef_intrl_elem ef_intrl_inv(ef_intrl_elem a) {
 	r1.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) r1.val[0], (uint64x2_t) t1);
 	t1 = vextq_p64(t0, z, 1);
 	r1.val[1] = (poly64x2_t) veorq_u64((uint64x2_t) r1.val[1], (uint64x2_t) t1);
-	
+
 	//t = a0 * a1 + a0^2 + a1^2
 	r0.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) r0.val[0], (uint64x2_t) r1.val[0]);
 	r0.val[1] = (poly64x2_t) veorq_u64((uint64x2_t) r0.val[1], (uint64x2_t) r1.val[1]);
-	
+
 	//t^-1
 	t = bf_inv(bf_red_lazy(r0));
-	
+
 	//c1 = a1*t^-1
 	r1.val[0] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(t[0], t2[0])); //t[0] * a1[0]
 	r1.val[1] = (poly64x2_t) vreinterpretq_u64_p128(vmull_high_p64(t, a.val[1])); //t[1] * a1[1]
@@ -135,7 +146,7 @@ ef_intrl_elem ef_intrl_inv(ef_intrl_elem a) {
 	r1.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) r1.val[0], (uint64x2_t) t1);
 	t1 = vextq_p64(t0, z, 1);
 	r1.val[1] = (poly64x2_t) veorq_u64((uint64x2_t) r1.val[1], (uint64x2_t) t1);
-	
+
 	//c0 = (a0 + a1)*t^-1
 	r0.val[0] = (poly64x2_t) vreinterpretq_u64_p128(vmull_p64(t[0], t4[0]));
 	r0.val[1] = (poly64x2_t) vreinterpretq_u64_p128(vmull_high_p64(t, t5));
@@ -146,13 +157,13 @@ ef_intrl_elem ef_intrl_inv(ef_intrl_elem a) {
 	r0.val[0] = (poly64x2_t) veorq_u64((uint64x2_t) r0.val[0], (uint64x2_t) t1);
 	t1 = vextq_p64(t0, z, 1);
 	r0.val[1] = (poly64x2_t) veorq_u64((uint64x2_t) r0.val[1], (uint64x2_t) t1);
-	
+
 	//Combining
 	c.val[0] = (poly64x2_t) vzip1q_u64((uint64x2_t) r0.val[0], (uint64x2_t) r1.val[0]);
 	c.val[1] = (poly64x2_t) vzip2q_u64((uint64x2_t) r0.val[0], (uint64x2_t) r1.val[0]);
 	c.val[2] = (poly64x2_t) vzip1q_u64((uint64x2_t) r0.val[1], (uint64x2_t) r1.val[1]);
 	c.val[3] = (poly64x2_t) vzip2q_u64((uint64x2_t) r0.val[1], (uint64x2_t) r1.val[1]);
-	
+
 	return ef_intrl_red(c);
 }
 
