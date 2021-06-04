@@ -17,7 +17,7 @@ int main() {
 
 	ec_point_laffine P1;
 	ec_point_laffine P2;
-	lin_pass(&P1, &P2, &table, 4, 7);
+	lin_pass_w5(&P1, &P2, &table, 4, 7);
 
 	P2 = ec_endo_laffine(P2);
 	ec_point_laffine expected1 = table[4];
