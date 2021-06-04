@@ -7,6 +7,13 @@
 
 #include "utils.h"
 
+#define TRACE 0xD792EA76691524E3
+
+typedef struct {
+	uint64x2_t k1, k2;
+	uint64_t k1_sign, k2_sign;
+} ec_split_scalar;
+
 extern void lin_pass_w3();
 
 extern void lin_pass_w4();
@@ -44,5 +51,7 @@ void precompute_w6(ec_point_laffine P, ec_point_laffine* table);
 void reg_rec(uint64x2_t k, uint64_t w, signed char* rec, uint64_t l);
 
 void ec_print_rec(signed char *rec, uint64_t l);
+
+ec_split_scalar ec_scalar_decomp(uint64x2x2_t k);
 
 #endif

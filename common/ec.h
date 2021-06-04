@@ -10,7 +10,6 @@
 #define INFTY {{{{1, 0}, {0, 0}}}, {{{1, 0}, {0, 0}}}, {{{0, 0}, {0, 0}}}}
 
 #define SUBGROUP_ORDER {{{0x877DABA2A44750A5, 0xDAC40D1195270779},{0xFFFFFFFFFFFFFFFF, 0x1FFFFFFFFFFFFFFF}}}
-#define TRACE 0xD792EA76691524E3
 
 typedef struct {
 	ef_intrl_elem x, l, z;
@@ -19,11 +18,6 @@ typedef struct {
 typedef struct {
 	ef_intrl_elem x, l;
 } ec_point_laffine;
-
-typedef struct {
-	uint64x2_t k1, k2;
-	uint64_t k1_sign, k2_sign;
-} ec_split_scalar;
 
 ec_point_lproj ec_create_point_lproj(ef_intrl_elem x, ef_intrl_elem l, ef_intrl_elem z);
 
@@ -107,7 +101,5 @@ static inline ec_point_laffine ec_endo_laffine(ec_point_laffine P) {
 
 	return P;
 }
-
-ec_split_scalar ec_scalar_decomp(uint64x2x2_t k);
 
 #endif
