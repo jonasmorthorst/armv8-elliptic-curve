@@ -17,7 +17,7 @@ void benchmark_ec_linaer_pass_w5() {
 		ec_point_laffine P = ec_rand_point_laffine();
 
 		ec_point_laffine table[8];
-		precompute(P, table);
+		precompute_w5(P, table);
 
 		uint64_t index1 = rand() % (7 + 1);
 		uint64_t index2 = rand() % (7 + 1);
@@ -233,7 +233,7 @@ void benchmark_ec_scalarmull_single_endo_w5_randaccess_time() {
 	ec_print_hex(sum);
 	printf("BENCHMARK benchmark_ec_scalarmull_single_endo_w5_randaccess_time\n");
 	printf("Number of iterations: %lu\n", num_runs);
-	printf("Average time: %8lld\n", nsec/num_runs);
+	printf("Average time: %8lld\n\n", nsec/num_runs);
 }
 
 void benchmark_ec_scalarmull_single_endo_w6_randaccess() {
