@@ -608,7 +608,7 @@ ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {
 	// Step 1: {tmp1, tmp2, tmp3, tmp4} = b1 = k / 2^127 (where / is integer division)
 	tmp0 = (k.val[1][0] << 1) | (k.val[0][1] >> 63);
 	tmp1 = (k.val[1][1] << 1) | (k.val[1][0] >> 63);
-	tmp0 += ((k.val[0][1] >> 62) & 0x1); // round
+	//tmp0 += ((k.val[0][1] >> 62) & 0x1); // round
 	tmp2 = 0;
 	tmp3 = 0;
 	//printf("Step 1: %lu, %lu, %lu, %lu\n", tmp0, tmp1, tmp2, tmp3);
@@ -667,8 +667,8 @@ ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {
 	ADDACC_256(b2_times_t[0], b2_times_t[1], zero, zero, tmp4, tmp5, tmp6, tmp7);
 	//printf("Step 7: %lu, %lu, %lu, %lu\n", tmp4, tmp5, tmp6, tmp7);
 
-	//Step 8: Determine sign of k1 (They don't check top tho?)
-	sign = (tmp2 < tmp6) | ((tmp2 == tmp6) & (tmp1 < tmp5));
+	//Step 8: Determine sign of k1 
+	sign = (tmp3 < tmp7) | ((tmp3 == tmp7) & ((tmp2 < tmp6) | ((tmp2 == tmp6) & ((tmp1 < tmp5) | ((tmp1 == tmp5) & (tmp0 < tmp4))))));
 	//printf("Step 8: %lu\n", sign);
 
 	//Step 9: {tmp0, tmp1, tmp2, tmp3} = (b1 + k) - (b1*q + b2*t)
@@ -699,8 +699,8 @@ ec_split_scalar ec_scalar_decomp(uint64x2x2_t k) {
 	tmp5 = b2 >> 1;
 	//printf("Step 12: %lu, %lu, %lu\n", tmp3, tmp4, tmp5);
 
-	//Step 13: k2 sign (0 for positive) (Here they properly check top, not bottom though)
-	sign = (tmp2 < tmp5) | ((tmp2 == tmp5) & (tmp1 < tmp4));
+	//Step 13: k2 sign (0 for positive)
+	sign = (tmp2 < tmp5) | ((tmp2 == tmp5) & ((tmp1 < tmp4) | ((tmp1 == tmp4) & (tmp0 < tmp3))));
 	//printf("Step 13: %lu\n", sign);
 
 	//Step 14: {tmp0, tmp1, tmp2} = b2*q - (b1*t + b2)
