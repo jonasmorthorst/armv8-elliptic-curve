@@ -41,7 +41,7 @@ void precompute_w5(ec_point_laffine P, ec_point_laffine* table);
 
 void precompute_w6(ec_point_laffine P, ec_point_laffine* table);
 
-void reg_rec(uint64x2_t k, uint64_t w, signed char* rec);
+void reg_rec(uint64x2_t k, uint64_t w, signed char* rec, uint64_t l);
 
 void ec_print_rec(signed char *rec, uint64_t l);
 
