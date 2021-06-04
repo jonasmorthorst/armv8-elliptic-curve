@@ -3,10 +3,7 @@
 #ifndef BASEFIELD_H
 #define BASEFIELD_H
 
-//Formal interface
-
 #define pow2to63 9223372036854775808U
-
 
 void bf_print_expr(poly64x2_t p);
 

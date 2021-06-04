@@ -37,7 +37,7 @@ void benchmark_ec_linaer_pass_w5() {
 	printf("Median: %lf\n\n", median(times, num_runs));
 }
 
-void benchmark_c_sel() {
+void benchmark_csel_asm() {
 	uint64_t num_runs = 2000;
 	uint64_t times[num_runs];
 	ec_point_laffine sum = ec_rand_point_laffine();
@@ -49,19 +49,19 @@ void benchmark_c_sel() {
 		uint64_t rand_num = rand() % 2;
 
 		uint64_t start = read_pmccntr();
-		c_sel(rand_num, con, &P, &P_neg);
+		csel_asm(rand_num, con, &P, &P_neg);
 		uint64_t end = read_pmccntr();
 		insert_sorted(end-start, times, i);
 		sum = ec_lproj_to_laffine(ec_add_laffine_unchecked(P, sum));
 	}
 	ec_print_hex_laffine(sum);
-	printf("BENCHMARK benchmark_c_sel\n");
+	printf("BENCHMARK benchmark_csel_asm\n");
 	printf("Number of iterations: %lu\n", num_runs);
 	printf("Average: %lf\n", average(times, num_runs));
 	printf("Median: %lf\n\n", median(times, num_runs));
 }
 
-void benchmark_csel() {
+void benchmark_csel_inline_asm() {
 	uint64_t num_runs = 2000;
 	uint64_t times[num_runs];
 	ec_point_laffine sum = ec_rand_point_laffine();
@@ -79,7 +79,7 @@ void benchmark_csel() {
 		sum = ec_lproj_to_laffine(ec_add_laffine_unchecked(P, sum));
 	}
 	ec_print_hex_laffine(sum);
-	printf("BENCHMARK benchmark_csel\n");
+	printf("BENCHMARK benchmark_csel_inline_asm\n");
 	printf("Number of iterations: %lu\n", num_runs);
 	printf("Average: %lf\n", average(times, num_runs));
 	printf("Median: %lf\n\n", median(times, num_runs));
@@ -262,8 +262,8 @@ void benchmark_ec_scalarmull_double() {
 
 void benchmark_ec_scalarmull_all() {
 	benchmark_ec_linaer_pass_w5();
-	benchmark_c_sel();
-	benchmark_csel();
+	benchmark_csel_asm();
+	benchmark_csel_inline_asm();
 	benchmark_cmov();
 	benchmark_ec_scalarmull_single();
 	benchmark_ec_scalarmull_single_endo();

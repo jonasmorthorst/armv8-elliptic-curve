@@ -3,7 +3,7 @@
 .global lin_pass_w6
 .global lin_pass_w4
 .global lin_pass_w3
-.global c_sel
+.global csel_asm
 
 lin_pass_w5:
 	// Save
@@ -1017,7 +1017,7 @@ lin_pass_w3:
 	ldp x19, x20, [SP], #16
 	ret
 
-c_sel:
+csel_asm:
 	cmp x0, x1
 	csel x15, x3, x2, EQ
 

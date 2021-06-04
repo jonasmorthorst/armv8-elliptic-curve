@@ -3,9 +3,9 @@
 #include <string.h>
 
 #define pow2to63 9223372036854775808U
+#define pow2to64 {{{0, 1}, {0,0}}}
 
 // Algorithm 3.27
-// k is a 253 bit number - therefore we use poly to represent it
 ec_point_lproj ec_scalarmull_single(ec_point_laffine P, uint64x2x2_t k) {
 	ec_point_lproj Q = (ec_point_lproj) INFTY;
 
@@ -26,7 +26,7 @@ ec_point_lproj ec_scalarmull_single(ec_point_laffine P, uint64x2x2_t k) {
 				ec_point_lproj* ref = (ec_point_lproj*)r0;
 				Q = *ref;
 
-				c = c/2;
+				c >>= 1;
 			}
 		}
 	}
@@ -47,16 +47,13 @@ ec_point_lproj ec_scalarmull_single_lproj(ec_point_lproj P, uint64x2x2_t k) {
           Q = ec_add(P, Q);
         }
 
-        c = c/2;
+        c >>= 1;
       }
     }
   }
 
   return Q;
 }
-
-
-#define pow2to64 {{{0, 1}, {0,0}}}
 
 // Algorithm 3.48
 ec_point_lproj ec_scalarmull_double(ec_point_lproj P, uint64x2x2_t k, ec_point_lproj Q, uint64x2x2_t l) {
@@ -123,22 +120,22 @@ ec_point_laffine ec_scalarmull_single_endo_w3_randaccess(ec_point_laffine P, uin
 	decomp.k2[0] = decomp.k2[0]+c2;
 
 	// Compute recodings
-	signed char naf_k1[l];
-	signed char naf_k2[l];
+	signed char rec_k1[l];
+	signed char rec_k2[l];
 
-	ec_to_naf(decomp.k1, 3, naf_k1);
-	ec_to_naf(decomp.k2, 3, naf_k2);
+	reg_rec(decomp.k1, 3, rec_k1, l-1);
+	reg_rec(decomp.k2, 3, rec_k2, l-1);
 
 	// Precomputation
 	ec_point_laffine table[2];
 	precompute_w3(P, table);
 
-	signed char k1_digit = naf_k1[l-1];
+	signed char k1_digit = rec_k1[l-1];
 	uint64_t k1_digit_sign = ((unsigned char)k1_digit >> 7);
 	signed char k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
 	uint64_t k1_sign = k1_digit_sign^decomp.k1_sign;
 
-	signed char k2_digit = naf_k2[l-1];
+	signed char k2_digit = rec_k2[l-1];
 	uint64_t k2_digit_sign = (unsigned char)k2_digit >> 7;
 	signed char k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
 	uint64_t k2_sign = k2_digit_sign^decomp.k2_sign;
@@ -159,12 +156,12 @@ ec_point_laffine ec_scalarmull_single_endo_w3_randaccess(ec_point_laffine P, uin
 	for(int i=l-2; i>=0; i--) {
 		Q = ec_double(Q);
 
-		k1_digit = naf_k1[i];
+		k1_digit = rec_k1[i];
 		k1_digit_sign = ((unsigned char)k1_digit >> 7);
 		k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
 		k1_sign = k1_digit_sign^decomp.k1_sign;
 
-		k2_digit = naf_k2[i];
+		k2_digit = rec_k2[i];
 		k2_digit_sign = ((unsigned char)k2_digit >> 7);
 		k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
 		k2_sign = k2_digit_sign^decomp.k2_sign;
@@ -211,22 +208,22 @@ ec_point_laffine ec_scalarmull_single_endo_w4_randaccess(ec_point_laffine P, uin
 	decomp.k2[0] = decomp.k2[0]+c2;
 
 	// Compute recodings
-	signed char naf_k1[l];
-	signed char naf_k2[l];
+	signed char rec_k1[l];
+	signed char rec_k2[l];
 
-	ec_to_naf(decomp.k1, 4, naf_k1);
-	ec_to_naf(decomp.k2, 4, naf_k2);
+	reg_rec(decomp.k1, 4, rec_k1, l-1);
+	reg_rec(decomp.k2, 4, rec_k2, l-1);
 
 	// Precomputation
 	ec_point_laffine table[4];
 	precompute_w4(P, table);
 
-	signed char k1_digit = naf_k1[l-1];
+	signed char k1_digit = rec_k1[l-1];
 	uint64_t k1_digit_sign = ((unsigned char)k1_digit >> 7);
 	signed char k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
 	uint64_t k1_sign = k1_digit_sign^decomp.k1_sign;
 
-	signed char k2_digit = naf_k2[l-1];
+	signed char k2_digit = rec_k2[l-1];
 	uint64_t k2_digit_sign = (unsigned char)k2_digit >> 7;
 	signed char k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
 	uint64_t k2_sign = k2_digit_sign^decomp.k2_sign;
@@ -248,12 +245,12 @@ ec_point_laffine ec_scalarmull_single_endo_w4_randaccess(ec_point_laffine P, uin
 	for(int i=l-2; i>=0; i--) {
 		Q = ec_double(ec_double(Q));
 
-		k1_digit = naf_k1[i];
+		k1_digit = rec_k1[i];
 		k1_digit_sign = ((unsigned char)k1_digit >> 7);
 		k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
 		k1_sign = k1_digit_sign^decomp.k1_sign;
 
-		k2_digit = naf_k2[i];
+		k2_digit = rec_k2[i];
 		k2_digit_sign = ((unsigned char)k2_digit >> 7);
 		k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
 		k2_sign = k2_digit_sign^decomp.k2_sign;
@@ -288,8 +285,6 @@ ec_point_laffine ec_scalarmull_single_endo_w4_randaccess(ec_point_laffine P, uin
 ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uint64x2x2_t k) {
 	uint64_t new_ptr, con = 1;
 	int l = 33;
-	//l=52
-	//l=86
 
 	ec_split_scalar decomp = ec_scalar_decomp(k);
 
@@ -302,21 +297,21 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	decomp.k2[0] = decomp.k2[0]+c2;
 
 	// Compute recodings
-	signed char naf_k1[l], naf_k2[l];
+	signed char rec_k1[l], rec_k2[l];
 
-	ec_to_naf(decomp.k1, 5, naf_k1);
-	ec_to_naf(decomp.k2, 5, naf_k2);
+	reg_rec(decomp.k1, 5, rec_k1, l-1);
+	reg_rec(decomp.k2, 5, rec_k2, l-1);
 
 	// Precomputation
 	ec_point_laffine table[8];
-	precompute(P, table);
+	precompute_w5(P, table);
 
-	signed char k1_digit = naf_k1[l-1];
+	signed char k1_digit = rec_k1[l-1];
 	uint64_t k1_digit_sign = ((unsigned char)k1_digit >> 7);
 	signed char k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
 	uint64_t k1_sign = k1_digit_sign^decomp.k1_sign;
 
-	signed char k2_digit = naf_k2[l-1];
+	signed char k2_digit = rec_k2[l-1];
 	uint64_t k2_digit_sign = (unsigned char)k2_digit >> 7;
 	signed char k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
 	uint64_t k2_sign = k2_digit_sign^decomp.k2_sign;
@@ -337,12 +332,12 @@ ec_point_laffine ec_scalarmull_single_endo_w5_randaccess(ec_point_laffine P, uin
 	for(int i=l-2; i>=0; i--) {
 		Q = ec_double(ec_double(ec_double(Q)));
 
-		k1_digit = naf_k1[i];
+		k1_digit = rec_k1[i];
 		k1_digit_sign = ((unsigned char)k1_digit >> 7);
 		k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
 		k1_sign = k1_digit_sign^decomp.k1_sign;
 
-		k2_digit = naf_k2[i];
+		k2_digit = rec_k2[i];
 		k2_digit_sign = ((unsigned char)k2_digit >> 7);
 		k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
 		k2_sign = k2_digit_sign^decomp.k2_sign;
@@ -391,22 +386,22 @@ ec_point_laffine ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uin
 	decomp.k2[0] = decomp.k2[0]+c2;
 
 	// Compute recodings
-	signed char naf_k1[l];
-	signed char naf_k2[l];
+	signed char rec_k1[l];
+	signed char rec_k2[l];
 
-	ec_to_naf(decomp.k1, 6, naf_k1);
-	ec_to_naf(decomp.k2, 6, naf_k2);
+	reg_rec(decomp.k1, 6, rec_k1, l-1);
+	reg_rec(decomp.k2, 6, rec_k2, l-1);
 
 	// Precomputation
 	ec_point_laffine table[16];
 	precompute_w6(P, table);
 
-	signed char k1_digit = naf_k1[l-1];
+	signed char k1_digit = rec_k1[l-1];
 	uint64_t k1_digit_sign = ((unsigned char)k1_digit >> 7);
 	signed char k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
 	uint64_t k1_sign = k1_digit_sign^decomp.k1_sign;
 
-	signed char k2_digit = naf_k2[l-1];
+	signed char k2_digit = rec_k2[l-1];
 	uint64_t k2_digit_sign = (unsigned char)k2_digit >> 7;
 	signed char k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
 	uint64_t k2_sign = k2_digit_sign^decomp.k2_sign;
@@ -429,12 +424,12 @@ ec_point_laffine ec_scalarmull_single_endo_w6_randaccess(ec_point_laffine P, uin
 	for(int i=l-2; i>=0; i--) {
 		Q = ec_double(ec_double(ec_double(ec_double(Q))));
 
-		k1_digit = naf_k1[i];
+		k1_digit = rec_k1[i];
 		k1_digit_sign = ((unsigned char)k1_digit >> 7);
 		k1_val = (k1_digit^(zero - k1_digit_sign))+k1_digit_sign;
 		k1_sign = k1_digit_sign^decomp.k1_sign;
 
-		k2_digit = naf_k2[i];
+		k2_digit = rec_k2[i];
 		k2_digit_sign = ((unsigned char)k2_digit >> 7);
 		k2_val = (k2_digit^(zero - k2_digit_sign))+k2_digit_sign;
 		k2_sign = k2_digit_sign^decomp.k2_sign;
@@ -491,7 +486,7 @@ void precompute_w4(ec_point_laffine P, ec_point_laffine table[]) {
 	table[3] = (ec_point_laffine) {ef_intrl_mull(P7.x, inv_outputs[2]), ef_intrl_mull(P7.l, inv_outputs[2])};
 }
 
-void precompute(ec_point_laffine P, ec_point_laffine table[]) {
+void precompute_w5(ec_point_laffine P, ec_point_laffine table[]) {
 	ec_point_lproj P2 = ec_double_mixed(P);
 	ec_point_lproj P3 = ec_add_mixed_unchecked(P, P2);
 	ec_point_lproj P4 = ec_double(P2);
@@ -563,123 +558,44 @@ void precompute_w6(ec_point_laffine P, ec_point_laffine table[]) {
 	table[15] = (ec_point_laffine) {ef_intrl_mull(P31.x, inv_outputs[14]), ef_intrl_mull(P31.l, inv_outputs[14])};
 }
 
-void print_table(ec_point_laffine* table) {
-	int end = 16;
-	for (int i = 1; i < end; i++) {
-		printf("\n %d) \n", i);
-    ec_print_hex_laffine(table[i]);
-  }
-
-  printf("\n");
-}
-
-#define CEIL(A, B)                      (((A) - 1) / (B) + 1)
 #define MASK(B)                         (((uint64_t)1 << (B)) - 1)
 
-void ec_to_naf(uint64x2_t k, uint64_t w, signed char naf[]) {
-	uint64_t l = CEIL(128, (w-1)); //64
-
-	//0000 0001 1111
+void reg_rec(uint64x2_t k, uint64_t w, signed char rec[], uint64_t l) {
 	uint64_t mask = MASK(w);
 
   int i = 0;
   while (k[1] > 0 || i < l) {
-		//int64_t k_i_temp = k[0]%(2*m)-m; // (k mod 16 only needs lower word)
     int64_t k_i_temp = (k[0] & mask) - ((int64_t)1 << (w - 1)); // (k mod 16 only needs lower word)
 
-    // Extract 00001111
-    //char digit = k_i_temp & 15;
+    rec[i] = k_i_temp;
 
-    // If i is odd - store in higher bits
-    //digit = digit << 4*(i&1);
-    naf[i] = k_i_temp;
-
-		// Subtraction
 		k[0] -=k_i_temp;
-
-    // Division by 8 => >> 3
-    // We need to shift with carry
 
     // First shift lower bits
     k[0] = k[0] >> (w-1);
 
-    // Then higher bits with 4 bits carry
+    // Then higher bits with w-1 bits carry
     uint64_t carries = k[1] & mask;
 
-    // Can we use both output input MOV R0,R0,ROR 4
     uint64_t shift_res;
-    asm ("ROR %[res], %[input], %[w];"
+    asm ("ROR %[res], %[input], %[s];"
       : [res] "=r" (shift_res)
-      : [input] "r" (carries), [w] "r" (w-1)
+      : [input] "r" (carries), [s] "r" (w-1)
       );
 
     k[0] = k[0] | shift_res;
-
-    // First shift higher bits
     k[1] = k[1] >> (w-1);
 
     i++;
   }
 
-	naf[i] = k[0] & mask;
+	rec[i] = k[0] & mask;
 }
 
-void ec_print_naf(signed char *naf, uint64_t l) {
+void ec_print_rec(signed char *rec, uint64_t l) {
   for(int i = l-1; i >= 0; i--) {
-    printf(" %hhd ", naf[i]);
+    printf(" %hhd ", rec[i]);
   }
 
   printf("\n");
-}
-
-#define types_copy(Y,X) memcpy(Y, X, sizeof(uint64_t)*2);
-
-void bn_rsh(uint64_t *a, int size, int bits) {
-        int i;
-        uint64_t r, carry, shift, mask, *c;
-
-        a += size - 1;
-
-        /* Prepare the bit mask. */
-        shift = 64 - bits;
-        carry = 0;
-        mask = MASK(bits);
-        for (i = size - 1; i >= 0; i--, a--) {
-                /* Get the needed least significant bits. */
-                r = (*a) & mask;
-                /* Shift left the operand. */
-                *a = ((*a) >> bits) | (carry << shift);
-                /* Update the carry. */
-                carry = r;
-        }
-}
-
-void scmul_wreg(signed char *naf, int *len, elt k, int n, int w) {
-        int i, l;
-        elt t;
-        int64_t t0, mask;
-        int64_t u_i;
-        int64_t efe=(uint64_t)(-1), zero = 0x0, one = 0x1;
-
-        mask = MASK(w);
-        l = CEIL(n, (w - 1));
-
-        types_copy(t, k);
-
-        i = 0;
-        for (i = 0; t[1] != 0; i++, naf++) {
-                u_i = (t[0] & mask) - ((uint64_t)1 << (w - 1));
-                t[0] -= u_i;
-                *naf = u_i;
-                bn_rsh(t, 2, w - 1);
-        }
-        for (; i < l; i++, naf++) {
-                u_i = (t[0] & mask) - ((uint64_t)1 << (w - 1));
-                t[0] -= u_i;
-                *naf = u_i;
-                t[0] >>= (w - 1);
-        }
-
-        *naf = t[0] & mask;
-        *len = l + 1;
 }
