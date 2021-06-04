@@ -1,4 +1,5 @@
 #include <arm_neon.h>
+#include <time.h>
 
 #ifndef BENCHMARK_TOOL_H
 #define BENCHMARK_TOOL_H

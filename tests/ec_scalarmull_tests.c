@@ -423,7 +423,7 @@ void ec_scalarmull_test_precomputation(test_ctr *ctr) {
 	ec_point_lproj P = ec_create_point_lproj(PX, PL, PZ); //99921481365893197563 * GEN
 
 	ec_point_laffine table[16];
-	precompute(ec_lproj_to_laffine(P), table);
+	precompute_w5(ec_lproj_to_laffine(P), table);
 
 	uint64_t equal1 = ec_equal_point_laffine(table[1], ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{1, 0}, {0, 0}}}));
 	uint64_t equal3 = ec_equal_point_laffine(table[3], ec_scalarmull_single_endo_w5_randaccess(ec_lproj_to_laffine(P), (uint64x2x2_t) {{{3, 0}, {0, 0}}}));
