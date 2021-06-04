@@ -216,6 +216,26 @@ void benchmark_ec_scalarmull_single_endo_w5_randaccess() {
 	printf("Median: %lf\n\n", median(times, num_runs));
 }
 
+void benchmark_ec_scalarmull_single_endo_w5_randaccess_time() {
+	uint64_t num_runs = 2000;
+	unsigned long long start, end, nsec = 0;
+	ec_point_lproj sum = ec_rand_point_lproj();
+
+	for(int i = 0; i < num_runs; i++) {
+		uint64x2x2_t k = ec_rand_scalar();
+		ec_point_laffine P = ec_rand_point_laffine();
+		int64_t start = cpu_nseconds();
+		ec_point_laffine R = ec_scalarmull_single_endo_w5_randaccess(P, k);
+		int64_t end = cpu_nseconds();
+		nsec = nsec+(end-start);
+		sum = ec_add_mixed(R, sum);
+	}
+	ec_print_hex(sum);
+	printf("BENCHMARK benchmark_ec_scalarmull_single_endo_w5_randaccess_time\n");
+	printf("Number of iterations: %lu\n", num_runs);
+	printf("Average time: %8lld\n", nsec/num_runs);
+}
+
 void benchmark_ec_scalarmull_single_endo_w6_randaccess() {
 	uint64_t num_runs = 2000;
 	uint64_t times[num_runs];
@@ -270,6 +290,7 @@ void benchmark_ec_scalarmull_all() {
 	benchmark_ec_scalarmull_single_endo_w3_randaccess();
 	benchmark_ec_scalarmull_single_endo_w4_randaccess();
 	benchmark_ec_scalarmull_single_endo_w5_randaccess();
+	benchmark_ec_scalarmull_single_endo_w5_randaccess_time();
 	benchmark_ec_scalarmull_single_endo_w6_randaccess();
 	benchmark_ec_scalarmull_double();
 }
