@@ -107,10 +107,37 @@ void benchmark_ef_intrl_inv() {
 	printf("Median: %lf\n\n", median(times, num_runs));
 }
 
+void benchmark_ef_intrl_sim_inv() {
+        uint64_t num_runs = 20000;
+        uint64_t times[num_runs];
+        ef_intrl_elem sum = ef_intrl_rand_elem();
+
+        for(int i = 0; i < num_runs; i++) {
+		uint64_t len = 2;
+                ef_intrl_elem inputs[len];
+                ef_intrl_elem outputs[len];
+                inputs[0] = ef_intrl_rand_elem();
+                inputs[1] = ef_intrl_rand_elem();
+
+                uint64_t start = read_pmccntr();
+		ef_intrl_sim_inv(inputs, outputs, len);
+                uint64_t end = read_pmccntr();
+                insert_sorted(end-start, times, i);
+                sum = ef_intrl_add(sum, outputs[0]);
+		sum = ef_intrl_add(sum, outputs[1]);
+        }
+        ef_intrl_print_hex_nl(sum);
+        printf("BENCHMARK ef_intrl_sim_inv\n");
+        printf("Number of iterations: %lu\n", num_runs);
+        printf("Average: %lf\n", average(times, num_runs));
+        printf("Median: %lf\n\n", median(times, num_runs));
+}
+
 void benchmark_ef_intrl_all() {
 	benchmark_ef_intrl_add();
 	benchmark_ef_intrl_square();
 	benchmark_ef_intrl_mull();
 	benchmark_ef_intrl_red();
 	benchmark_ef_intrl_inv();
+        benchmark_ef_intrl_sim_inv();
 }
